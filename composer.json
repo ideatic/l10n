@@ -9,7 +9,7 @@
     }
   ],
   "type": "library",
-  "bin": "bin/cli",
+  "bin": "bin/l10n",
   "repositories": [
     {
       "type": "vcs",
