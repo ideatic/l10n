@@ -1,0 +1,56 @@
+<?php
+
+namespace ideatic\l10n\Utils;
+
+abstract class Utils
+{
+    public static function set($object, array $array)
+    {
+        foreach ($array as $key => $value) {
+            if (strpos($key, '(') !== false && preg_match('/\(\)$/', $key)) {
+                $callback = [$object, str_replace('()', '', $key)];
+                if (is_array($value)) {
+                    call_user_func($callback, $value);
+                } else {
+                    call_user_func_array($callback, $value);
+                }
+            } else {
+                $object->$key = $value;
+            }
+        }
+
+        return $object;
+    }
+
+    /**
+     * Renders an abbreviated version of the backtrace
+     *
+     * @param array $ call stack trace to be analyzed, if not use this parameter indicates the call stack before the function
+     *
+     * @return string
+     */
+    public static function backtraceSmall(array $trace = null, bool $rtl = false): string
+    {
+        if (!$trace) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+            array_shift($trace);//Eliminar llamada a backtrace_small
+        }
+
+        $output = [];
+        foreach ($trace as $step) {
+            //Get data from the current step
+            foreach (['class', 'type', 'function', 'file', 'line', 'args'] as $param) {
+                $$param = isset($step[$param]) ? $step[$param] : '';
+            }
+
+            $output[] = $class . $type . $function . '(' . $line . ')';
+        }
+
+        if ($rtl) {
+            return implode(' → ', array_reverse($output));
+        } else {
+            return implode(' ← ', $output);
+        }
+    }
+
+}

@@ -1,0 +1,172 @@
+{
+  "_readme": [
+    "This file locks the dependencies of your project to a known state",
+    "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+    "This file is @generated automatically"
+  ],
+  "content-hash": "db2b4f9d78735699cdf071993307941b",
+  "packages": [
+    {
+      "name": "ideatic/html-parser",
+      "version": "dev-master",
+      "source": {
+        "type": "git",
+        "url": "C:\\Javi\\Escritorio\\Javi\\Dropbox\\Proyectos\\librerias\\php\\html-parser",
+        "reference": "35264c8cb4dd8017a523b2f42cf8ebad07198f64"
+      },
+      "require": {
+        "ext-ctype": "*",
+        "php": ">=7.3"
+      },
+      "type": "library",
+      "autoload": {
+        "classmap": [
+          "src/"
+        ]
+      },
+      "license": [
+        "proprietary"
+      ],
+      "description": "description",
+      "time": "2020-04-28T10:07:51+00:00"
+    },
+    {
+      "name": "sepia/po-parser",
+      "version": "6.0.0",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/raulferras/PHP-po-parser.git",
+        "reference": "95bc7acf41b219ba7cfc54baeacad8b80d5a7564"
+      },
+      "dist": {
+        "type": "zip",
+        "url": "https://api.github.com/repos/raulferras/PHP-po-parser/zipball/95bc7acf41b219ba7cfc54baeacad8b80d5a7564",
+        "reference": "95bc7acf41b219ba7cfc54baeacad8b80d5a7564",
+        "shasum": ""
+      },
+      "require": {
+        "php": ">=5.3",
+        "symfony/polyfill-mbstring": "^1"
+      },
+      "require-dev": {
+        "fzaninotto/faker": "^1.7",
+        "phpunit/phpunit": "^4.0",
+        "squizlabs/php_codesniffer": "^2.0"
+      },
+      "type": "library",
+      "autoload": {
+        "psr-4": {
+          "Sepia\\PoParser\\": "src/",
+          "Sepia\\Test\\": "tests/"
+        }
+      },
+      "notification-url": "https://packagist.org/downloads/",
+      "license": [
+        "MIT"
+      ],
+      "authors": [
+        {
+          "name": "Raúl Ferràs",
+          "email": "raul.ferras@gmail.com",
+          "role": "developer"
+        }
+      ],
+      "description": "Gettext *.PO file parser for PHP.",
+      "homepage": "https://github.com/raulferras/PHP-po-parser",
+      "keywords": [
+        "gettext",
+        "i10n",
+        "i18n",
+        "po"
+      ],
+      "time": "2020-02-06T15:59:34+00:00"
+    },
+    {
+      "name": "symfony/polyfill-mbstring",
+      "version": "v1.15.0",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/symfony/polyfill-mbstring.git",
+        "reference": "81ffd3a9c6d707be22e3012b827de1c9775fc5ac"
+      },
+      "dist": {
+        "type": "zip",
+        "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/81ffd3a9c6d707be22e3012b827de1c9775fc5ac",
+        "reference": "81ffd3a9c6d707be22e3012b827de1c9775fc5ac",
+        "shasum": ""
+      },
+      "require": {
+        "php": ">=5.3.3"
+      },
+      "suggest": {
+        "ext-mbstring": "For best performance"
+      },
+      "type": "library",
+      "extra": {
+        "branch-alias": {
+          "dev-master": "1.15-dev"
+        }
+      },
+      "autoload": {
+        "psr-4": {
+          "Symfony\\Polyfill\\Mbstring\\": ""
+        },
+        "files": [
+          "bootstrap.php"
+        ]
+      },
+      "notification-url": "https://packagist.org/downloads/",
+      "license": [
+        "MIT"
+      ],
+      "authors": [
+        {
+          "name": "Nicolas Grekas",
+          "email": "p@tchwork.com"
+        },
+        {
+          "name": "Symfony Community",
+          "homepage": "https://symfony.com/contributors"
+        }
+      ],
+      "description": "Symfony polyfill for the Mbstring extension",
+      "homepage": "https://symfony.com",
+      "keywords": [
+        "compatibility",
+        "mbstring",
+        "polyfill",
+        "portable",
+        "shim"
+      ],
+      "funding": [
+        {
+          "url": "https://symfony.com/sponsor",
+          "type": "custom"
+        },
+        {
+          "url": "https://github.com/fabpot",
+          "type": "github"
+        },
+        {
+          "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+          "type": "tidelift"
+        }
+      ],
+      "time": "2020-03-09T19:04:49+00:00"
+    }
+  ],
+  "packages-dev": [],
+  "aliases": [],
+  "minimum-stability": "stable",
+  "stability-flags": {
+    "ideatic/html-parser": 20
+  },
+  "prefer-stable": false,
+  "prefer-lowest": false,
+  "platform": {
+    "php": ">=7.3",
+    "ext-json": "*"
+  },
+  "platform-dev": [],
+  "plugin-api-version": "1.1.0"
+}

@@ -1,0 +1,10 @@
+<?php
+
+namespace ideatic\l10n\Translation;
+
+use ideatic\l10n\LString;
+
+interface Provider
+{
+    public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?string;
+}
