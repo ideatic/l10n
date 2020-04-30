@@ -28,7 +28,7 @@ class CLI
 
         $environment = new Environment();
         $environment->parseParams($argv);
-        $environment->config->read(IO::combinePaths($environment->directory, 'l10n.json'));
+        $environment->config->load(IO::combinePaths($environment->directory, 'l10n.json'));
 
 
         switch ($environment->method) {

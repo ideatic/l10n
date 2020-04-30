@@ -5,56 +5,6 @@ namespace ideatic\l10n;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Utils;
 
-/**
- * @property string              $type
- * @property string              $path
- * @property string              $defaultDomain
- * @property ProjectTranslations $translations
- * @property string[]            $translatorMethods
- * @property string[]            $exclude
- */
-interface Project
-{
-}
-
-/**
- * @property string $path
- * @property string $format
- * @property string $template
- */
-interface ProjectTranslations
-{
-}
-
-/**
- * @property ConfigExtractor $extractor
- * @property DomainConfig    $merge
- */
-interface ConfigTools
-{
-}
-
-/**
- * @property string   $format
- * @property string   $referenceLanguage
- * @property string   $outputPath
- * @property bool     $includeLocations
- * @property string[] $domains
- */
-interface ConfigExtractor
-{
-}
-
-/**
- * @property string   $source
- * @property string   $script
- * @property string   $format
- * @property string[] $locales
- */
-interface DomainConfig
-{
-}
-
 class Config
 {
     /** @var string */
@@ -82,7 +32,7 @@ class Config
     /**
      * Lee la configuración
      */
-    public function read(string $path)
+    public function load(string $path)
     {
         // Leer configuración
         if (!file_exists($path)) {
@@ -149,6 +99,56 @@ class Config
 
         echo "Created default config at {$path}\n";
     }
+}
+
+/**
+ * @property string              $type
+ * @property string              $path
+ * @property string              $defaultDomain
+ * @property ProjectTranslations $translations
+ * @property string[]            $translatorMethods
+ * @property string[]            $exclude
+ */
+interface Project
+{
+}
+
+/**
+ * @property string $path
+ * @property string $format
+ * @property string $template
+ */
+interface ProjectTranslations
+{
+}
+
+/**
+ * @property ConfigExtractor $extractor
+ * @property DomainConfig    $merge
+ */
+interface ConfigTools
+{
+}
+
+/**
+ * @property string   $format
+ * @property string   $referenceLanguage
+ * @property string   $outputPath
+ * @property bool     $includeLocations
+ * @property string[] $domains
+ */
+interface ConfigExtractor
+{
+}
+
+/**
+ * @property string   $source
+ * @property string   $script
+ * @property string   $format
+ * @property string[] $locales
+ */
+interface DomainConfig
+{
 }
 
 
