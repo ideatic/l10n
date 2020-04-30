@@ -78,7 +78,7 @@ class NGi18n
         $content = IO::exists($xliffFile) ? IO::read($xliffFile) : null;
 
         if (!$content) {
-            throw new Exception_General("Unable to read generated XLIFF file at {$xliffFile}");
+            throw new Exception("Unable to read generated XLIFF file at {$xliffFile}");
         }
 
         // IO::delete($xliffFile);
@@ -196,7 +196,7 @@ class NGi18n
     private function _parseNgExpression(string $expression, $string): string
     {
         if (!Str::startsWith($expression, '{{') || !Str::endsWith($expression, '}}')) {
-            throw new Exception_General("Invalid angular expression '{$expression}'");
+            throw new Exception("Invalid angular expression '{$expression}'");
         }
 
         foreach (explode('|', substr($expression, 2, -2)) as $pipe) {
@@ -206,6 +206,6 @@ class NGi18n
             }
         }
 
-        throw new Exception_General("No i18n placeholder found in expression '{$expression}' in '{$string}'");
+        throw new Exception("No i18n placeholder found in expression '{$expression}' in '{$string}'");
     }
 }

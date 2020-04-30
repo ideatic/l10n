@@ -36,7 +36,7 @@ It's recommended to apply this tool in a different folder than the one that host
         $start = microtime(true);
 
         $translator = new ProjectTranslator();
-        $translatedFiles = $translator->translate($environment->config, $projectName, $locale, $directory);
+        $translatedFiles = $translator->translateDir($environment->config, $projectName, $locale, $directory);
 
         // Mostrar resumen
         if ($verbose) {

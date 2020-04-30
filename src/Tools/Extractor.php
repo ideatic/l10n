@@ -23,7 +23,7 @@ class Extractor
     {
         $i18nProvider = new MultiProvider();
         foreach ($this->projects as $projectName => $project) {
-            $projectProvider = $this->getProjectProvider($project);
+            $projectProvider = self::getProjectProvider($project);
 
             $i18nProvider->add($projectProvider);
         }
@@ -33,9 +33,11 @@ class Extractor
     }
 
     /**
+     * Configura el proveedor de cadenas localizables para el proyecto indicado
+     *
      * @param Project $project
      */
-    public function getProjectProvider($project): DirectoryProvider
+    public static function getProjectProvider($project): DirectoryProvider
     {
         $projectProvider = new DirectoryProvider($project->path);
 

@@ -119,7 +119,7 @@ class FunctionCall
         try {
             return eval("return {$code};");
         } catch (Throwable $err) {
-            throw new Exception_General('Unable to parse function call', $code, null, 0, $err);
+            throw new \Exception('Unable to parse function call', $code, $err);
         }
     }
 
