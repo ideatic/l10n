@@ -176,11 +176,13 @@ class Angular_HTML extends HTML
     /**
      * @inheritDoc
      */
-    public function translate(string $content, callable $getTranslation, $context = null): string
+    public function translate(string $content, callable $getTranslation, $path = null): string
     {
         return parent::translate(
             $content,
-            function (LString $string) use ($getTranslation) {
+            function (LString $string) use ($getTranslation, $path) {
+                Angular::prepareString($string, $path);
+
                 $translation = call_user_func($getTranslation, $string);
 
                 // Reemplazar # por una expresión angular que formatee la cantidad
@@ -191,7 +193,7 @@ class Angular_HTML extends HTML
 
                 return $translation;
             },
-            $context
+            $path
         );
     }
 }
@@ -235,4 +237,20 @@ class Angular_Methods extends CStyle
         return $strings;
     }
 
+
+    /**
+     * @inheritDoc
+     */
+    public function translate(string $content, callable $getTranslation, $path = null): string
+    {
+        return parent::translate(
+            $content,
+            function (LString $string) use ($getTranslation, $path) {
+                Angular::prepareString($string, $path);
+
+                return call_user_func($getTranslation, $string);
+            },
+            $path
+        );
+    }
 }
