@@ -18,7 +18,7 @@ class Angular extends Format
     private $_i18nMethods;
 
     /** @var bool https://github.com/angular/angular/issues/9117 */
-    public $addHashPluralSupport = true;
+    public $fixIcuPluralHashes = true;
 
     public function __construct()
     {
@@ -52,9 +52,9 @@ class Angular extends Format
         return $this->_processStrings($content, $path, $getTranslation);
     }
 
-    private function _processStrings(string $content, string $file, ?callable $getTranslation = null)
+    private function _processStrings(string $content, ?string $file, ?callable $getTranslation = null)
     {
-        $this->_i18nHTML->addHashPluralSupport = $this->addHashPluralSupport;
+        $this->_i18nHTML->addHashPluralSupport = $this->fixIcuPluralHashes;
 
         if (!$file) {
             throw new \Exception("Path required!");
@@ -128,7 +128,7 @@ class Angular extends Format
                     }
                 }
 
-                throw new \Exception("No i18n placeholder found in expression '{$expr}' at '{$path}'", $string);
+                throw new \Exception("No i18n placeholder found in expression '{$expr}' at '{$path}'");
             },
             $string->text
         );
