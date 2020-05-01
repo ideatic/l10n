@@ -4,6 +4,7 @@ namespace ideatic\l10n\String\Format;
 
 use HTML_Parser;
 use ideatic\l10n\LString;
+use ideatic\l10n\Utils\ICU\Pattern;
 use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Str;
@@ -15,6 +16,9 @@ class Angular extends Format
 {
     private $_i18nHTML;
     private $_i18nMethods;
+
+    /** @var bool https://github.com/angular/angular/issues/9117 */
+    public $addHashPluralSupport = true;
 
     public function __construct()
     {
@@ -33,48 +37,6 @@ class Angular extends Format
     }
 
     /**
-     * @internal
-     */
-    public static function prepareString(LString $string, ?string $path = null)
-    {
-        // Reemplazar expresiones
-        $parsed = preg_replace_callback(
-            '/{{([^{]*?)}}/',
-            function ($match) use ($string, &$placeholders, $path) {
-                $expr = HTML_Parser::entityDecode($match[1]);
-                foreach (explode('|', $expr) as $pipe) {
-                    $parts = explode(':', Str::trim($pipe));
-                    if (Str::trim($parts[0]) == 'i18n' && isset($parts[1])) {
-                        $placeholderName = trim(Str::trim($parts[1]), '"\'');
-                        $string->placeholders[$placeholderName] = str_replace("|{$pipe}", '', $match[0]);
-                        return $placeholderName;
-                    }
-                }
-
-                throw new \Exception("No i18n placeholder found in expression '{$expr}' at '{$path}'", $string);
-            },
-            $string->text
-        );
-
-        if ($parsed != $string->text) {
-            if ($string->id == $string->text) {
-                $string->id = $parsed;
-            }
-
-            $string->text = $parsed;
-        }
-
-        // Normalizar ID (en angular, el nombre del placeholder ICU es su valor interpolado, usar 'count' en su lugar)
-        if ($string->isICU && $string->id == $string->text) {
-            $pattern = new \ideatic\l10n\Utils\ICU\Pattern($string->text);
-            if (count($pattern->nodes) == 1 && $pattern->nodes[0] instanceof Placeholder && $pattern->nodes[0]->type == 'plural') {
-                $pattern->nodes[0]->name = 'count';
-                $string->id = $pattern->render(false);
-            }
-        }
-    }
-
-    /**
      * @inheritDoc
      */
     public function getStrings(string $content, $path = null): array
@@ -82,8 +44,18 @@ class Angular extends Format
         return $this->_processStrings($content, $path);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function translate(string $content, callable $getTranslation, $path = null): string
+    {
+        return $this->_processStrings($content, $path, $getTranslation);
+    }
+
     private function _processStrings(string $content, string $file, ?callable $getTranslation = null)
     {
+        $this->_i18nHTML->addHashPluralSupport = $this->addHashPluralSupport;
+
         if (!$file) {
             throw new \Exception("Path required!");
         }
@@ -138,11 +110,45 @@ class Angular extends Format
     }
 
     /**
-     * @inheritDoc
+     * @internal
      */
-    public function translate(string $content, callable $getTranslation, $path = null): string
+    public static function prepareString(LString $string, ?string $path = null)
     {
-        return $this->_processStrings($content, $path, $getTranslation);
+        // Reemplazar expresiones
+        $parsed = preg_replace_callback(
+            '/{{([^{]*?)}}/',
+            function ($match) use ($string, &$placeholders, $path) {
+                $expr = HTML_Parser::entityDecode($match[1]);
+                foreach (explode('|', $expr) as $pipe) {
+                    $parts = explode(':', Str::trim($pipe));
+                    if (Str::trim($parts[0]) == 'i18n' && isset($parts[1])) {
+                        $placeholderName = trim(Str::trim($parts[1]), '"\'');
+                        $string->placeholders[$placeholderName] = str_replace("|{$pipe}", '', $match[0]);
+                        return $placeholderName;
+                    }
+                }
+
+                throw new \Exception("No i18n placeholder found in expression '{$expr}' at '{$path}'", $string);
+            },
+            $string->text
+        );
+
+        if ($parsed != $string->text) {
+            if ($string->id == $string->text) {
+                $string->id = $parsed;
+            }
+
+            $string->text = $parsed;
+        }
+
+        // Normalizar ID (en angular, el nombre del placeholder ICU es su valor interpolado, usar 'count' en su lugar)
+        if ($string->isICU && $string->id == $string->text) {
+            $pattern = new Pattern($string->text);
+            if (count($pattern->nodes) == 1 && $pattern->nodes[0] instanceof Placeholder && $pattern->nodes[0]->type == 'plural') {
+                $pattern->nodes[0]->name = 'count';
+                $string->id = $pattern->render(false);
+            }
+        }
     }
 }
 
@@ -151,6 +157,11 @@ class Angular extends Format
  */
 class Angular_HTML extends HTML
 {
+    public $addHashPluralSupport = true;
+
+    /**
+     * @inheritDoc
+     */
     public function getStrings(string $code, $path = null): array
     {
         $strings = parent::getStrings($code, $path);
@@ -161,6 +172,28 @@ class Angular_HTML extends HTML
 
         return $strings;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function translate(string $content, callable $getTranslation, $context = null): string
+    {
+        return parent::translate(
+            $content,
+            function (LString $string) use ($getTranslation) {
+                $translation = call_user_func($getTranslation, $string);
+
+                // Reemplazar # por una expresión angular que formatee la cantidad
+                if ($string->isICU && $this->addHashPluralSupport && $translation != null && strpos($string->fullyQualifiedID(), '#') !== false) {
+                    $pattern = new Pattern($string->text);
+                    $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
+                }
+
+                return $translation;
+            },
+            $context
+        );
+    }
 }
 
 /**
@@ -168,6 +201,9 @@ class Angular_HTML extends HTML
  */
 class Angular_Methods extends CStyle
 {
+    /**
+     * @inheritDoc
+     */
     public function getStrings(string $code, $path = null): array
     {
         $strings = parent::getStrings($code, $path);
