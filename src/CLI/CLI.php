@@ -13,10 +13,10 @@ class CLI
 {
     public static function main(bool $exit = true)
     {
-        (new static)->run(array_slice($_SERVER['argv'], 1), $exit);
+        (new static)->run(null, $exit);
     }
 
-    public function run(array $argv, bool $exit = true)
+    public function run(array $argv = null, bool $exit = true)
     {
         echo "    __   ___   ____         
    / /  <  /  / __ \   ____ 
@@ -27,7 +27,7 @@ class CLI
 ";
 
         $environment = new Environment();
-        $environment->parseParams($argv);
+        $environment->parseParams($argv ?? $_SERVER['argv']);
         $environment->config->load(IO::combinePaths($environment->directory, 'l10n.json'));
 
 

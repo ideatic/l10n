@@ -32,26 +32,26 @@ class Config
     /**
      * Lee la configuración
      */
-    public function load(string $path)
+    public function load(string $configPath)
     {
         // Leer configuración
-        if (!file_exists($path)) {
-            $this->_createDefaultConfig($path);
+        if (!file_exists($configPath)) {
+            $this->_createDefaultConfig($configPath);
         }
 
-        if (!is_readable($path)) {
-            throw new \Exception("Unable to read l10n config at '{$path}'");
+        if (!is_readable($configPath)) {
+            throw new \Exception("Unable to read l10n config at '{$configPath}'");
         }
 
         /** @var Config $config */
-        $config = json_decode(file_get_contents($path));
+        $config = json_decode(file_get_contents($configPath));
         if (!$config || json_last_error() != JSON_ERROR_NONE) {
             throw new \Exception("Unable to parse l10n config: " . json_last_error_msg());
         }
 
         // Validar configuración
         foreach ($config->projects as $projectName => $project) {
-            $project->path = realpath($project->path);
+            $project->path = realpath(IO::combinePaths(dirname($configPath), $project->path));
 
             // Comprobar y ajustar rutas
             if (!$project->path) {
