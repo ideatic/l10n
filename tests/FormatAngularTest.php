@@ -31,6 +31,27 @@ class FormatAngularTest extends TestCase
         $this->assertEquals($expected, $translated);
     }
 
+    public function testPlaceholders()
+    {
+        $input = '<html>
+        <body>
+        <p i18n>
+        	Hello {{ userName | i18n:"{name}" }}
+        </p>
+        </body>
+        </html>';
+
+        $expected = '<html>
+        <body>
+        <p>Hola {{ userName }}</p>
+        </body>
+        </html>';
+
+        $translated = $this->_translate(new Angular(), $input, 'file.html', 'throw');
+
+        $this->assertEquals($expected, $translated);
+    }
+
     public function testIcu()
     {
         $input = '<html>

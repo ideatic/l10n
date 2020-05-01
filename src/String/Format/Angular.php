@@ -116,7 +116,7 @@ class Angular extends Format
     {
         // Reemplazar expresiones
         $parsed = preg_replace_callback(
-            '/{{([^{]*?)}}/',
+            '/{{(.+?)}}/',
             function ($match) use ($string, &$placeholders, $path) {
                 $expr = HTML_Parser::entityDecode($match[1]);
                 foreach (explode('|', $expr) as $pipe) {
@@ -184,6 +184,10 @@ class Angular_HTML extends HTML
                 Angular::prepareString($string, $path);
 
                 $translation = call_user_func($getTranslation, $string);
+
+                if ($translation != null && !empty($string->placeholders)) { // Restaurar expresiones Angular
+                    $translation = strtr($translation, $string->placeholders);
+                }
 
                 // Reemplazar # por una expresión angular que formatee la cantidad
                 if ($string->isICU && $this->addHashPluralSupport && $translation != null && strpos($string->fullyQualifiedID(), '#') !== false) {

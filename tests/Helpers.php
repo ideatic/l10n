@@ -6,7 +6,7 @@ use ideatic\l10n\String\Format\Format;
 
 trait Helpers
 {
-    protected function _translate(Format $format, string $input, ?string $context = null, bool $allowFallback = true): string
+    protected function _translate(Format $format, string $input, ?string $context = null, $allowFallback = true): string
     {
         return $format->translate(
             $input,
@@ -17,6 +17,8 @@ trait Helpers
                     return 'Hola {name}';
                 } elseif ($string->id == '{count, plural, one {1 day} other {# days}}') {
                     return '{n, plural, one {1 día} other {# días}}';
+                } elseif ($allowFallback == 'throw') {
+                    throw new Exception("No translations found for string '{$string->id}'");
                 } elseif ($allowFallback) {
                     return $string->id;
                 } else {
