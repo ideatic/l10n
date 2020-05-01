@@ -53,10 +53,10 @@ class Merger
                 echo "\n\t## " . Locale::getName($locale) . " ({$locale})\n";
 
                 // Obtener catálogo con traducciones actualizado
-                $domainCatalog = self::_getCatalog($domain, $locale, $environment->config);
+                $translationsCatalog = self::_getCatalog($domain, $locale, $environment->config);
 
-                if ($domainCatalog) {
-                    $domain->translator = new \ideatic\l10n\Translation\Provider\Catalog($domainCatalog);
+                if ($translationsCatalog) {
+                    $domain->translator = new \ideatic\l10n\Translation\Provider\Catalog($translationsCatalog);
                 } else { // Usar traducciones ya existentes en otros proyectos
                     $domain->translator = $translator = new Projects($environment->config);
                     if (!$translator->loadCatalog($domain, $locale)) {
@@ -65,8 +65,27 @@ class Merger
                     }
                 }
 
+                // Mostrar resumen
+                $notFound = [];
+                if ($translationsCatalog) {
+                    foreach ($domain->strings as $stringID => $stringLocations) {
+                        if ($translationsCatalog->getTranslation($stringLocations[0]) === null) {
+                            $notFound[] = $stringID;
+                        }
+                    }
+
+                    if (!empty($notFound)) {
+                        echo "\t\t" . strtr(
+                                '%count% strings not found: %strings%',
+                                [
+                                    '%count%'   => number_format(count($notFound)),
+                                    '%strings%' => implode(', ', array_slice($notFound, 0, 5)) . '...'
+                                ]
+                            ) . "\n";
+                    }
+                }
+
                 // Guardar traducciones en los proyectos que lo requieran
-                $projects = [];
                 foreach ($environment->config->projects as $projectName => $project) {
                     if (!isset($project->translations->path)) {
                         continue;
@@ -90,36 +109,16 @@ class Merger
                         mkdir($project->translations->path);
                     }
 
-                    file_put_contents(IO::combinePaths($project->translations->path, $fileName), $serializer->generate([$domain]));
+                    $catalogPath = IO::combinePaths($project->translations->path, $fileName);
+                    file_put_contents($catalogPath, $serializer->generate([$domain]));
 
-                    $projects[] = $projectName;
-                }
-
-                // Mostrar resumen
-                $notFound = [];
-                foreach ($domain->strings as $stringID => $stringLocations) {
-                    if (!isset($domainCatalog->strings[$stringID])) {
-                        $notFound[] = $stringID;
-                    }
-                }
-
-                if (!empty($notFound)) {
                     echo "\t\t" . strtr(
-                            '%count% strings not found: %strings%',
+                            'Written %path%',
                             [
-                                '%count%'   => number_format(count($notFound)),
-                                '%strings%' => implode(', ', array_slice($notFound, 0, 5)) . '...'
+                                '%path%' => $catalogPath
                             ]
                         ) . "\n";
                 }
-
-                echo "\t\t" . strtr(
-                        '%count% strings have been written in projects %projects%',
-                        [
-                            '%count%'    => number_format(count($domainCatalog->strings)),
-                            '%projects%' => implode(', ', $projects)
-                        ]
-                    ) . "\n";
             }
         }
     }

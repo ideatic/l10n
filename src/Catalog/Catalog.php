@@ -19,6 +19,11 @@ class Catalog
 
     public function getTranslation(LString $string): ?string
     {
-        return $this->_strings[$string->fullID ?? $string->defaultFullID()] ?? null;
+        return $this->_strings[$string->fullyQualifiedID()] ?? null;
+    }
+
+    public function entryCount(): int
+    {
+        return count($this->_strings);
     }
 }

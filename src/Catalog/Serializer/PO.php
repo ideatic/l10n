@@ -2,9 +2,9 @@
 
 namespace ideatic\l10n\Catalog\Serializer;
 
-use ideatic\l10n\ICU\Placeholder;
 use ideatic\l10n\Utils\Gettext\PluralExpression;
 use ideatic\l10n\Utils\ICU\Pattern;
+use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\Locale;
 
 class PO extends Serializer

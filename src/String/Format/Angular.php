@@ -3,8 +3,8 @@
 namespace ideatic\l10n\String\Format;
 
 use HTML_Parser;
-use ideatic\l10n\ICU\Placeholder;
 use ideatic\l10n\LString;
+use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Str;
 

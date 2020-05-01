@@ -11,7 +11,7 @@ class IcuConverter
     /**
      * Convierte un plural formato Gettext a formato ICU
      */
-    public static function getTextPluralToICU(Pattern $baseIcuPattern, array $getTextPluralForms, string $pluralRulesExpression): string
+    public static function getTextPluralToICU(Pattern $baseIcuPattern, array $getTextPluralForms, string $pluralRulesExpression): Pattern
     {
         // Obtener regla para formar el plural Gettext
         $pluralRules = new PluralRule($pluralRulesExpression);
@@ -86,8 +86,9 @@ If there are more categories needed for the language, describe what those catego
             }
         }
 
-        $baseIcuPattern->nodes[0]->content = $icuForms;
+        $translatedPatter = clone $baseIcuPattern;
+        $translatedPatter->nodes[0]->content = $icuForms;
 
-        return $baseIcuPattern->render(false);
+        return $translatedPatter;
     }
 }

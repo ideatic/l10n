@@ -32,6 +32,8 @@ class PO extends Loader
                 if (!preg_match('/' . preg_quote(\ideatic\l10n\Catalog\Serializer\PO::ICU_PREFIX, '/') . '(.+)/', $string->comments, $match)) {
                     throw new \Exception("Unable to recover source ICU pattern for '{$string->id}'");
                 }
+
+                $string->fullID = $match[1]; // Usar patrón ICU original como identificador de la cadena
                 $icuPattern = new Pattern($match[1]);
 
                 if (!\ideatic\l10n\Catalog\Serializer\PO::isSuitableIcuPattern($icuPattern)) {
@@ -39,7 +41,8 @@ class PO extends Loader
                 }
 
                 // Traducir formato GetText a ICU utilizando la plantilla original como referencia
-                $translation = IcuConverter::getTextPluralToICU($icuPattern, $entry->getMsgStrPlurals(), $this->_readPluralRules($domain));
+                $translation = IcuConverter::getTextPluralToICU($icuPattern, $entry->getMsgStrPlurals(), $this->_readPluralRules($domain))
+                                           ->render(false);
             } else {
                 $translation = $entry->getMsgStr() ?: null;
             }
@@ -48,7 +51,7 @@ class PO extends Loader
                 continue;
             }
 
-            $strings[$string->defaultFullID()] = $translation;
+            $strings[$string->fullyQualifiedID()] = $translation;
         }
 
         return new \ideatic\l10n\Catalog\Catalog($locale, $strings);

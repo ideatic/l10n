@@ -3,6 +3,7 @@
 namespace ideatic\l10n\Translation\Provider;
 
 use ideatic\l10n\LString;
+use ideatic\l10n\Translation\Provider;
 
 /**
  * Implementa un proveedor de traducciones que utiliza un catálogo como fuente

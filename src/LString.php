@@ -59,8 +59,12 @@ class LString
      * Genera la ID completa utilizada por defecto
      * @return string
      */
-    public function defaultFullID(): string
+    public function fullyQualifiedID(): string
     {
+        if ($this->fullID) {
+            return $this->fullID;
+        }
+
         $id = $this->id ? $this->id : $this->text;
 
         if ($this->context) {

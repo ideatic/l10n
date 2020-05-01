@@ -46,7 +46,7 @@ class Domain
             }
 
             // Agrupar cadenas similares
-            $stringID = $string->fullID ?? $string->defaultFullID();
+            $stringID = $string->fullyQualifiedID();
 
             if (!isset($domain->strings[$stringID])) {
                 $domain->strings[$stringID] = [];

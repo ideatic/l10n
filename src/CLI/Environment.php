@@ -40,7 +40,7 @@ class Environment
         $this->input = [];
         $this->params = [];
 
-        foreach ($argv as $param) {
+        foreach (array_slice($argv, 1) as $param) {
             if (substr($param, 0, 2) == '--') {
                 $param = substr($param, 2);
                 if (strpos($param, '=')) {
