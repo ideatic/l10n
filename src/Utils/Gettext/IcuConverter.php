@@ -59,7 +59,7 @@ If there are more categories needed for the language, describe what those catego
 
                 $categoryName = null;
                 if (count($validFormNumbers) == 1 && reset($validFormNumbers) == 1) {
-                    $categoryName = 'one';
+                    $categoryName = '=1';
                 } elseif (count($validFormNumbers) == 1 && reset($validFormNumbers) == 2) {
                     $categoryName = 'two';
                 } elseif (count($validFormNumbers) == 1 && reset($validFormNumbers) == 0) {
