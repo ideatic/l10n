@@ -4,6 +4,7 @@ namespace ideatic\l10n\String\Format;
 
 use ideatic\l10n\LString;
 use ideatic\l10n\Plural\Symfony;
+use ideatic\l10n\Utils\PHP\FunctionCall;
 
 /**
  * Proveedor de cadenas traducibles encontradas en código PHP
@@ -21,6 +22,10 @@ class PHP extends Format
     {
         $correction = 0;
         foreach ($this->getStrings($content, $context) as $string) {
+            if ($string->requestedLocale) { // Se espera la cadena en un locale especificado
+                continue;
+            }
+
             $translatedString = call_user_func($getTranslation, $string);
             if ($translatedString === null) {
                 continue;
@@ -28,10 +33,9 @@ class PHP extends Format
 
             $translation = $this->_getTranslationCode($string, $translatedString);
 
+            // Reemplazar la versión optimizada en el código
             /** @var \ideatic\l10n\Utils\PHP\FunctionCall $rawCall */
             $rawCall = $string->raw;
-
-            // Reemplazar la versión optimizada en el código
             $content = substr_replace($content, $translation, $rawCall->offset - $correction, strlen($rawCall->code));
             $correction += strlen($rawCall->code) - strlen($translation);
         }
@@ -80,6 +84,11 @@ class PHP extends Format
                     $string->domainName = $this->defaultDomain;
                 }
 
+                // Requested locale
+                if (isset($call->arguments[$domainIndex + 1])) {
+                    $string->requestedLocale = $call->parseArgument($domainIndex);
+                }
+
                 $found[] = $string;
             }
         }
@@ -92,8 +101,9 @@ class PHP extends Format
         // Obtener cadena traducida
         $translatedString = var_export($translatedString, true);
 
-        /** @var \ideatic\l10n\Utils\PHP\FunctionCall $rawCall */
+        /** @var FunctionCall $phpCall */
         $phpCall = $string->raw;
+
         switch ($phpCall->method) {
             case '__':
             case 'translate':

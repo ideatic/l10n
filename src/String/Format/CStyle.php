@@ -83,13 +83,13 @@ class CStyle extends Format
             $string->id = $string->text = $this->_parseString($params[0]);
             $string->raw = substr($code, $match[0][1], $methodEnd - $match[0][1] + 1);
 
-            $sectionIndex = 1;
+            $domainIndex = 1;
             if ($method == '_x') {
                 if (empty($params[1]) || !$this->_isString($params[1])) {
                     throw new \Exception("Constant context string required for {$string->raw}");
                 }
                 $string->context = $this->_parseString($params[1]);
-                $sectionIndex = 2;
+                $domainIndex = 2;
             } elseif (count($params) > 2) {
                 throw new \Exception("Invalid param count in {$string->raw}");
             }
@@ -97,7 +97,8 @@ class CStyle extends Format
             $string->offset = $match[0][1];
             $string->file = $path;
             $string->line = substr_count($code, "\n", 0, $string->offset) + 1;
-            $string->domainName = isset($params[$sectionIndex]) ? $this->_parseString($params[$sectionIndex]) : $this->defaultDomain;
+            $string->domainName = isset($params[$domainIndex]) ? $this->_parseString($params[$domainIndex]) : $this->defaultDomain;
+            $string->requestedLocale = isset($params[$domainIndex + 1]) ? $this->_parseString($params[$domainIndex + 1]) : null;
             $string->comments = $comments;
 
             // Autodetectar plurales

@@ -44,7 +44,7 @@ class FunctionCall
      * Posición en el código fuente original de la llamada al método completo
      * @var int
      */
-    public $full_method_offset;
+    public $fullMethodOffset;
 
     /**
      * Línea en el código fuente original de la llamada al método
@@ -231,7 +231,7 @@ class FunctionCall
     {
         $tokens = $this->_getArgumentTokens($index);
 
-        //Ignorar espacios en blanco y comentarios antes del array
+        // Ignorar espacios en blanco y comentarios antes del array
         $allowed = [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT];
 
         for ($pos = 0; $pos < count($tokens); $pos++) {
@@ -240,8 +240,8 @@ class FunctionCall
             }
         }
 
-        //Comprobar si el array comienza inmediatamente después
-        return isset($tokens[$pos]) && $tokens[$pos][0] == T_ARRAY;
+        // Comprobar si el array comienza inmediatamente después
+        return isset($tokens[$pos]) && ($tokens[$pos][0] == T_ARRAY || $tokens[$pos] == '[');
     }
 
     /**

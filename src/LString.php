@@ -52,6 +52,9 @@ class LString
      */
     public $placeholders;
 
+    /** @var string */
+    public $requestedLocale;
+
     /** @var mixed Elemento donde se encontró esta cadena (llamada a método PHP, elemento HTML, etc.) */
     public $raw;
 

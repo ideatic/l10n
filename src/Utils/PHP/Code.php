@@ -123,7 +123,7 @@ class Code
                                 ]
                             );
                             $call->fullMethod = $this->_tokensToString($tokens, $full_call_start, $start_pos - 1);
-                            $call->full_method_offset =
+                            $call->fullMethodOffset =
                                 $offset - strlen($call->fullMethod) + (strlen($call->fullMethod) - strlen(
                                         ltrim($call->fullMethod)
                                     )); //No contar espacios en blanco
