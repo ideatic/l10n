@@ -79,7 +79,7 @@ class HTML extends Format
                 $translation = call_user_func($getTranslation, $string);
                 if ($translation !== null) {
                     $i18nAttribute->remove();
-                    $attribute->value = call_user_func($getTranslation, $string);
+                    $attribute->value = $translation;
                 }
             }
         }

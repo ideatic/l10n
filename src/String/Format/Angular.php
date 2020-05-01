@@ -26,8 +26,10 @@ class Angular extends Format
 
         // Llamadas a __(), $localize, etc. en código TypeScript
         // Llamadas a __(), $localize, etc. en código expresiones HTML
-        $this->_i18nMethods = new Angular_Methods($this);
+        $this->_i18nMethods = new Angular_Methods();
+        $this->_i18nMethods->defaultDomain = $this->defaultDomain;
         $this->_i18nMethods->optimizePlaceholderReplacement = true;
+        $this->_i18nMethods->encodeTranslationsWithSingleQuotes = true;
     }
 
     /**
@@ -166,13 +168,6 @@ class Angular_HTML extends HTML
  */
 class Angular_Methods extends CStyle
 {
-    private $_parentFormat;
-
-    public function __construct(Angular $parentFormat)
-    {
-        $this->_parentFormat = $parentFormat;
-    }
-
     public function getStrings(string $code, $path = null): array
     {
         $strings = parent::getStrings($code, $path);
@@ -188,7 +183,7 @@ class Angular_Methods extends CStyle
             $string->offset = $match[0][1];
             $string->file = $path;
             $string->line = substr_count($code, "\n", 0, $string->offset) + 1;
-            $string->domainName = $this->_parentFormat->defaultDomain;
+            $string->domainName = $this->defaultDomain;
 
             if (strpos($string->text, '${') !== false) {
                 throw new \Exception("Unsupported template string {$string->raw}");

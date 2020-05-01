@@ -35,7 +35,7 @@ class Environment
     {
         $argv = $argv ?? $_SERVER['argv'];
 
-        $this->executableName = basename($argv);
+        $this->executableName = basename($argv[0]);
         $this->method = null;
         $this->input = [];
         $this->params = [];

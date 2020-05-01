@@ -15,12 +15,14 @@ class CStyle extends Format
     /** @var bool Al traducir, optimizar llamadas a string.replace() constantes encontradas */
     public $optimizePlaceholderReplacement = true;
 
+    public $encodeTranslationsWithSingleQuotes = false;
+
     /**
      * @inheritDoc
      */
-    public function translate(string $content, callable $getTranslation, $context = null): string
+    public function translate(string $content, callable $getTranslation, $path = null): string
     {
-        foreach ($this->getStrings($content, $context) as $string) {
+        foreach ($this->getStrings($content, $path) as $string) {
             $translation = call_user_func($getTranslation, $string);
 
             if ($translation === null) {
@@ -28,8 +30,11 @@ class CStyle extends Format
             }
 
             $translation = json_encode($translation);
+            if ($this->encodeTranslationsWithSingleQuotes) {
+                $translation = "'" . addcslashes(substr($translation, 1, -1), "'") . "'";
+            }
 
-            if ($context && IO::getExtension($context) == 'html') {
+            if ($path && IO::getExtension($path) == 'html') {
                 $translation = htmlspecialchars($translation);
             }
 
