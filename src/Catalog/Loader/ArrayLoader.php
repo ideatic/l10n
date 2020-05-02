@@ -10,7 +10,7 @@ abstract class ArrayLoader extends Loader
     {
         $strings = [];
         foreach ($rawDictionary as $stringID => $translation) {
-            if (isset($translation)) {
+            if (isset($translation) && $translation !== '') {
                 $strings[$stringID] = $translation;
             }
         }

@@ -219,8 +219,10 @@ class Angular_Methods extends CStyle
         preg_match_all($pattern, $code, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
 
         foreach ($matches as $match) {
+            $jsonStr = str_replace(["\n", "\r"], ['\n', '\r'], '"' . addcslashes($match[1][0], '"') . '"');
+
             $string = new LString();
-            $string->id = $string->text = $match[1][0];
+            $string->id = $string->text = json_decode($jsonStr, false, 1, JSON_THROW_ON_ERROR);
             $string->raw = $match[0][0];
             $string->offset = $match[0][1];
             $string->file = $path;
