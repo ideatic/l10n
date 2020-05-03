@@ -11,6 +11,10 @@ abstract class ArrayLoader extends Loader
         $strings = [];
         foreach ($rawDictionary as $stringID => $translation) {
             if (isset($translation) && $translation !== '') {
+                if (!is_string($translation)) {
+                    throw new \Exception("Only strings values allowed");
+                }
+
                 $strings[$stringID] = $translation;
             }
         }
