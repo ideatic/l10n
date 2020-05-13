@@ -59,7 +59,7 @@ If there are more categories needed for the language, describe what those catego
 
                 $categoryName = null;
                 if (count($validFormNumbers) == 1 && reset($validFormNumbers) == 1) {
-                    $categoryName = '=1';
+                    $categoryName = 'one';
                 } elseif (count($validFormNumbers) == 1 && reset($validFormNumbers) == 2) {
                     $categoryName = 'two';
                 } elseif (count($validFormNumbers) == 1 && reset($validFormNumbers) == 0) {
@@ -73,10 +73,10 @@ If there are more categories needed for the language, describe what those catego
                 }
 
                 if (!$categoryName) {
-                    throw new \Exception("Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesStr}\n\tfor n={$index}\nNo category found");
+                    throw new \Exception("Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesExpression}\n\tfor n={$index}\nNo category found");
                 } elseif (isset($icuForms[$categoryName])) {
                     throw new \Exception(
-                        "Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesStr}\n\tfor n={$index}\n"
+                        "Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesExpression}\n\tfor n={$index}\n"
                         . "Collision found for category '{$categoryName}'.\n"
                         . "Valid numbers in this rule: " . implode(', ', array_slice($validNumbers, 0, 5))
                     );
