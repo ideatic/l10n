@@ -20,7 +20,7 @@ class Extractor
         $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
 
         // Definir grupos a generar
-        $domainNames = $environment->params['domains'] ?? '';
+        $domainNames = $environment->params['domains'] ?? $environment->params['domain'] ?? '';
         if ($domainNames == 'all') {
             $domainNames = array_column($domains, 'name');
         } elseif ($domainNames) {

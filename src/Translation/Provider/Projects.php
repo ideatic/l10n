@@ -48,6 +48,10 @@ class Projects implements Provider
             $domainName = $string->domain->name ?? $string->domainName;
             $catalogKey = "{$domainName}@{$locale}";
 
+            if ($locale == $this->config->sourceLocale) {
+                return $string->text;
+            }
+
             // Buscar en las traducciones disponibles
             if (!array_key_exists($catalogKey, $loadedCatalogs)) { // Intentar traducciones de este dominio
                 $loadedCatalogs[$catalogKey] = $this->loadCatalog($string->domain ?? $string->domainName, $locale);
