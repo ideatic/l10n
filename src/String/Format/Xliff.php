@@ -142,7 +142,7 @@ class NGi18n
     private function _parseString(HTML_Parser_Element $element): i18n_LocalizableText_String
     {
         $string = new i18n_LocalizableText_String();
-        $string->section = 'app';
+        $string->section = $this->defaultDomain;
 
         // Restaurar placeholders a su valor original
         $string->id = $this->_convertPlaceholders($element, $placeholders);

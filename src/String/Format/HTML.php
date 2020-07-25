@@ -177,7 +177,7 @@ class HTML extends Format
         $string->file = $path;
         $string->offset = $container->offset;
         $string->line = $string->offset == 0 || !$source ? 0 : substr_count($source, "\n", 0, $string->offset) + 1;
-        $string->domainName = 'app';
+        $string->domainName = $this->defaultDomain;
         $string->comments = $i18nAttribute->value;
 
         // https://angular.io/guide/i18n#help-the-translator-with-a-description-and-meaning
@@ -186,6 +186,9 @@ class HTML extends Format
         }
         if (strpos($string->comments, '@@') !== false) {
             [$string->comments, $string->id] = explode('@@', $string->comments, 2);
+        }
+        if (strpos($string->comments, '##') !== false) {
+            [$string->comments, $string->domainName] = explode('##', $string->comments, 2);
         }
 
         if ($this->autoDetectIcuPatterns) {
