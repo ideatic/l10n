@@ -25,7 +25,7 @@ class PO extends Loader
             $string = new LString();
             $string->id = $entry->getMsgId();
             $string->context = $entry->getMsgCtxt();
-            $string->comments = implode("\n", $entry->getTranslatorComments()) . implode("\n", $entry->getDeveloperComments());
+            $string->comments = implode(" ", $entry->getTranslatorComments()) . implode(" ", $entry->getDeveloperComments());
 
             if ($entry->isPlural()) {
                 // Obtener expresión ICU original
