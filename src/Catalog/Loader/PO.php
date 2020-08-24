@@ -40,9 +40,18 @@ class PO extends Loader
                     throw new \Exception("Invalid recovered ICU pattern '{$icuPattern->render()}'");
                 }
 
+                $isEmpty = true;
+                foreach ($entry->getMsgStrPlurals() as $pluralForm) {
+                    if ($pluralForm) {
+                        $isEmpty = false;
+                    }
+                }
+
                 // Traducir formato GetText a ICU utilizando la plantilla original como referencia
-                $translation = IcuConverter::getTextPluralToICU($icuPattern, $entry->getMsgStrPlurals(), $this->_readPluralRules($domain))
-                                           ->render(false);
+                $translation = $isEmpty
+                    ? null
+                    : IcuConverter::getTextPluralToICU($icuPattern, $entry->getMsgStrPlurals(), $this->_readPluralRules($domain))
+                                  ->render(false);
             } else {
                 $translation = $entry->getMsgStr() ?: null;
             }
