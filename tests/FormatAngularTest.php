@@ -52,6 +52,27 @@ class FormatAngularTest extends TestCase
         $this->assertEquals($expected, $translated);
     }
 
+    public function testAttributes()
+    {
+        $input = '<html>
+        <body>
+        <div title="Hello world" i18n-title></div>
+        <div title="D\'Artagnan" i18n-title></div>
+        </body>
+        </html>';
+
+        $expected = '<html>
+        <body>
+        <div title="Hola mundo"></div>
+        <div title="D&quot;Artagnan"></div>
+        </body>
+        </html>';
+
+        $translated = $this->_translate(new Angular(), $input, 'file.html', 'throw');
+
+        $this->assertEquals($expected, $translated);
+    }
+
     public function testIcu()
     {
         $input = '<html>

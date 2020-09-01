@@ -15,6 +15,8 @@ trait Helpers
                     return 'Hola mundo';
                 } elseif ($string->id == 'Hello {name}') {
                     return 'Hola {name}';
+                } elseif ($string->id == "D'Artagnan") {
+                    return 'D"Artagnan';
                 } elseif ($string->id == '{count, plural, one {1 day} other {# days}}') {
                     return '{n, plural, one {1 día} other {# días}}';
                 } elseif ($allowFallback == 'throw') {

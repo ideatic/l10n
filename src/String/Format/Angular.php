@@ -63,6 +63,33 @@ class Angular extends Format
         $extension = IO::getExtension($file);
         $foundStrings = [];
 
+        // Buscar atributos i18n en el HTML
+        if ($extension == 'html') {
+            foreach ($this->_i18nHTML->getStrings($content, $file) as $string) {
+                $foundStrings[] = $string;
+            }
+
+            if ($getTranslation) {
+                $content = $this->_i18nHTML->translate($content, $getTranslation, $file);
+            }
+        } elseif ($extension == 'ts') { // Procesar HTML incrustado
+            foreach (self::_getInlineTemplates($content, true) as $inlineTemplate) {
+                $result = $this->_processStrings($inlineTemplate['value'], "{$file}.html", $getTranslation);
+
+                if ($getTranslation) {  // Reemplazar plantilla anterior por la nueva traducida
+                    if (strcmp($inlineTemplate['value'], $result) != 0) {
+                        $newTemplate = json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                        $content = str_replace($inlineTemplate['raw'], $newTemplate, $content, $count);
+                        if ($count == 0) {
+                            throw new \Exception("Unable to replace component html template at '{$file}'");
+                        }
+                    }
+                } else {
+                    $foundStrings = array_merge($foundStrings, $result);
+                }
+            }
+        }
+
         // Buscar llamadas a __() en html y TS
         if (in_array($extension, ['html', 'ts'])) {
             foreach ($this->_i18nMethods->getStrings($content, $file) as $string) {
@@ -74,39 +101,67 @@ class Angular extends Format
             }
         }
 
-        // Buscar atributos i18n en el HTML
-        if ($extension == 'html') {
-            foreach ($this->_i18nHTML->getStrings($content, $file) as $string) {
-                $foundStrings[] = $string;
-            }
-
-            if ($getTranslation) {
-                $content = $this->_i18nHTML->translate($content, $getTranslation, $file);
-            }
-        } elseif ($extension == 'ts') { // Buscar etiquetas i18n en el HTML incrustado
-            foreach (self::_getInlineTemplates($content) as $template) {
-                foreach ($this->_i18nHTML->getStrings($template, $file) as $string) {
-                    $foundStrings[] = $string;
-                }
-            }
-        }
-
         return $getTranslation ? $content : $foundStrings;
     }
+
 
     /**
      * Obtiene las plantillas Angular de los componentes existentes en el código TypeScript indicado
      */
     private static function _getInlineTemplates(string $tsSource, bool $getFullDeclaration = false): array
     {
-        preg_match_all('/template:\s*[`](.+?)[`]/Ssiu', $tsSource, $matches, PREG_SET_ORDER);
-
         $result = [];
+        preg_match_all('/\btemplate:\s*[`\'\"]/Ssiu', $tsSource, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+
         foreach ($matches as $match) {
-            $result[] = $getFullDeclaration ? $match[0] : $match[1];
+            $string = self::_readString($tsSource, $match[0][1] + strlen($match[0][0]) - 1);
+            $result[] = $getFullDeclaration ? $string : $string['value'];
         }
 
         return $result;
+    }
+
+    private static function _readString(string $source, int $offset): ?array
+    {
+        $inString = false;
+        $prev = null;
+        $stringStartOffset = null;
+
+        for ($i = $offset; $i < strlen($source); $i++) {
+            $char = $source[$i];
+
+            if ($inString) {
+                if ($char == $inString && $prev != '\\') {
+                    $raw = substr($source, $stringStartOffset, $i - $stringStartOffset + 1);
+                    $value = null;
+
+                    try {
+                        if ($char == '`') {
+                            $value = substr($raw, 1, -1);
+                        } elseif ($char == '"') {
+                            $value = json_decode($raw, false, 512, JSON_THROW_ON_ERROR);
+                        } else {
+                            $value = json_decode('"' . addcslashes(substr($raw, 1, -1), '"') . '"', false, 512, JSON_THROW_ON_ERROR);
+                        }
+                    } catch (\JsonException $err) {
+                        echo "\n" . $raw . "\n";
+                        throw $err;
+                    }
+
+                    return [
+                        'raw'   => $raw,
+                        'value' => $value
+                    ];
+                }
+            } elseif (($char == '`' || $char == "'" || $char == '"') && $prev != '\\') {
+                $inString = $char;
+                $stringStartOffset = $i;
+            }
+
+            $prev = $char;
+        }
+
+        return null;
     }
 
     /**
