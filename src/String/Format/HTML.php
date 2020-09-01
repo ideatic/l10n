@@ -173,7 +173,7 @@ class HTML extends Format
     private function _registerString(string $source, ?string $path, string $text, HTML_Parser_Attribute $i18nAttribute, $container): LString
     {
         $string = new LString();
-        $string->text = $string->id = $text;
+        $string->text = $string->id = str_replace('&ngsp;', ' ', $text);
         $string->file = $path;
         $string->offset = $container->offset;
         $string->line = $string->offset == 0 || !$source ? 0 : substr_count($source, "\n", 0, $string->offset) + 1;

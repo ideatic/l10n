@@ -51,7 +51,7 @@ class Config
 
         // Validar configuración
         foreach ($config->projects as $projectName => $project) {
-            $project->path = realpath(IO::combinePaths(dirname($configPath), $project->path));
+            $project->path = realpath(is_dir($project->path) ? $project->path : IO::combinePaths(dirname($configPath), $project->path));
 
             // Comprobar y ajustar rutas
             if (!$project->path) {
