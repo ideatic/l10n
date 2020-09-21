@@ -119,7 +119,7 @@ class HTML extends Format
                     try {
                         $newContent = HTML_Parser::parse($translation, true)->children;
                     } catch (\Exception $err) {
-                        throw new \Exception('Unable to parse HTML: ' . $err->getMessage() . ' at ' . $path, $translation);
+                        throw new \Exception('Unable to parse HTML: ' . $err->getMessage() . ' at ' . $path . ' for ' . $translation);
                     }
 
                     if (strtolower($element->tag) == 'ng-container' && empty($element->attributes)) { // Eliminar ng-container utilizados solo para i18n
