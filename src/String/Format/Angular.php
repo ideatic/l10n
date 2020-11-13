@@ -76,7 +76,7 @@ class Angular extends Format
             foreach (self::_getInlineTemplates($content, true) as $inlineTemplate) {
                 $result = $this->_processStrings($inlineTemplate['value'], "{$file}.html", $getTranslation);
 
-                if ($getTranslation) {  // Reemplazar plantilla anterior por la nueva traducida
+                if ($getTranslation) { // Reemplazar plantilla anterior
                     if (strcmp($inlineTemplate['value'], $result) != 0) {
                         $newTemplate = json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                         $content = str_replace($inlineTemplate['raw'], $newTemplate, $content, $count);
@@ -205,6 +205,23 @@ class Angular extends Format
             }
         }
     }
+
+    public static function fixTranslation(LString $string, ?string $translation, bool $fixHashPluralSupport = false): ?string
+    {
+        if ($string->isICU && $translation != null) {
+            $pattern = new Pattern($string->text);
+
+            // Desnormalizar ID
+            $translation = str_replace('{count,', "{{$pattern->nodes[0]->name},", $translation);
+
+            // Reemplazar # por una expresión angular que formatee la cantidad
+            if ($fixHashPluralSupport && strpos($string->fullyQualifiedID(), '#') !== false) {
+                $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
+            }
+        }
+
+        return $translation;
+    }
 }
 
 /**
@@ -244,13 +261,7 @@ class Angular_HTML extends HTML
                     $translation = strtr($translation, $string->placeholders);
                 }
 
-                // Reemplazar # por una expresión angular que formatee la cantidad
-                if ($string->isICU && $this->addHashPluralSupport && $translation != null && strpos($string->fullyQualifiedID(), '#') !== false) {
-                    $pattern = new Pattern($string->text);
-                    $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
-                }
-
-                return $translation;
+                return Angular::fixTranslation($string, $translation, $this->addHashPluralSupport);
             },
             $path
         );
@@ -309,7 +320,7 @@ class Angular_Methods extends CStyle
             function (LString $string) use ($getTranslation, $path) {
                 Angular::prepareString($string, $path);
 
-                return call_user_func($getTranslation, $string);
+                return Angular::fixTranslation($string, call_user_func($getTranslation, $string));
             },
             $path
         );
