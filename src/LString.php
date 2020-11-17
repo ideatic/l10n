@@ -52,7 +52,7 @@ class LString
      */
     public $placeholders;
 
-    /** @var string */
+    /** @var string|null */
     public $requestedLocale;
 
     /** @var mixed Elemento donde se encontró esta cadena (llamada a método PHP, elemento HTML, etc.) */
