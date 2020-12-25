@@ -209,6 +209,7 @@ class CStyle extends Format
         do {
             $rawCall = $i18nString->raw;
             $i18nStringPos = strpos($content, $rawCall, $offset);
+            $currentTranslation = $translation;
 
             if ($i18nStringPos) {
                 $translationEnd = $i18nStringPos + strlen($rawCall);
@@ -222,7 +223,7 @@ class CStyle extends Format
                     } else {
                         $args[1] = trim($args[1]);
                         $replacement = "' + ({$args[1]}) + '";
-                        $translation = str_replace(substr($args[0], 1, -1), $replacement, $translation);
+                        $currentTranslation = str_replace(substr($args[0], 1, -1), $replacement, $currentTranslation);
 
                         // Incluir llamada a .replace() en la cadena a reemplazar, y reajustar posición del fin de la traducción para comprobar si hay más llamadas a replace()
                         $rawCall = substr($content, $i18nStringPos, $argsFinish - $i18nStringPos + 1);
@@ -230,10 +231,10 @@ class CStyle extends Format
                     }
                 }
 
-                $content = str_replace($rawCall, $translation, $content, $replaceCount);
+                $content = str_replace($rawCall, $currentTranslation, $content, $replaceCount);
 
                 if ($replaceCount == 0) {
-                    throw new \Exception("Unable to find string '{$rawCall}', offset {$offset}", ['content' => $content, 'translation' => $translation]);
+                    throw new \Exception("Unable to find string '{$rawCall}', offset {$offset}", ['content' => $content, 'translation' => $currentTranslation]);
                 }
 
                 // Seguir buscando coincidencias de la cadena
