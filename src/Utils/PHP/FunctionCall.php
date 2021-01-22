@@ -87,12 +87,11 @@ class FunctionCall
     /**
      * Obtiene el valor procesado del parámetro con el índice indicado
      *
-     * @param int     $index
      * @param boolean $protectVarStrings Valor que indica si se evitará un error de variable no definida al intentar procesar cadenas con variables. P.ej.: "Hola $name"
      *
      * @return mixed
      */
-    public function parseArgument($index, $protectVarStrings = true)
+    public function parseArgument(int $index, bool $protectVarStrings = true)
     {
         if ($protectVarStrings) {
             $tokens = $this->_getArgumentTokens($index);
@@ -162,7 +161,7 @@ class FunctionCall
         return $this->_isOnlyAllowedTokens($index, [T_WHITESPACE, T_CONSTANT_ENCAPSED_STRING, T_COMMENT, T_DOC_COMMENT]);
     }
 
-    private function _isOnlyAllowedTokens($index, array $allowed)
+    private function _isOnlyAllowedTokens($index, array $allowed): bool
     {
         $tokens = $this->_getArgumentTokens($index);
         foreach ($tokens as $token) {
@@ -175,9 +174,8 @@ class FunctionCall
 
     /**
      * Obtiene un valor que indica si todos los parámetros son valores escalares
-     * @return boolean
      */
-    public function allScalar()
+    public function allScalar(): bool
     {
         for ($i = 0; $i < count($this->arguments); $i++) {
             if (!$this->isScalar($i)) {
@@ -191,12 +189,8 @@ class FunctionCall
      * Obtiene un valor que indica si el parámetro con el índice indicado es un
      * escalar (cadena, numero, boolean, etc.)
      * @see http://php.net/manual/en/function.is-scalar.php
-     *
-     * @param int $index
-     *
-     * @return boolean
      */
-    public function isScalar($index)
+    public function isScalar(int $index): bool
     {
         return $this->_isOnlyAllowedTokens(
             $index,
@@ -222,12 +216,8 @@ class FunctionCall
     /**
      * Obtiene un valor que indica si el parámetro con el índice indicado es
      * un array
-     *
-     * @param int $index
-     *
-     * @return boolean
      */
-    public function isArray($index)
+    public function isArray(int $index): bool
     {
         $tokens = $this->_getArgumentTokens($index);
 
@@ -247,10 +237,9 @@ class FunctionCall
     /**
      * Obtiene los comentarios incluidos en el argumento de índice indicado
      *
-     * @param int $index
-     * return string[]
+     * @return string[]
      */
-    public function getComments($index)
+    public function getComments(int $index): array
     {
         $tokens = $this->_getArgumentTokens($index);
 

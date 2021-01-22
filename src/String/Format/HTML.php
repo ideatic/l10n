@@ -70,7 +70,7 @@ class HTML extends Format
             $attribute = $element->hasAttribute($attributeName);
 
             if (!$attribute) {
-                throw new \Exception("i18n attribute {$attributeName} not found in {$path}", $element->render());
+                throw new \Exception("i18n attribute {$attributeName} not found in {$path}: " . $element->render());
             }
             //var_dump(HTML_Tools::entityDecode($attribute->value));
             $string = $this->_registerString($source, $path, HTML_Parser::entityDecode($attribute->value), $i18nAttribute, $attribute);

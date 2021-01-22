@@ -37,7 +37,7 @@ class Code
         return $this->_source;
     }
 
-    private function _tokensToString($tokens, $start = 0, $end = null)
+    private function _tokensToString(array $tokens, int $start = 0, int $end = null): string
     {
         if (!isset($end)) {
             $end = count($tokens) - 1;
@@ -102,14 +102,14 @@ class Code
                         if (empty($fnNames) || in_array($tokens[$lastNoWhitespaceToken][1], $fnNames)) {
                             $startToken = $tokens[$lastNoWhitespaceToken];
                             $call = new FunctionCall();
-                            $start_pos = $i; //Comenzamos desde el primer ( que inicia la lista de argumentos
-                            //Obtener nombre del método y llamada completa
+                            $startPos = $i; // Comenzamos desde el primer ( que inicia la lista de argumentos
+                            // Obtener nombre del método y llamada completa
                             $call->method = $startToken[1];
                             $call->offset = $lastNoWhitespaceOffset;
                             $call->line = $startToken[2] ??
                                           substr_count($this->_source, "\n", 0, $call->offset) + 1;
 
-                            $full_call_start = $this->_readBackwards(
+                            $fullCallStart = $this->_readBackwards(
                                 $tokens,
                                 $i -
                                 1,
@@ -122,24 +122,21 @@ class Code
                                     /* , '(', ')' */
                                 ]
                             );
-                            $call->fullMethod = $this->_tokensToString($tokens, $full_call_start, $start_pos - 1);
+                            $call->fullMethod = $this->_tokensToString($tokens, $fullCallStart, $startPos - 1);
                             $call->fullMethodOffset =
                                 $offset - strlen($call->fullMethod) + (strlen($call->fullMethod) - strlen(
                                         ltrim($call->fullMethod)
-                                    )); //No contar espacios en blanco
+                                    )); // No contar espacios en blanco
                             $call->fullMethod = ltrim($call->fullMethod);
 
-                            //Leer argumentos y generar código de la llamada completa
+                            // Leer argumentos y generar código de la llamada completa
                             $call->arguments = $this->_readFunctionArgs($tokens, $i);
-                            $call->code = ltrim(
-                                trim($this->_tokensToString($tokens, $lastNoWhitespaceToken, $i)),
-                                '()'
-                            );
+                            $call->code = ltrim(trim($this->_tokensToString($tokens, $lastNoWhitespaceToken, $i)), '()');
 
                             $calls[] = $call;
 
                             //Ajustar offset
-                            $offset += strlen($this->_tokensToString($tokens, $start_pos, $i)) - strlen($token);
+                            $offset += strlen($this->_tokensToString($tokens, $startPos, $i)) - strlen($token);
                         }
                     }
 
@@ -188,28 +185,28 @@ class Code
         return 0;
     }
 
-    private function _readFunctionArgs($tokens, &$pos)
+    private function _readFunctionArgs(array $tokens, int &$pos): array
     {
         if ($tokens[$pos] != '(') {
             throw new InvalidArgumentException('The cursor must be situated at the beginning of a list');
         }
         $level = 0;
         $arguments = [];
-        $argument_start = $pos + 1;
+        $argumentStart = $pos + 1;
         for ($i = $pos + 1, $l = count($tokens); $i < $l; $i++) {
             switch ($tokens[$i][0]) {
                 case ',':
                     if ($level == 0) {
-                        $arguments[] = $this->_tokensToString($tokens, $argument_start, $i - 1);
-                        $argument_start = $i + 1;
+                        $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+                        $argumentStart = $i + 1;
                     }
                     break;
 
                 case ')':
                 case ']':
                     if ($level <= 0) {
-                        if ($argument_start != $i) {
-                            $arguments[] = $this->_tokensToString($tokens, $argument_start, $i - 1);
+                        if ($argumentStart != $i) {
+                            $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
                         }
                         break 2;
                     } else {
