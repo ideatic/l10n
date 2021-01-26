@@ -43,9 +43,7 @@ class PHP extends Format
         return $content;
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(string $phpCode, $path = null): array
     {
         // Analizar el código y buscar llamadas a métodos de traducción

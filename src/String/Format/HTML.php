@@ -19,9 +19,7 @@ class HTML extends Format
     public $autoDetectIcuPatterns = true;
     private $_foundStrings;
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(string $html, $path = null): array
     {
         $this->_foundStrings = [];
@@ -310,9 +308,7 @@ class HTML extends Format
         return $suspicious;
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function translate(string $content, callable $getTranslation, $context = null): string
     {
         return $this->_process($content, $context, $getTranslation);

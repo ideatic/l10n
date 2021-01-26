@@ -6,9 +6,7 @@ use ideatic\l10n\Catalog\Catalog;
 
 class JSON extends ArrayLoader
 {
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function load(string $content, string $locale): Catalog
     {
         $rawDictionary = json_decode($content, true);

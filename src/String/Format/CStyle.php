@@ -17,9 +17,7 @@ class CStyle extends Format
 
     public $encodeTranslationsWithSingleQuotes = false;
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function translate(string $content, callable $getTranslation, $path = null): string
     {
         foreach ($this->getStrings($content, $path) as $string) {
@@ -29,7 +27,7 @@ class CStyle extends Format
                 continue;
             }
 
-            $translation = json_encode($translation);
+            $translation = json_encode($translation, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             if ($this->encodeTranslationsWithSingleQuotes) {
                 $translation = "'" . addcslashes(substr($translation, 1, -1), "'") . "'";
             }
@@ -48,9 +46,7 @@ class CStyle extends Format
         return $content;
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(string $code, $path = null): array
     {
         $pattern = '/(' . implode('|', $this->methods) . ')\s*\(/';
@@ -199,22 +195,22 @@ class CStyle extends Format
         return $str;
     }
 
-    private function _optimizePlaceholders(string $content, LString $i18nString, string $translation): string
+    private function _optimizePlaceholders(string $source, LString $i18nString, string $translation): string
     {
-        if (stripos($content, '.replace') === false) {
-            return str_replace($i18nString->raw, $translation, $content);
+        if (stripos($source, '.replace') === false) {
+            return str_replace($i18nString->raw, $translation, $source);
         }
 
         $offset = 0;
         do {
             $rawCall = $i18nString->raw;
-            $i18nStringPos = strpos($content, $rawCall, $offset);
+            $i18nStringPos = strpos($source, $rawCall, $offset);
             $currentTranslation = $translation;
 
             if ($i18nStringPos) {
                 $translationEnd = $i18nStringPos + strlen($rawCall);
-                while (preg_match('#^\s*\.replace\(#iu', substr($content, $translationEnd), $match)) {
-                    $args = $this->_parseFnArgs($content, $translationEnd + strlen($match[0]) - 1, $argsFinish);
+                while (preg_match('#^\s*\.replace\(#iu', substr($source, $translationEnd), $match)) {
+                    $args = $this->_parseFnArgs($source, $translationEnd + strlen($match[0]) - 1, $argsFinish);
 
                     if (count($args) != 2) {
                         break;
@@ -222,19 +218,24 @@ class CStyle extends Format
                         break;
                     } else {
                         $args[1] = trim($args[1]);
+                        $search = substr($args[0], 1, -1);
                         $replacement = "' + ({$args[1]}) + '";
-                        $currentTranslation = str_replace(substr($args[0], 1, -1), $replacement, $currentTranslation);
+                        $currentTranslation = str_replace($search, $replacement, $currentTranslation, $replaceCount);
+
+                        if ($replaceCount == 0) {
+                            echo "\033[31mWarning! Unable to find placeholder '{$search}' in string '{$translation}' @ {$i18nString->file}\033[0m\n";
+                        }
 
                         // Incluir llamada a .replace() en la cadena a reemplazar, y reajustar posición del fin de la traducción para comprobar si hay más llamadas a replace()
-                        $rawCall = substr($content, $i18nStringPos, $argsFinish - $i18nStringPos + 1);
+                        $rawCall = substr($source, $i18nStringPos, $argsFinish - $i18nStringPos + 1);
                         $translationEnd = $argsFinish + 1;
                     }
                 }
 
-                $content = str_replace($rawCall, $currentTranslation, $content, $replaceCount);
+                $source = str_replace($rawCall, $currentTranslation, $source, $replaceCount);
 
                 if ($replaceCount == 0) {
-                    throw new \Exception("Unable to find string '{$rawCall}', offset {$offset}", ['content' => $content, 'translation' => $currentTranslation]);
+                    throw new \Exception("Unable to find string '{$rawCall}', offset {$offset}", ['content' => $source, 'translation' => $currentTranslation]);
                 }
 
                 // Seguir buscando coincidencias de la cadena
@@ -242,6 +243,6 @@ class CStyle extends Format
             }
         } while ($i18nStringPos !== false);
 
-        return $content;
+        return $source;
     }
 }

@@ -6,9 +6,7 @@ use ideatic\l10n\Catalog\Catalog;
 
 class PHP extends ArrayLoader
 {
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function load(string $content, string $locale): Catalog
     {
         return $this->_parse(eval("?> {$content}"), $locale);

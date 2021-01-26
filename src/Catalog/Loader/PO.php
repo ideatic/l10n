@@ -10,9 +10,7 @@ use Sepia\PoParser\Catalog\Catalog;
 
 class PO extends Loader
 {
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function load(string $content, string $locale): \ideatic\l10n\Catalog\Catalog
     {
         $handler = new  \Sepia\PoParser\SourceHandler\StringSource($content);

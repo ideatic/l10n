@@ -4,9 +4,7 @@ namespace ideatic\l10n\Catalog\Serializer;
 
 class PHP extends ArraySerializer
 {
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function generate(array $domains): string
     {
         $phpArray = var_export($this->_generate($domains), true);
