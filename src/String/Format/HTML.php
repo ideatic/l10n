@@ -70,7 +70,7 @@ class HTML extends Format
             if (!$attribute) {
                 throw new \Exception("i18n attribute {$attributeName} not found in {$path}: " . $element->render());
             }
-            //var_dump(HTML_Tools::entityDecode($attribute->value));
+
             $string = $this->_registerString($source, $path, HTML_Parser::entityDecode($attribute->value), $i18nAttribute, $attribute);
 
             if ($getTranslation) {
@@ -156,7 +156,7 @@ class HTML extends Format
             }
 
             if (!$parentI18nFound) {
-                throw new \Exception("Invalid i18n attribute found in element in '{$path}'", $element->render());
+                throw new \Exception("Invalid i18n attribute found in element in '{$path}': " . $element->render());
             }
         }
 

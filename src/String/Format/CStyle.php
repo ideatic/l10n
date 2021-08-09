@@ -223,7 +223,7 @@ class CStyle extends Format
                         $currentTranslation = str_replace($search, $replacement, $currentTranslation, $replaceCount);
 
                         if ($replaceCount == 0) {
-                            echo "\033[31mWarning! Unable to find placeholder '{$search}' in string '{$translation}' @ {$i18nString->file}\033[0m\n";
+                            echo "\033[31mWarning! Unable to find placeholder '{$search}' in string {$translation} @ {$i18nString->file}\033[0m\n";
                         }
 
                         // Incluir llamada a .replace() en la cadena a reemplazar, y reajustar posición del fin de la traducción para comprobar si hay más llamadas a replace()
