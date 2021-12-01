@@ -6,23 +6,12 @@ use ideatic\l10n\Config;
 
 class Environment
 {
-    /** @var Config */
-    public $config;
-
-    /** @var string */
-    public $executableName;
-
-    /** @var string */
-    public $method;
-
-    /** @var array */
-    public $input;
-
-    /** @var array */
-    public $params;
-
-    /** @var string */
-    public $directory;
+    public Config $config;
+    public string $executableName;
+    public string $method;
+    public array $input;
+    public array $params;
+    public string $directory;
 
     public function __construct()
     {

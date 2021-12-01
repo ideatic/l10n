@@ -22,7 +22,7 @@ class PHP extends Format
     {
         $correction = 0;
         foreach ($this->getStrings($content, $context) as $string) {
-            if ($string->requestedLocale) { // Se espera la cadena en un locale especificado
+            if (!empty($string->requestedLocale)) { // Se espera la cadena en un locale especificado
                 continue;
             }
 

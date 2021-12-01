@@ -10,67 +10,50 @@ use ideatic\l10n\Plural\Format;
  */
 class LString
 {
-    /** @var string Identificador de esta cadena */
-    public $id;
+    /** Identificador de esta cadena */
+    public string $id;
 
-    /** @var string Texto traducible */
-    public $text;
+    /**  Texto traducible */
+    public string $text;
 
-    /** @var string Identificador completo de la cadena, incluyendo su contexto */
-    public $fullID;
+    /**  Identificador completo de la cadena, incluyendo su contexto */
+    public string $fullID;
 
-    /** @var string Nombre del dominio al que pertenece esta cadena */
-    public $domainName = 'app';
+    /** Nombre del dominio al que pertenece esta cadena */
+    public string $domainName = 'app';
+    public string $domain;
+    public string $context;
+    public bool $isICU = false;
+    public ?string $file;
+    public int $line;
+    public int $offset;
 
-    /** @var Domain */
-    public $domain;
-
-    /** @var string Contexto */
-    public $context;
-
-    /** @var bool */
-    public $isICU = false;
-
-    /** @var string */
-    public $file;
-
-    /** @var int */
-    public $line;
-
-    /** @var int */
-    public $offset;
-
-    /**
-     * Comentario asociado a la cadena de texto
-     * @var string
-     */
-    public $comments;
+    /** Comentario asociado a la cadena de texto */
+    public ?string $comments;
 
     /**
      * Marcadores de posición incluidos en la cadena de traducción
-     * @var array
+     * @var array<string, string>
      */
-    public $placeholders;
+    public array $placeholders;
 
-    /** @var string|null */
-    public $requestedLocale;
+    public ?string $requestedLocale;
 
     /** @var mixed Elemento donde se encontró esta cadena (llamada a método PHP, elemento HTML, etc.) */
     public $raw;
 
     /**
      * Genera la ID completa utilizada por defecto
-     * @return string
      */
     public function fullyQualifiedID(): string
     {
-        if ($this->fullID) {
+        if (isset($this->fullID)) {
             return $this->fullID;
         }
 
-        $id = $this->id ? $this->id : $this->text;
+        $id = $this->id ?: $this->text;
 
-        if ($this->context) {
+        if (isset($this->context)) {
             $id .= '@' . $this->context;
         }
 

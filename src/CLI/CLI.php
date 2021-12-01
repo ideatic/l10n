@@ -30,7 +30,6 @@ class CLI
         $environment->parseParams($argv ?? $_SERVER['argv']);
         $environment->config->load(IO::combinePaths($environment->directory, 'l10n.json'));
 
-
         switch ($environment->method) {
             case 'extract':
                 Extractor::run($environment);

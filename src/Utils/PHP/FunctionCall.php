@@ -12,45 +12,39 @@ class FunctionCall
 
     /**
      * Nombre de la función o método invocado
-     * @var string
      */
-    public $method;
+    public string $method;
 
     /**
      * Código completo de llamada al método, incluido el objeto o clase al que pertenece
-     * @var string
      */
-    public $fullMethod;
+    public string $fullMethod;
 
     /**
      * Código PHP de la llamada al método completa, incluido objeto, clase y argumentos
-     * @var string
      */
-    public $code;
+    public string $code;
 
     /**
      * Array con el código PHP de los argumentos de la llamada
      * @var string[]
      */
-    public $arguments;
+    public array $arguments;
 
     /**
      * Posición en el código fuente original de la llamada al método
-     * @var int
      */
-    public $offset;
+    public int $offset;
 
     /**
      * Posición en el código fuente original de la llamada al método completo
-     * @var int
      */
-    public $fullMethodOffset;
+    public int $fullMethodOffset;
 
     /**
      * Línea en el código fuente original de la llamada al método
-     * @var int
      */
-    public $line;
+    public int $line;
 
     /**
      * Obtiene un método que indica si la llamada es a una función normal (TRUE) o
@@ -72,10 +66,8 @@ class FunctionCall
 
     /**
      * Obtiene el valor procesado de todos los parámetros de esta llamada
-     *
-     * @param int $index
      */
-    public function parseArguments()
+    public function parseArguments(): array
     {
         $args = [];
         for ($i = 0; $i < count($this->arguments); $i++) {
@@ -124,12 +116,8 @@ class FunctionCall
 
     /**
      * Obtiene los tokens PHP que forman el argumento indicado
-     *
-     * @param int $index
-     *
-     * @return array
      */
-    private function _getArgumentTokens($index)
+    private function _getArgumentTokens(int $index): array
     {
         $code = '<?php ' . $this->arguments[$index] . '?>';
 
@@ -151,12 +139,8 @@ class FunctionCall
     /**
      * Obtiene un valor que indica si el parámetro con el índice indicado es una
      * cadena de texto constante
-     *
-     * @param int $index
-     *
-     * @return boolean
      */
-    public function isConstantString($index)
+    public function isConstantString(int $index): bool
     {
         return $this->_isOnlyAllowedTokens($index, [T_WHITESPACE, T_CONSTANT_ENCAPSED_STRING, T_COMMENT, T_DOC_COMMENT]);
     }
