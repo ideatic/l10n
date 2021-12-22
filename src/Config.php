@@ -8,14 +8,16 @@ use ideatic\l10n\Utils\Utils;
 class Config
 {
     public string $name;
-    public array $projects;
+    /** @var array|\stdClass */
+    public $projects;
     public string $sourceLocale;
     public string $fallbackLocale;
 
     /** @var string[] */
     public array $locales;
 
-    public ConfigTools $tools;
+    /** @var ConfigTools|\stdClass */
+    public object $tools;
 
     public function __construct()
     {

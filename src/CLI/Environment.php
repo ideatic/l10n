@@ -8,7 +8,7 @@ class Environment
 {
     public Config $config;
     public string $executableName;
-    public string $method;
+    public ?string $method;
     public array $input;
     public array $params;
     public string $directory;

@@ -43,14 +43,8 @@ abstract class Str
     /**
      * Elimina los espacios en blanco al comienzo y final de una cadena.
      * Esta función soporta todos los tipos de espacios unicode como "No-break space", etc.
-     *
-     * @param string $string
-     * @param bool   $left
-     * @param bool   $right
-     *
-     * @return string
      */
-    public static function trim($string, $left = true, $right = true)
+    public static function trim(string $string, bool $left = true, bool $right = true): string
     {
         $options = [];
         if ($left) {

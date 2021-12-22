@@ -21,15 +21,15 @@ class LString
 
     /** Nombre del dominio al que pertenece esta cadena */
     public string $domainName = 'app';
-    public string $domain;
-    public string $context;
+    public Domain $domain;
+    public ?string $context = null;
     public bool $isICU = false;
     public ?string $file;
     public int $line;
     public int $offset;
 
     /** Comentario asociado a la cadena de texto */
-    public ?string $comments;
+    public ?string $comments = null;
 
     /**
      * Marcadores de posición incluidos en la cadena de traducción
