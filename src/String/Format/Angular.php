@@ -36,17 +36,13 @@ class Angular extends Format
         $this->_i18nMethods->encodeTranslationsWithSingleQuotes = true;
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(string $content, $path = null): array
     {
         return $this->_processStrings($content, $path);
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function translate(string $content, callable $getTranslation, $path = null): string
     {
         return $this->_processStrings($content, $path, $getTranslation);
@@ -231,9 +227,7 @@ class Angular_HTML extends HTML
 {
     public $addHashPluralSupport = true;
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(string $code, $path = null): array
     {
         $strings = parent::getStrings($code, $path);
@@ -245,9 +239,7 @@ class Angular_HTML extends HTML
         return $strings;
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function translate(string $content, callable $getTranslation, $path = null): string
     {
         return parent::translate(
@@ -273,9 +265,7 @@ class Angular_HTML extends HTML
  */
 class Angular_Methods extends CStyle
 {
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(string $code, $path = null): array
     {
         $strings = parent::getStrings($code, $path);
@@ -310,9 +300,7 @@ class Angular_Methods extends CStyle
     }
 
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function translate(string $content, callable $getTranslation, $path = null): string
     {
         return parent::translate(

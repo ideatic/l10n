@@ -8,17 +8,16 @@ namespace ideatic\l10n\Utils\PHP;
  */
 class Code
 {
-
-    protected $_source;
-    protected $_tokens;
-    protected $_update;
+    protected string $_source;
+    protected ?array $_tokens;
+    protected bool $_update;
 
     public function __construct(string $source)
     {
         $this->parse($source);
     }
 
-    public function parse(string $source)
+    public function parse(string $source): void
     {
         $this->_source = $source;
         $this->_tokens = null;
@@ -27,9 +26,8 @@ class Code
 
     /**
      * Obtiene el código PHP representado por esta instancia
-     * @return string
      */
-    public function getCode()
+    public function getCode(): string
     {
         if ($this->_update) {
             $this->_source = $this->_tokensToString($this->_tokens, 0);
@@ -37,7 +35,7 @@ class Code
         return $this->_source;
     }
 
-    private function _tokensToString($tokens, $start = 0, $end = null)
+    private function _tokensToString(array $tokens, int $start = 0, int $end = null): string
     {
         if (!isset($end)) {
             $end = count($tokens) - 1;
@@ -59,26 +57,16 @@ class Code
     /**
      * Analiza todas las llamadas a funciones que se producen en el fragmento de código PHP analizado
      *
-     * @param string[]
+     * @param array<string> $fnNames
      *
      * @return FunctionCall[]
      */
-    public function getFunctionCalls(array $fnNames = null)
+    public function getFunctionCalls(array $fnNames = null): array
     {
         // Comprobación rápida de que hay llamadas a las funciones indicadas usando regex
         if (!empty($fnNames)) {
-            if (!preg_match(
-                '#(' . implode(
-                    '|',
-                    array_map(
-                        function ($name) {
-                            return preg_quote($name, '#');
-                        },
-                        $fnNames
-                    )
-                ) . ')\s*\(#S',
-                $this->_source
-            )) {
+            $pattern = '#(' . implode('|', array_map(fn($name) => preg_quote($name, '#'), $fnNames)) . ')\s*\(#S';
+            if (!preg_match($pattern, $this->_source)) {
                 return [];
             }
         }
@@ -102,14 +90,14 @@ class Code
                         if (empty($fnNames) || in_array($tokens[$lastNoWhitespaceToken][1], $fnNames)) {
                             $startToken = $tokens[$lastNoWhitespaceToken];
                             $call = new FunctionCall();
-                            $start_pos = $i; //Comenzamos desde el primer ( que inicia la lista de argumentos
-                            //Obtener nombre del método y llamada completa
+                            $startPos = $i; // Comenzamos desde el primer ( que inicia la lista de argumentos
+                            // Obtener nombre del método y llamada completa
                             $call->method = $startToken[1];
                             $call->offset = $lastNoWhitespaceOffset;
                             $call->line = $startToken[2] ??
                                           substr_count($this->_source, "\n", 0, $call->offset) + 1;
 
-                            $full_call_start = $this->_readBackwards(
+                            $fullCallStart = $this->_readBackwards(
                                 $tokens,
                                 $i -
                                 1,
@@ -122,24 +110,21 @@ class Code
                                     /* , '(', ')' */
                                 ]
                             );
-                            $call->fullMethod = $this->_tokensToString($tokens, $full_call_start, $start_pos - 1);
+                            $call->fullMethod = $this->_tokensToString($tokens, $fullCallStart, $startPos - 1);
                             $call->fullMethodOffset =
                                 $offset - strlen($call->fullMethod) + (strlen($call->fullMethod) - strlen(
                                         ltrim($call->fullMethod)
-                                    )); //No contar espacios en blanco
+                                    )); // No contar espacios en blanco
                             $call->fullMethod = ltrim($call->fullMethod);
 
-                            //Leer argumentos y generar código de la llamada completa
+                            // Leer argumentos y generar código de la llamada completa
                             $call->arguments = $this->_readFunctionArgs($tokens, $i);
-                            $call->code = ltrim(
-                                trim($this->_tokensToString($tokens, $lastNoWhitespaceToken, $i)),
-                                '()'
-                            );
+                            $call->code = ltrim(trim($this->_tokensToString($tokens, $lastNoWhitespaceToken, $i)), '()');
 
                             $calls[] = $call;
 
-                            //Ajustar offset
-                            $offset += strlen($this->_tokensToString($tokens, $start_pos, $i)) - strlen($token);
+                            // Ajustar offset
+                            $offset += strlen($this->_tokensToString($tokens, $startPos, $i)) - strlen($token);
                         }
                     }
 
@@ -157,12 +142,8 @@ class Code
 
     /**
      * Obtiene o establece los tokens PHP representados por esta instancia
-     *
-     * @param array $tokens
-     *
-     * @return array
      */
-    public function tokens($tokens = null)
+    public function tokens(array $tokens = null): array
     {
         if (isset($tokens)) { // Setter
             if ($tokens != $this->_tokens) { //Comprobar si han cambiado
@@ -178,7 +159,7 @@ class Code
         }
     }
 
-    private function _readBackwards($tokens, $pos, $valid)
+    private function _readBackwards(array $tokens, int $pos, array $valid): int
     {
         for ($i = $pos; $i >= 0; $i--) {
             if (!in_array($tokens[$i][0], $valid)) {
@@ -188,28 +169,37 @@ class Code
         return 0;
     }
 
-    private function _readFunctionArgs($tokens, &$pos)
+    private function _readFunctionArgs(array $tokens, int &$pos): array
     {
         if ($tokens[$pos] != '(') {
             throw new InvalidArgumentException('The cursor must be situated at the beginning of a list');
         }
         $level = 0;
         $arguments = [];
-        $argument_start = $pos + 1;
+        $argumentStart = $pos + 1;
+        $inString = false;
         for ($i = $pos + 1, $l = count($tokens); $i < $l; $i++) {
+            if ($inString && $tokens[$i][0] != '"') {
+                continue;
+            }
+
             switch ($tokens[$i][0]) {
-                case ',':
+                case ',': // Separador de argumentos
                     if ($level == 0) {
-                        $arguments[] = $this->_tokensToString($tokens, $argument_start, $i - 1);
-                        $argument_start = $i + 1;
+                        $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+                        $argumentStart = $i + 1;
                     }
+                    break;
+
+                case '"':
+                    $inString = !$inString;
                     break;
 
                 case ')':
                 case ']':
                     if ($level <= 0) {
-                        if ($argument_start != $i) {
-                            $arguments[] = $this->_tokensToString($tokens, $argument_start, $i - 1);
+                        if ($argumentStart != $i) {
+                            $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
                         }
                         break 2;
                     } else {
@@ -224,14 +214,14 @@ class Code
                     break;
 
                 case '}':
-                    if ($i + 1 < $l && $tokens[$i + 1][0] != T_ENCAPSED_AND_WHITESPACE) { //Sólo aceptar como válidas llaves para cerrar y abrir bloques
+                    if ($i + 1 < $l && $tokens[$i + 1][0] != T_ENCAPSED_AND_WHITESPACE) { // Solo aceptar como válidas llaves para cerrar y abrir bloques
                         $level--;
                     }
-
 
                     break;
             }
         }
+
         $pos = $i;
         return $arguments;
     }

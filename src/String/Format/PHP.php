@@ -22,7 +22,7 @@ class PHP extends Format
     {
         $correction = 0;
         foreach ($this->getStrings($content, $context) as $string) {
-            if ($string->requestedLocale) { // Se espera la cadena en un locale especificado
+            if (!empty($string->requestedLocale)) { // Se espera la cadena en un locale especificado
                 continue;
             }
 
@@ -43,9 +43,7 @@ class PHP extends Format
         return $content;
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(string $phpCode, $path = null): array
     {
         // Analizar el código y buscar llamadas a métodos de traducción
@@ -116,22 +114,22 @@ class PHP extends Format
             case '_f':
             case '_e':
             case 'translate_format':
-                if (!empty($phpCall->arguments[1])) { //Si es una llamada sin parámetros, entonces el texto es estático y no se necesita llamar a strtr
-                    $replacements = $phpCall->arguments[1];
-                    if (!$phpCall->isArray(1)) {
-                        $replacements = "is_array({$phpCall->arguments[1]}) ? {$phpCall->arguments[1]} : array('%'=>{$phpCall->arguments[1]})";
-                    }
-                    $format = "strtr({$translatedString}, {$replacements})";
-                    if ($phpCall->method == '_e') {
-                        $format = "echo {$format}";
-                    }
-                    return $format;
+            if (!empty($phpCall->arguments[1])) { // Si es una llamada sin parámetros, entonces el texto es estático y no se necesita llamar a strtr
+                $replacements = $phpCall->arguments[1];
+                if (!$phpCall->isArray(1)) {
+                    $replacements = "is_array({$phpCall->arguments[1]}) ? {$phpCall->arguments[1]} : array('%'=>{$phpCall->arguments[1]})";
                 }
+                $format = "strtr({$translatedString},{$replacements})";
+                if ($phpCall->method == '_e') {
+                    $format = "echo {$format}";
+                }
+                return $format;
+            }
 
             case '_icu':
             case 'formatICU':
                 $arguments = $phpCall->arguments[2] ?? '[]';
-                return "_icu({$translatedString}, {$arguments}, null, null, false)";
+            return "_icu({$translatedString},{$arguments}, null, null, false)";
         }
 
         return $phpCall->code;

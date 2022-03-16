@@ -15,9 +15,7 @@ class MultiProvider extends Provider
         $this->_providers[] = $provider;
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(): array
     {
         $found = [];

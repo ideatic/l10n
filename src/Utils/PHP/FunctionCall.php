@@ -12,45 +12,39 @@ class FunctionCall
 
     /**
      * Nombre de la función o método invocado
-     * @var string
      */
-    public $method;
+    public string $method;
 
     /**
      * Código completo de llamada al método, incluido el objeto o clase al que pertenece
-     * @var string
      */
-    public $fullMethod;
+    public string $fullMethod;
 
     /**
      * Código PHP de la llamada al método completa, incluido objeto, clase y argumentos
-     * @var string
      */
-    public $code;
+    public string $code;
 
     /**
      * Array con el código PHP de los argumentos de la llamada
      * @var string[]
      */
-    public $arguments;
+    public array $arguments;
 
     /**
      * Posición en el código fuente original de la llamada al método
-     * @var int
      */
-    public $offset;
+    public int $offset;
 
     /**
      * Posición en el código fuente original de la llamada al método completo
-     * @var int
      */
-    public $fullMethodOffset;
+    public int $fullMethodOffset;
 
     /**
      * Línea en el código fuente original de la llamada al método
-     * @var int
      */
-    public $line;
+    public int $line;
 
     /**
      * Obtiene un método que indica si la llamada es a una función normal (TRUE) o
@@ -72,10 +66,8 @@ class FunctionCall
 
     /**
      * Obtiene el valor procesado de todos los parámetros de esta llamada
-     *
-     * @param int $index
      */
-    public function parseArguments()
+    public function parseArguments(): array
     {
         $args = [];
         for ($i = 0; $i < count($this->arguments); $i++) {
@@ -87,12 +79,11 @@ class FunctionCall
     /**
      * Obtiene el valor procesado del parámetro con el índice indicado
      *
-     * @param int     $index
      * @param boolean $protectVarStrings Valor que indica si se evitará un error de variable no definida al intentar procesar cadenas con variables. P.ej.: "Hola $name"
      *
      * @return mixed
      */
-    public function parseArgument($index, $protectVarStrings = true)
+    public function parseArgument(int $index, bool $protectVarStrings = true)
     {
         if ($protectVarStrings) {
             $tokens = $this->_getArgumentTokens($index);
@@ -125,44 +116,35 @@ class FunctionCall
 
     /**
      * Obtiene los tokens PHP que forman el argumento indicado
-     *
-     * @param int $index
-     *
-     * @return array
      */
-    private function _getArgumentTokens($index)
+    private function _getArgumentTokens(int $index): array
     {
         $code = '<?php ' . $this->arguments[$index] . '?>';
 
         $tokens = token_get_all($code);
 
-        //Eliminar tokens de comienzo y final de código PHP
-        $last_key = count($tokens) - 1;
+        // Eliminar tokens de comienzo y final de código PHP
+        $lastKey = count($tokens) - 1;
 
         if ($tokens[0][0] == T_OPEN_TAG) {
             unset($tokens[0]);
         }
-        if ($tokens[$last_key][0] == T_CLOSE_TAG) {
-            unset($tokens[$last_key]);
+        if ($tokens[$lastKey][0] == T_CLOSE_TAG) {
+            unset($tokens[$lastKey]);
         }
 
         return array_values($tokens);
     }
 
     /**
-     * Obtiene un valor que indica si el parámetro con el índice indicado es una
-     * cadena de texto constante
-     *
-     * @param int $index
-     *
-     * @return boolean
+     * Obtiene un valor que indica si el parámetro con el índice indicado es una cadena de texto constante
      */
-    public function isConstantString($index)
+    public function isConstantString(int $index): bool
     {
         return $this->_isOnlyAllowedTokens($index, [T_WHITESPACE, T_CONSTANT_ENCAPSED_STRING, T_COMMENT, T_DOC_COMMENT]);
     }
 
-    private function _isOnlyAllowedTokens($index, array $allowed)
+    private function _isOnlyAllowedTokens($index, array $allowed): bool
     {
         $tokens = $this->_getArgumentTokens($index);
         foreach ($tokens as $token) {
@@ -175,9 +157,8 @@ class FunctionCall
 
     /**
      * Obtiene un valor que indica si todos los parámetros son valores escalares
-     * @return boolean
      */
-    public function allScalar()
+    public function allScalar(): bool
     {
         for ($i = 0; $i < count($this->arguments); $i++) {
             if (!$this->isScalar($i)) {
@@ -189,14 +170,10 @@ class FunctionCall
 
     /**
      * Obtiene un valor que indica si el parámetro con el índice indicado es un
-     * escalar (cadena, numero, boolean, etc.)
+     * escalar (cadena, número, boolean, etc.)
      * @see http://php.net/manual/en/function.is-scalar.php
-     *
-     * @param int $index
-     *
-     * @return boolean
      */
-    public function isScalar($index)
+    public function isScalar(int $index): bool
     {
         return $this->_isOnlyAllowedTokens(
             $index,
@@ -222,12 +199,8 @@ class FunctionCall
     /**
      * Obtiene un valor que indica si el parámetro con el índice indicado es
      * un array
-     *
-     * @param int $index
-     *
-     * @return boolean
      */
-    public function isArray($index)
+    public function isArray(int $index): bool
     {
         $tokens = $this->_getArgumentTokens($index);
 
@@ -247,10 +220,9 @@ class FunctionCall
     /**
      * Obtiene los comentarios incluidos en el argumento de índice indicado
      *
-     * @param int $index
-     * return string[]
+     * @return string[]
      */
-    public function getComments($index)
+    public function getComments(int $index): array
     {
         $tokens = $this->_getArgumentTokens($index);
 
@@ -273,9 +245,8 @@ class FunctionCall
         return $comments;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->code;
     }
-
 }

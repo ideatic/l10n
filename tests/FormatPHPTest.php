@@ -32,9 +32,29 @@ class FormatPHPTest extends TestCase
             ';
 
         $expected = '<?php
-            echo strtr(\'Hola {name}\',  ["{name}" => "World"]);
+            echo strtr(\'Hola {name}\', ["{name}" => "World"]);
             ';
 
+
+        $translated = $this->_translate(new PHP(), $input);
+
+        $this->assertEquals($expected, $translated);
+    }
+
+    public function testComplex2()
+    {
+        $input = '<?php
+            echo _f(\'Hello {name}\', [\'{name}\' => "{$user->name}#\"{$user->id}\""], \'dashboard\');
+            ';
+
+        $format = new PHP();
+        $strings = $format->getStrings($input);
+
+        $this->assertEquals('dashboard', $strings[0]->domainName);
+
+        $expected = '<?php
+            echo strtr(\'Hola {name}\', [\'{name}\' => "{$user->name}#\"{$user->id}\""]);
+            ';
 
         $translated = $this->_translate(new PHP(), $input);
 

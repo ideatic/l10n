@@ -50,9 +50,7 @@ class DirectoryProvider extends Provider
         }
     }
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function getStrings(): array
     {
         $found = [];

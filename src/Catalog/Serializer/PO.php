@@ -11,9 +11,7 @@ class PO extends Serializer
 {
     public const ICU_PREFIX = 'ICU: ';
 
-    /**
-     * @inheritDoc
-     */
+    /** @inheritDoc */
     public function generate(array $domains): string
     {
         $po = [];

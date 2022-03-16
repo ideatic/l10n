@@ -7,23 +7,17 @@ use ideatic\l10n\Utils\Utils;
 
 class Config
 {
-    /** @var string */
-    public $name;
-
-    /** @var Project[] */
+    public string $name;
+    /** @var array|\stdClass */
     public $projects;
-
-    /** @var string */
-    public $sourceLocale;
-
-    /** @var string */
-    public $fallbackLocale;
+    public string $sourceLocale;
+    public string $fallbackLocale;
 
     /** @var string[] */
-    public $locales;
+    public array $locales;
 
-    /** @var ConfigTools */
-    public $tools;
+    /** @var ConfigTools|\stdClass */
+    public object $tools;
 
     public function __construct()
     {
