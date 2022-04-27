@@ -29,7 +29,7 @@ class Projects implements Provider
         /** @var Loader[] $loadedCatalogs */
         static $loadedCatalogs = [];
 
-        if (!$string->domain && !$string->domainName) {
+        if (empty($string->domain) && empty($string->domainName)) {
             throw new \Exception("String domain not defined");
         }
 
