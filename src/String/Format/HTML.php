@@ -60,7 +60,7 @@ class HTML extends Format
         // Traducción de atributos
         $attrPrefix = 'i18n-';
         foreach ($element->attributes as $i18nAttribute) {
-            if (!Str::startsWith($i18nAttribute->name, $attrPrefix, true)) {
+            if (!str_starts_with(strtolower($i18nAttribute->name), $attrPrefix)) {
                 continue;
             }
 
@@ -179,14 +179,16 @@ class HTML extends Format
         $string->comments = $i18nAttribute->value;
 
         // https://angular.io/guide/i18n#help-the-translator-with-a-description-and-meaning
-        if (strpos($string->comments, '|') !== false) {
-            [$string->context, $string->comments] = explode('|', $string->comments, 2);
-        }
-        if (strpos($string->comments, '@@') !== false) {
-            [$string->comments, $string->id] = explode('@@', $string->comments, 2);
-        }
-        if (strpos($string->comments, '##') !== false) {
-            [$string->comments, $string->domainName] = explode('##', $string->comments, 2);
+        if ($string->comments) {
+            if (str_contains($string->comments, '|')) {
+                [$string->context, $string->comments] = explode('|', $string->comments, 2);
+            }
+            if (str_contains($string->comments, '@@')) {
+                [$string->comments, $string->id] = explode('@@', $string->comments, 2);
+            }
+            if (str_contains($string->comments, '##')) {
+                [$string->comments, $string->domainName] = explode('##', $string->comments, 2);
+            }
         }
 
         if ($this->autoDetectIcuPatterns) {
@@ -223,9 +225,7 @@ class HTML extends Format
 
                 if ($i18nContentAttr) {
                     $i18nContentAttr->remove();
-                    if ($i18nContentIgnoreAttr) { // Hay que eliminarlo antes de establecer el placeholder
-                        $i18nContentIgnoreAttr->remove();
-                    }
+                    $i18nContentIgnoreAttr?->remove();
 
                     // Solo incluir el comienzo del elemento padre
                     $copy = clone $child;
@@ -297,7 +297,7 @@ class HTML extends Format
 
             if (!$innerText) { // Sin texto
                 $suspicious = false;
-            } elseif (Str::startsWith($innerText, '{{')) { // Expresión angular
+            } elseif (str_starts_with($innerText, '{{')) { // Expresión angular
                 $suspicious = false;
             } elseif (!preg_match('/[a-zA-Z]/', $innerText)) { // Sin texto
                 $suspicious = false;

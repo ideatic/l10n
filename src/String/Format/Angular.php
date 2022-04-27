@@ -211,7 +211,7 @@ class Angular extends Format
             $translation = str_replace('{count,', "{{$pattern->nodes[0]->name},", $translation);
 
             // Reemplazar # por una expresión angular que formatee la cantidad
-            if ($fixHashPluralSupport && strpos($string->fullyQualifiedID(), '#') !== false) {
+            if ($fixHashPluralSupport && str_contains($string->fullyQualifiedID(), '#')) {
                 $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
             }
         }
@@ -285,7 +285,7 @@ class Angular_Methods extends CStyle
             $string->line = substr_count($code, "\n", 0, $string->offset) + 1;
             $string->domainName = $this->defaultDomain;
 
-            if (strpos($string->text, '${') !== false) {
+            if (str_contains($string->text, '${')) {
                 throw new \Exception("Unsupported template string {$string->raw}");
             }
 

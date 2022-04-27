@@ -30,7 +30,7 @@ class Environment
         $this->params = [];
 
         foreach (array_slice($argv, 1) as $param) {
-            if (substr($param, 0, 2) == '--') {
+            if (str_starts_with($param, '--')) {
                 $param = substr($param, 2);
                 if (strpos($param, '=')) {
                     [$key, $value] = explode('=', $param, 2);

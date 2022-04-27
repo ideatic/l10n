@@ -2,8 +2,6 @@
 
 namespace ideatic\l10n\Utils\PHP;
 
-use ideatic\l10n\Utils\Str;
-
 /**
  * Representa una llamada a una función de PHP
  */
@@ -52,7 +50,7 @@ class FunctionCall
      */
     public function isFunction(): bool
     {
-        return strpos($this->fullMethod, '->') === false;
+        return !str_contains($this->fullMethod, '->');
     }
 
     /**
@@ -232,9 +230,9 @@ class FunctionCall
                 $comment = $token[1];
 
                 // Limpiar comentario
-                if (Str::startsWith($comment, '/*')) {
+                if (str_starts_with($comment, '/*')) {
                     $comment = substr($comment, 2, -2);
-                } elseif (Str::startsWith($comment, '//')) {
+                } elseif (str_starts_with($comment, '//')) {
                     $comment = substr($comment, 2);
                 }
 

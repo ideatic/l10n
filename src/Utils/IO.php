@@ -28,7 +28,7 @@ abstract class IO
         $separator = DIRECTORY_SEPARATOR;
         $p = '';
         foreach (func_get_args() as $arg) {
-            $end = Str::endsWith($p, $separator);
+            $end = str_ends_with($p, $separator);
             $start = empty($arg) ? false : $arg[0] == $separator;
             if ($end && $start) {
                 $p .= substr($arg, 1);

@@ -7,7 +7,7 @@ abstract class Utils
     public static function set($object, array $array)
     {
         foreach ($array as $key => $value) {
-            if (strpos($key, '(') !== false && preg_match('/\(\)$/', $key)) {
+            if (str_contains($key, '(') && preg_match('/\(\)$/', $key)) {
                 $callback = [$object, str_replace('()', '', $key)];
                 if (is_array($value)) {
                     call_user_func($callback, $value);
@@ -40,7 +40,7 @@ abstract class Utils
         foreach ($trace as $step) {
             //Get data from the current step
             foreach (['class', 'type', 'function', 'file', 'line', 'args'] as $param) {
-                $$param = isset($step[$param]) ? $step[$param] : '';
+                $$param = $step[$param] ?? '';
             }
 
             $output[] = $class . $type . $function . '(' . $line . ')';

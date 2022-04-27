@@ -71,11 +71,11 @@ abstract class Locale
         if (empty($locale)) {
             return ['default'];
         } else {
-            if (strpos($locale, '_') !== false) { // Aceptar referencias con _ y - como separador
+            if (str_contains($locale, '_')) { // Aceptar referencias con _ y - como separador
                 $locale = str_replace('_', '-', $locale);
             }
 
-            if (strpos($locale, '-') === false) { // La referencia cultura solo incluye el idioma
+            if (!str_contains($locale, '-')) { // La referencia cultura solo incluye el idioma
                 return [strtolower($locale)];
             }
 
@@ -96,7 +96,7 @@ abstract class Locale
         if (isset($region)) {
             $codes[] = "{$language}-{$region}"; // Referencia completa (idioma y región)
         }
-        $codes[] = (string)$language; // Referencia neutra (sólo idioma)
+        $codes[] = $language; // Referencia neutra (sólo idioma)
 
         return $codes;
     }

@@ -5,7 +5,6 @@ namespace ideatic\l10n\Catalog\Loader;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\Gettext\IcuConverter;
 use ideatic\l10n\Utils\ICU\Pattern;
-use ideatic\l10n\Utils\Str;
 use Sepia\PoParser\Catalog\Catalog;
 
 class PO extends Loader
@@ -68,7 +67,7 @@ class PO extends Loader
     {
         $pluralRulesStr = null;
         foreach ($poCatalog->getHeaders() as $header) {
-            if (Str::startsWith($header, 'Plural-Forms:')) {
+            if (str_starts_with($header, 'Plural-Forms:')) {
                 $pluralRulesStr = trim(substr($header, strlen('Plural-Forms:')));
             }
         }
