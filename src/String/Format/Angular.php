@@ -167,7 +167,7 @@ class Angular extends Format
     {
         // Reemplazar expresiones
         $parsed = preg_replace_callback(
-            '/{{(.+?)}}/',
+            '/{{([^{].+?)}}/',
             function ($match) use ($string, $path) {
                 $expr = HTML_Parser::entityDecode($match[1]);
                 foreach (explode('|', $expr) as $pipe) {

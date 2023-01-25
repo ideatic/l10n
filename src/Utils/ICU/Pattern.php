@@ -6,11 +6,10 @@ use MessageFormatter;
 
 class Pattern
 {
-
     /**
-     * @var string[]|Placeholder[]
+     * @var array<string|Placeholder>
      */
-    public $nodes = [];
+    public array $nodes = [];
 
     public function __construct(string $pattern)
     {

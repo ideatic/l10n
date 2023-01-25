@@ -168,8 +168,13 @@ class HTML extends Format
         }
     }
 
-    private function _registerString(string $source, ?string $path, string $text, HTML_Parser_Attribute $i18nAttribute, HTML_Parser_Attribute|HTML_Parser_Element $container): LString
-    {
+    private function _registerString(
+        string $source,
+        ?string $path,
+        string $text,
+        HTML_Parser_Attribute $i18nAttribute,
+        HTML_Parser_Attribute|HTML_Parser_Element $container
+    ): LString {
         $string = new LString();
         $string->text = $string->id = str_replace('&ngsp;', ' ', $text);
         $string->file = $path;
@@ -205,7 +210,7 @@ class HTML extends Format
         return $string;
     }
 
-    private function _processChildPlaceholders(HTML_Parser_Element $element):array
+    private function _processChildPlaceholders(HTML_Parser_Element $element): array
     {
         $placeholders = [];
 
@@ -312,33 +317,5 @@ class HTML extends Format
     public function translate(string $content, callable $getTranslation, $context = null): string
     {
         return $this->_process($content, $context, $getTranslation);
-    }
-
-    private function _parseAngularExpression(LString $string, ?string $path = null):void
-    {
-        // Reemplazar expresiones
-        $parsed = preg_replace_callback(
-            '/{{([^{]*?)}}/',
-            function ($match) use ($string, $path) {
-                $expr = HTML_Parser::entityDecode($match[1]);
-                foreach (explode('|', $expr) as $pipe) {
-                    $parts = explode(':', Str::trim($pipe));
-                    if (Str::trim($parts[0]) == 'i18n' && isset($parts[1])) {
-                        $placeholderName = trim(Str::trim($parts[1]), '"\'');
-                        $string->placeholders[$placeholderName] = str_replace("|{$pipe}", '', $match[0]);
-                        return $placeholderName;
-                    }
-                }
-
-                throw new \Exception("No i18n placeholder found in expression '{$expr}' at '{$path}' for string '{$string->id}'");
-            },
-            $string->text
-        );
-
-        if ($string->id == $string->text) {
-            $string->id = $parsed;
-        }
-
-        $string->text = $parsed;
     }
 }
