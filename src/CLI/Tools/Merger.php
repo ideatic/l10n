@@ -141,7 +141,7 @@ class Merger
 
         if (isset($content)) {
             if (empty($content)) {
-                echo "\033[31m#\t\tEmpty response for domain '{$domain->name}' locale {$locale}\033[0m\n";
+                echo "\033[31m\t\tEmpty response for domain '{$domain->name}' locale {$locale}\033[0m\n";
                 // throw new \Exception("\tEmpty response for domain '{$domain->name}' locale {$locale}\n");
                 return null;
             }
