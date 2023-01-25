@@ -11,12 +11,13 @@ use ideatic\l10n\Utils\IO;
 
 class CLI
 {
-    public static function main(bool $exit = true)
+    public static function main(bool $exit = true): void
     {
+        /** @phpstan-ignore-next-line */
         (new static)->run(null, $exit);
     }
 
-    public function run(array $argv = null, bool $exit = true)
+    public function run(array $argv = null, bool $exit = true): void
     {
         echo "    __   ___   ____         
    / /  <  /  / __ \   ____ 

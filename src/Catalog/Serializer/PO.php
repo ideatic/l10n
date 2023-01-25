@@ -75,7 +75,7 @@ class PO extends Serializer
 
                 // Incluir expresión ICU original
                 if ($isICU) {
-                    $po[] = '#. ' . self::ICU_PREFIX . str_replace(["\r\n", "\n"], "\n#. ", $str->id);
+                    $po[] = '#. ' . self::ICU_PREFIX . str_replace(["\r\n", "\n"], "\n#. ", $string->id);
                 }
 
                 // Ubicaciones
@@ -126,7 +126,7 @@ class PO extends Serializer
         return implode("\n", $po);
     }
 
-    private function _escape(string $str)
+    private function _escape(string $str): string
     {
         $str = str_replace("\r\n", "\n", $str);
 

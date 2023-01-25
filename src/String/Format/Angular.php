@@ -14,11 +14,11 @@ use ideatic\l10n\Utils\Str;
  */
 class Angular extends Format
 {
-    private $_i18nHTML;
-    private $_i18nMethods;
+    private Angular_HTML $_i18nHTML;
+    private Angular_Methods $_i18nMethods;
 
-    /** @var bool https://github.com/angular/angular/issues/9117 */
-    public $fixIcuPluralHashes = true;
+    /** https://github.com/angular/angular/issues/9117 */
+    public bool $fixIcuPluralHashes = true;
 
     public function __construct()
     {
@@ -37,18 +37,18 @@ class Angular extends Format
     }
 
     /** @inheritDoc */
-    public function getStrings(string $content, $path = null): array
+    public function getStrings(string $content, mixed $path = null): array
     {
         return $this->_processStrings($content, $path);
     }
 
     /** @inheritDoc */
-    public function translate(string $content, callable $getTranslation, $path = null): string
+    public function translate(string $content, callable $getTranslation, mixed $path = null): string
     {
         return $this->_processStrings($content, $path, $getTranslation);
     }
 
-    private function _processStrings(string $content, ?string $file, ?callable $getTranslation = null)
+    private function _processStrings(string $content, ?string $file, ?callable $getTranslation = null): array|string
     {
         $this->_i18nHTML->addHashPluralSupport = $this->fixIcuPluralHashes;
 
@@ -163,12 +163,12 @@ class Angular extends Format
     /**
      * @internal
      */
-    public static function prepareString(LString $string, ?string $path = null)
+    public static function prepareString(LString $string, ?string $path = null): void
     {
         // Reemplazar expresiones
         $parsed = preg_replace_callback(
             '/{{(.+?)}}/',
-            function ($match) use ($string, &$placeholders, $path) {
+            function ($match) use ($string, $path) {
                 $expr = HTML_Parser::entityDecode($match[1]);
                 foreach (explode('|', $expr) as $pipe) {
                     $parts = explode(':', Str::trim($pipe));
@@ -225,10 +225,10 @@ class Angular extends Format
  */
 class Angular_HTML extends HTML
 {
-    public $addHashPluralSupport = true;
+    public bool $addHashPluralSupport = true;
 
     /** @inheritDoc */
-    public function getStrings(string $code, $path = null): array
+    public function getStrings(string $code, mixed $path = null): array
     {
         $strings = parent::getStrings($code, $path);
 
@@ -266,7 +266,7 @@ class Angular_HTML extends HTML
 class Angular_Methods extends CStyle
 {
     /** @inheritDoc */
-    public function getStrings(string $code, $path = null): array
+    public function getStrings(string $code, mixed $path = null): array
     {
         $strings = parent::getStrings($code, $path);
 

@@ -7,6 +7,7 @@ use ideatic\l10n\Catalog\Loader\Loader;
 use ideatic\l10n\Config;
 use ideatic\l10n\Domain;
 use ideatic\l10n\LString;
+use ideatic\l10n\ProjectTranslations;
 use ideatic\l10n\Translation\Provider;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
@@ -70,28 +71,29 @@ class Projects implements Provider
 
     /**
      * Carga las traducciones para el locale indicado en las cadenas del grupo recibido.
-     *
-     * @param Domain|string
      */
-    public function loadCatalog($domain, string $locale): ?Catalog
+    public function loadCatalog(Domain|string $domain, string $locale): ?Catalog
     {
         // Cargar traducciones desde algún proyecto
-        foreach ($this->config->projects as $projectName => $projectConfig) {
-            if (isset($projectConfig->translations->path)) {
+        foreach ($this->config->projects as $projectConfig) {
+            /** @var ProjectTranslations|\stdClass $translations */
+            $translations= $projectConfig->translations ?? null;
+
+            if (isset($translations->path)) {
                 $path = IO::combinePaths(
-                    $projectConfig->translations->path,
+                    $translations->path,
                     strtr(
-                        $projectConfig->translations->template,
+                        $translations->template,
                         [
                             '{domain}' => is_string($domain) ? $domain : $domain->name,
                             '{locale}' => $locale,
-                            '{format}' => $projectConfig->translations->format,
+                            '{format}' => $translations->format,
                         ]
                     )
                 );
 
-                if (!isset($loadedFiles[$path]) && file_exists($path)) {
-                    $loader = Loader::factory($projectConfig->translations->format);
+                if (file_exists($path)) {
+                    $loader = Loader::factory($translations->format);
                     return $loader->load(file_get_contents($path), $locale);
                 }
             }

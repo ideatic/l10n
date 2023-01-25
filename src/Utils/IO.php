@@ -43,18 +43,8 @@ abstract class IO
 
     /**
      * Obtiene archivos y directorios del sistema de archivos
-     *
-     * @param string   $path          Directorio local o remoto donde buscar
-     * @param int      $depth         Profundidad de la búsqueda (-1 sin límite, 0 directorio actual, 1 actual e hijos, etc.)
-     * @param callable $callback      Función llamada para cada archivo encontrado
-     * @param array    $flags         Opciones de búsqueda
-     * @param int      $limit         Límite de archivos a buscar (-1 desactiva esta funcionalidad)
-     *
-     * @param boolean  $limitExceeded Flag activado cuando se supera el límite de archivos a buscar
-     *
-     * @param string   $prefix
      */
-    public static function getFiles($path, $depth, $excludePaths): \Generator
+    public static function getFiles(string $path, int $depth, array $excludePaths): \Generator
     {
         // Recorrer directorio
         $dirh = opendir($path);

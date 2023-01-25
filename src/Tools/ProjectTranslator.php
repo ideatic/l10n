@@ -17,7 +17,7 @@ class ProjectTranslator
 
     public function translateDir(Config $config, string $projectName, string $locale, string $path = null): array
     {
-        /** @var Project $project */
+        /** @var Project|null $project */
         $project = $config->projects->$projectName ?? null;
 
         if (!$project) {
@@ -55,6 +55,7 @@ class ProjectTranslator
         // Traducir los archivos
         $updatedFiles = [];
         foreach ($files as $file) {
+            /** @var string|false|null $content */
             $originalContent = $content = file_get_contents($file);
 
             if ($content === false || $content === null) {
@@ -87,7 +88,7 @@ class ProjectTranslator
         ?Provider $translatorProvider = null
     ): string {
         // Buscar proyecto
-        /** @var Project $project */
+        /** @var Project|null $project */
         $project = $config->projects->$projectName ?? null;
 
         if (!$project) {

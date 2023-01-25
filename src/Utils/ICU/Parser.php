@@ -6,12 +6,12 @@ use ideatic\l10n\Utils\Str;
 
 class Parser
 {
-    private $_position;
-    private $_length;
+    private int $_position;
+    private int $_length;
 
-    private $_throwExpressionEnd = true;
+    private bool $_throwExpressionEnd = true;
 
-    public function parse(string $icuPattern, Pattern $destiny, int $beginAt = 0)
+    public function parse(string $icuPattern, Pattern $destiny, int $beginAt = 0): void
     {
         $this->_position = $beginAt;
         $this->_length = strlen($icuPattern);
@@ -49,7 +49,7 @@ class Parser
         }
     }
 
-    private function _readUntil(string $string, $stopFn): string
+    private function _readUntil(string $string, string|callable $stopFn): string
     {
         $isString = is_string($stopFn);
 
@@ -115,7 +115,7 @@ class Parser
         return $placeholder;
     }
 
-    private function _currentChar($string)
+    private function _currentChar(string $string): string|null
     {
         if ($this->_position < $this->_length) {
             return $string[$this->_position];
@@ -153,7 +153,7 @@ class Parser
         return $result;
     }
 
-    private function _readWhitespaces(string $string)
+    private function _readWhitespaces(string $string): string
     {
         return $this->_readUntil(
             $string,

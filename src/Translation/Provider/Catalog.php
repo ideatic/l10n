@@ -10,11 +10,8 @@ use ideatic\l10n\Translation\Provider;
  */
 class Catalog implements Provider
 {
-    private $_catalog;
-
-    public function __construct(\ideatic\l10n\Catalog\Catalog $catalog)
+    public function __construct(private readonly \ideatic\l10n\Catalog\Catalog $_catalog)
     {
-        $this->_catalog = $catalog;
     }
 
     public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?string

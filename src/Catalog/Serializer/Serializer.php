@@ -8,27 +8,23 @@ abstract class Serializer
 {
     /**
      * Locale principal del documento. Si no se indica o es false, se generará un documento con las cadenas originales
-     * @var string
      */
-    public $locale;
+    public string|null $locale;
 
     /**
      * Comentarios asociados a este documento
-     * @var string
      */
-    public $comments;
+    public string $comments = '';
 
     /**
      * Locale utilizado como referencia para la traducción
-     * @var string
      */
-    public $referenceTranslation;
+    public string|null $referenceTranslation;
 
     /**
      * Incluir ubicaciones de las cadenas en el código fuente de la aplicación en el documento de traducción
-     * @var bool
      */
-    public $includeLocations = true;
+    public bool $includeLocations = true;
 
     public static function factory(string $name): self
     {

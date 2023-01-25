@@ -6,7 +6,7 @@ use ideatic\l10n\CLI\Environment;
 
 class Analyzer
 {
-    public static function run(Environment $environment)
+    public static function run(Environment $environment): void
     {
         $threshold = $environment->params['t'] ?? 90;
 

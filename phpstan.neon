@@ -1,0 +1,10 @@
+parameters:
+  level: 6
+  paths:
+      - ./src
+  ignoreErrors:
+    - '#no value type specified in iterable type array#'
+  excludePaths:
+    - ./src/String/Format/Xliff.php
+  parallel:
+    processTimeout: 300.0

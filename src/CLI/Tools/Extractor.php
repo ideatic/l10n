@@ -11,7 +11,7 @@ use ideatic\l10n\Utils\Utils;
 
 class Extractor
 {
-    public static function run(Environment $environment)
+    public static function run(Environment $environment): void
     {
         $extractorConfig = $environment->config->tools->extractor;
         $domains = self::scanDomains($environment);
@@ -77,7 +77,7 @@ class Extractor
     }
 
     /**
-     * @return \ideatic\l10n\Domain[]
+     * @return array<\ideatic\l10n\Domain>
      */
     public static function scanDomains(Environment $environment): array
     {

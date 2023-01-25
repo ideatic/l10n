@@ -68,6 +68,8 @@ abstract class Locale
      */
     public static function getVariants(string $locale): array
     {
+        /** @var string|null $region */
+        $region = null;
         if (empty($locale)) {
             return ['default'];
         } else {
@@ -93,9 +95,7 @@ abstract class Locale
         if (isset($script)) {
             $codes[] = "{$language}-{$script}-{$region}"; // Referencia completa (idioma, región y sistema de escritura)
         }
-        if (isset($region)) {
-            $codes[] = "{$language}-{$region}"; // Referencia completa (idioma y región)
-        }
+        $codes[] = "{$language}-{$region}"; // Referencia completa (idioma y región)
         $codes[] = $language; // Referencia neutra (sólo idioma)
 
         return $codes;

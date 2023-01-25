@@ -8,25 +8,20 @@ use ideatic\l10n\Utils\Utils;
 class Config
 {
     public string $name;
-    /** @var array|\stdClass */
-    public $projects;
+    /** @var array<Project|\stdClass>|\stdClass */
+    public array|\stdClass $projects;
     public string $sourceLocale;
     public string $fallbackLocale;
 
     /** @var string[] */
     public array $locales;
 
-    /** @var ConfigTools|\stdClass */
-    public object $tools;
-
-    public function __construct()
-    {
-    }
+    public ConfigTools|\stdClass $tools;
 
     /**
      * Lee la configuración
      */
-    public function load(string $configPath)
+    public function load(string $configPath): void
     {
         // Leer configuración
         if (!file_exists($configPath)) {
@@ -37,7 +32,7 @@ class Config
             throw new \Exception("Unable to read l10n config at '{$configPath}'");
         }
 
-        /** @var Config $config */
+        /** @var Config|null $config */
         $config = json_decode(file_get_contents($configPath));
         if (!$config || json_last_error() != JSON_ERROR_NONE) {
             throw new \Exception("Unable to parse l10n config: " . json_last_error_msg());
@@ -63,7 +58,7 @@ class Config
         Utils::set($this, get_object_vars($config));
     }
 
-    private function _createDefaultConfig(string $path)
+    private function _createDefaultConfig(string $path): void
     {
         $defaultConfig = new self();
         $defaultConfig->name = basename(__DIR__);
@@ -99,7 +94,7 @@ class Config
  * @property string              $type
  * @property string              $path
  * @property string              $defaultDomain
- * @property ProjectTranslations $translations
+ * @property ProjectTranslations|\stdClass $translations
  * @property string[]            $translatorMethods
  * @property string[]            $exclude
  */

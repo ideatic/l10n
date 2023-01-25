@@ -11,9 +11,9 @@ use ideatic\l10n\Utils\PHP\FunctionCall;
  */
 class PHP extends Format
 {
-    private $_functions;
+    private array $_functions;
 
-    public function __construct($functions = ['__' => 1, '_x' => 2, '_f' => 2, '_icu' => 2])
+    public function __construct(array $functions = ['__' => 1, '_x' => 2, '_f' => 2, '_icu' => 2])
     {
         $this->_functions = $functions;
     }
@@ -44,7 +44,7 @@ class PHP extends Format
     }
 
     /** @inheritDoc */
-    public function getStrings(string $phpCode, $path = null): array
+    public function getStrings(string $phpCode, mixed $path = null): array
     {
         // Analizar el código y buscar llamadas a métodos de traducción
         $analyzer = new \ideatic\l10n\Utils\PHP\Code($phpCode);
@@ -105,31 +105,27 @@ class PHP extends Format
         switch ($phpCall->method) {
             case '__':
             case 'translate':
-                if ($phpCall->method == '_e') {
-                    return "echo {$translatedString}";
-                } else {
-                    return $translatedString;
-                }
+                return $translatedString;
 
             case '_f':
             case '_e':
             case 'translate_format':
-            if (!empty($phpCall->arguments[1])) { // Si es una llamada sin parámetros, entonces el texto es estático y no se necesita llamar a strtr
-                $replacements = $phpCall->arguments[1];
-                if (!$phpCall->isArray(1)) {
-                    $replacements = "is_array({$phpCall->arguments[1]}) ? {$phpCall->arguments[1]} : array('%'=>{$phpCall->arguments[1]})";
+                if (!empty($phpCall->arguments[1])) { // Si es una llamada sin parámetros, entonces el texto es estático y no se necesita llamar a strtr
+                    $replacements = $phpCall->arguments[1];
+                    if (!$phpCall->isArray(1)) {
+                        $replacements = "is_array({$phpCall->arguments[1]}) ? {$phpCall->arguments[1]} : array('%'=>{$phpCall->arguments[1]})";
+                    }
+                    $format = "strtr({$translatedString},{$replacements})";
+                    if ($phpCall->method == '_e') {
+                        $format = "echo {$format}";
+                    }
+                    return $format;
                 }
-                $format = "strtr({$translatedString},{$replacements})";
-                if ($phpCall->method == '_e') {
-                    $format = "echo {$format}";
-                }
-                return $format;
-            }
 
             case '_icu':
             case 'formatICU':
                 $arguments = $phpCall->arguments[2] ?? '[]';
-            return "_icu({$translatedString},{$arguments}, null, null, false)";
+                return "_icu({$translatedString},{$arguments}, null, null, false)";
         }
 
         return $phpCall->code;

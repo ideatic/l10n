@@ -9,13 +9,14 @@ use ideatic\l10n\CLI\Environment;
 use ideatic\l10n\Config;
 use ideatic\l10n\Domain;
 use ideatic\l10n\DomainConfig;
+use ideatic\l10n\Project;
 use ideatic\l10n\Translation\Provider\Projects;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
 
 class Merger
 {
-    public static function run(Environment $environment)
+    public static function run(Environment $environment): void
     {
         // Obtener dominios disponibles
         $domains = Extractor::scanDomains($environment);
@@ -78,7 +79,7 @@ class Merger
                         echo "\t\t" . strtr(
                                 '%count% strings not found: %strings%',
                                 [
-                                    '%count%'   => number_format(count($notFound)),
+                                    '%count%' => number_format(count($notFound)),
                                     '%strings%' => implode(', ', array_slice($notFound, 0, 5)) . '...'
                                 ]
                             ) . "\n";
@@ -86,7 +87,8 @@ class Merger
                 }
 
                 // Guardar traducciones en los proyectos que lo requieran
-                foreach ($environment->config->projects as $projectName => $project) {
+                /** @var Project $project */
+                foreach ($environment->config->projects as $project) {
                     if (!isset($project->translations->path)) {
                         continue;
                     }
@@ -123,10 +125,7 @@ class Merger
         }
     }
 
-    /**
-     * @param Config $config
-     */
-    private static function _getCatalog(Domain $domain, string $locale, $config): ?Catalog
+    private static function _getCatalog(Domain $domain, string $locale, Config|\stdClass $config): ?Catalog
     {
         /** @var DomainConfig $domainConfig */
         $domainConfig = get_object_vars($config->tools->merge ?? new \stdClass())[$domain->name] ?? null;
@@ -135,14 +134,16 @@ class Merger
             $domainOrigin = str_replace('{locale}', $locale, $domainConfig->source ?? '');
 
             echo "\t\tDownloading {$domainOrigin}...\n";
-            $content = file_get_contents($domainOrigin);
+            $content = @file_get_contents($domainOrigin);
         } elseif (isset($domainConfig->script)) { // Ejecutar comando
             exec($domainConfig->script, $content);
         }
 
         if (isset($content)) {
             if (empty($content)) {
-                throw new \Exception("\tEmpty response for domain '{$domain->name}'\n");
+                echo "\033[31m#\t\tEmpty response for domain '{$domain->name}' locale {$locale}\033[0m\n";
+                // throw new \Exception("\tEmpty response for domain '{$domain->name}' locale {$locale}\n");
+                return null;
             }
 
             // Procesar archivo recibido

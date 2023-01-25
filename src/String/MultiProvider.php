@@ -8,9 +8,9 @@ namespace ideatic\l10n\String;
 class MultiProvider extends Provider
 {
     /** @var Provider[] */
-    private $_providers = [];
+    private array $_providers = [];
 
-    public function add(Provider $provider)
+    public function add(Provider $provider): void
     {
         $this->_providers[] = $provider;
     }

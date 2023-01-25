@@ -28,7 +28,7 @@ class Pattern
         return false;
     }
 
-    public function textNodes()
+    public function textNodes(): array
     {
         $textNodes = [];
         if ($this->nodes) {
@@ -49,22 +49,20 @@ class Pattern
         return $textNodes;
     }
 
-    public function format($locale, $args = [])
+    public function format(string $locale, array $args = []): string
     {
         if (!class_exists(MessageFormatter::class, false)) {
             throw new \InvalidArgumentException('MessageFormatter class not found, please check PHP Intl extension is available');
         }
 
         $fmt = new MessageFormatter($locale, $this->render());
-        if (!$fmt) {
-            throw new \InvalidArgumentException('Unable to parse ICU message: ' . $this->render());
-        } elseif ($fmt->getErrorCode() != \U_ZERO_ERROR) {
+        if ($fmt->getErrorCode() != \U_ZERO_ERROR) {
             throw new \InvalidArgumentException('Invalid ICU message: ' . $fmt->getErrorMessage());
         }
         return $fmt->format($args);
     }
 
-    public function render(bool $prettyPrint = true)
+    public function render(bool $prettyPrint = true): string
     {
         $strings = [];
         foreach ($this->nodes as $node) {

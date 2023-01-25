@@ -99,7 +99,7 @@ class PluralRule
      * @since 4.9.0
      *
      */
-    protected function parse($str)
+    protected function parse(string $str): void
     {
         $pos = 0;
         $len = strlen($str);

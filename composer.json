@@ -17,7 +17,7 @@
     }
   ],
   "require": {
-    "php": ">=7.4",
+    "php": ">=8.1",
     "ideatic/html-parser": "dev-main",
     "sepia/po-parser": "^6.0",
     "ext-json": "*",

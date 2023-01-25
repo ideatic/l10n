@@ -57,7 +57,7 @@ class FunctionCall
      * Obtiene el código fuente de la llamada completa, incluyendo los objetos
      * que contienen el método invocado
      */
-    public function fullMethodName()
+    public function fullMethodName(): string
     {
         return preg_replace('/^' . preg_quote($this->method) . '/', $this->fullMethod, $this->code, 1);
     }
@@ -107,8 +107,8 @@ class FunctionCall
 
         try {
             return eval("return {$code};");
-        } catch (Throwable $err) {
-            throw new \Exception('Unable to parse function call', $code, $err);
+        } catch (\Throwable $err) {
+            throw new \Exception("Unable to parse function call: {$code}", 1, $err);
         }
     }
 
@@ -142,7 +142,7 @@ class FunctionCall
         return $this->_isOnlyAllowedTokens($index, [T_WHITESPACE, T_CONSTANT_ENCAPSED_STRING, T_COMMENT, T_DOC_COMMENT]);
     }
 
-    private function _isOnlyAllowedTokens($index, array $allowed): bool
+    private function _isOnlyAllowedTokens(int $index, array $allowed): bool
     {
         $tokens = $this->_getArgumentTokens($index);
         foreach ($tokens as $token) {

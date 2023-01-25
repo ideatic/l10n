@@ -7,13 +7,10 @@ use ideatic\l10n\LString;
 
 class Catalog
 {
+    private array $_strings;
 
-    public $locale;
-    private $_strings;
-
-    public function __construct(string $locale, array $translations)
+    public function __construct(public readonly string $locale, array $translations)
     {
-        $this->locale = $locale;
         $this->_strings = $translations;
     }
 

@@ -78,6 +78,7 @@ If there are more categories needed for the language, describe what those catego
                     throw new \Exception(
                         "Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesExpression}\n\tfor n={$index}\n"
                         . "Collision found for category '{$categoryName}'.\n"
+                        /** @phpstan-ignore-next-line */
                         . "Valid numbers in this rule: " . implode(', ', array_slice($validNumbers, 0, 5))
                     );
                 }

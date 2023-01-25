@@ -10,15 +10,15 @@ use ideatic\l10n\Utils\IO;
  */
 class CStyle extends Format
 {
-    public $methods = ['__', '_x', '_icu'];
+    public array $methods = ['__', '_x', '_icu'];
 
-    /** @var bool Al traducir, optimizar llamadas a string.replace() constantes encontradas */
-    public $optimizePlaceholderReplacement = true;
+    /** Al traducir, optimizar llamadas a string.replace() constantes encontradas */
+    public bool $optimizePlaceholderReplacement = true;
 
-    public $encodeTranslationsWithSingleQuotes = false;
+    public bool $encodeTranslationsWithSingleQuotes = false;
 
     /** @inheritDoc */
-    public function translate(string $content, callable $getTranslation, $path = null): string
+    public function translate(string $content, callable $getTranslation, mixed $path = null): string
     {
         foreach ($this->getStrings($content, $path) as $string) {
             $translation = call_user_func($getTranslation, $string);
@@ -47,7 +47,7 @@ class CStyle extends Format
     }
 
     /** @inheritDoc */
-    public function getStrings(string $code, $path = null): array
+    public function getStrings(string $code, mixed $path = null): array
     {
         $pattern = '/(' . implode('|', $this->methods) . ')\s*\(/';
 
@@ -108,7 +108,7 @@ class CStyle extends Format
         return $found;
     }
 
-    private function _parseFnArgs(string $source, int $offset = 0, &$pos = null, &$comments = ''): array
+    private function _parseFnArgs(string $source, int $offset = 0, int &$pos = null, string|null &$comments = ''): array
     {
         if ($source[$offset] !== '(') {
             throw new \InvalidArgumentException("Open parenthesis expected at initial offset, received " . substr($source, $offset, 20));
@@ -131,6 +131,7 @@ class CStyle extends Format
                 }
 
                 if ($inComment) {
+                    $comments ??= '';
                     $comments .= $char;
                 }
             } elseif ($char == '"' || $char == "'" || $char == '`') {
@@ -235,7 +236,7 @@ class CStyle extends Format
                 $source = str_replace($rawCall, $currentTranslation, $source, $replaceCount);
 
                 if ($replaceCount == 0) {
-                    throw new \Exception("Unable to find string '{$rawCall}', offset {$offset}", ['content' => $source, 'translation' => $currentTranslation]);
+                    throw new \Exception("Unable to find string '{$rawCall}', offset {$offset} for translation {$currentTranslation}");
                 }
 
                 // Seguir buscando coincidencias de la cadena

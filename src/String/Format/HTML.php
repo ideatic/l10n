@@ -16,11 +16,11 @@ use ideatic\l10n\Utils\Str;
  */
 class HTML extends Format
 {
-    public $autoDetectIcuPatterns = true;
-    private $_foundStrings;
+    public bool $autoDetectIcuPatterns = true;
+    private array $_foundStrings;
 
     /** @inheritDoc */
-    public function getStrings(string $html, $path = null): array
+    public function getStrings(string $html, mixed $path = null): array
     {
         $this->_foundStrings = [];
 
@@ -31,7 +31,7 @@ class HTML extends Format
         return $found;
     }
 
-    private function _process(string $html, ?string $path = null, ?callable $getTranslation = null)
+    private function _process(string $html, ?string $path = null, ?callable $getTranslation = null): string|array
     {
         $dom = HTML_Parser::parse($html);
 
@@ -55,7 +55,7 @@ class HTML extends Format
         return $getTranslation ? $dom->render() : [];
     }
 
-    private function _processNode(HTML_Parser_Element $element, string $source, ?string $path, ?callable $getTranslation = null)
+    private function _processNode(HTML_Parser_Element $element, string $source, ?string $path, ?callable $getTranslation = null): void
     {
         // Traducción de atributos
         $attrPrefix = 'i18n-';
@@ -168,7 +168,7 @@ class HTML extends Format
         }
     }
 
-    private function _registerString(string $source, ?string $path, string $text, HTML_Parser_Attribute $i18nAttribute, $container): LString
+    private function _registerString(string $source, ?string $path, string $text, HTML_Parser_Attribute $i18nAttribute, HTML_Parser_Attribute|HTML_Parser_Element $container): LString
     {
         $string = new LString();
         $string->text = $string->id = str_replace('&ngsp;', ' ', $text);
@@ -205,7 +205,7 @@ class HTML extends Format
         return $string;
     }
 
-    private function _processChildPlaceholders(HTML_Parser_Element $element)
+    private function _processChildPlaceholders(HTML_Parser_Element $element):array
     {
         $placeholders = [];
 
@@ -314,12 +314,12 @@ class HTML extends Format
         return $this->_process($content, $context, $getTranslation);
     }
 
-    private function _parseAngularExpression(LString $string, ?string $path = null)
+    private function _parseAngularExpression(LString $string, ?string $path = null):void
     {
         // Reemplazar expresiones
         $parsed = preg_replace_callback(
             '/{{([^{]*?)}}/',
-            function ($match) use ($string, &$placeholders, $path) {
+            function ($match) use ($string, $path) {
                 $expr = HTML_Parser::entityDecode($match[1]);
                 foreach (explode('|', $expr) as $pipe) {
                     $parts = explode(':', Str::trim($pipe));
@@ -330,7 +330,7 @@ class HTML extends Format
                     }
                 }
 
-                throw new \Exception("No i18n placeholder found in expression '{$expr}' at '{$path}'", $string);
+                throw new \Exception("No i18n placeholder found in expression '{$expr}' at '{$path}' for string '{$string->id}'");
             },
             $string->text
         );

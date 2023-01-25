@@ -11,7 +11,7 @@ use ideatic\l10n\Utils\Locale;
  */
 class Translator
 {
-    public static function run(Environment $environment)
+    public static function run(Environment $environment): void
     {
         $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
         $projectName = $environment->params['project'] ?? null;

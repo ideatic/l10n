@@ -20,7 +20,7 @@ class Environment
         $this->config = new Config();
     }
 
-    public function parseParams(array $argv = null)
+    public function parseParams(array $argv = null): void
     {
         $argv = $argv ?? $_SERVER['argv'];
 
@@ -48,7 +48,7 @@ class Environment
         }
     }
 
-    public function getParam(string $name, $default = null)
+    public function getParam(string $name, mixed $default = null): mixed
     {
         return $this->params[$name] ?? $default;
     }

@@ -4,7 +4,7 @@ namespace ideatic\l10n\Utils;
 
 abstract class Utils
 {
-    public static function set($object, array $array)
+    public static function set(object $object, array $array): object
     {
         foreach ($array as $key => $value) {
             if (str_contains($key, '(') && preg_match('/\(\)$/', $key)) {
@@ -12,6 +12,7 @@ abstract class Utils
                 if (is_array($value)) {
                     call_user_func($callback, $value);
                 } else {
+                    /** @phpstan-ignore-next-line */
                     call_user_func_array($callback, $value);
                 }
             } else {
@@ -24,10 +25,6 @@ abstract class Utils
 
     /**
      * Renders an abbreviated version of the backtrace
-     *
-     * @param array $ call stack trace to be analyzed, if not use this parameter indicates the call stack before the function
-     *
-     * @return string
      */
     public static function backtraceSmall(array $trace = null, bool $rtl = false): string
     {
@@ -43,7 +40,8 @@ abstract class Utils
                 $$param = $step[$param] ?? '';
             }
 
-            $output[] = $class . $type . $function . '(' . $line . ')';
+            /** @phpstan-ignore-next-line */
+            $output[] = "{$class}{$type}{$function}({$line})";
         }
 
         if ($rtl) {

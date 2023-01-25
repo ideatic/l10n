@@ -34,10 +34,8 @@ class Extractor
 
     /**
      * Configura el proveedor de cadenas localizables para el proyecto indicado
-     *
-     * @param Project $project
      */
-    public static function getProjectProvider($project): DirectoryProvider
+    public static function getProjectProvider(Project|\stdClass $project): DirectoryProvider
     {
         $projectProvider = new DirectoryProvider($project->path);
 

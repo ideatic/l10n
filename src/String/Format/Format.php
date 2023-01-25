@@ -9,23 +9,20 @@ use ideatic\l10n\LString;
  */
 abstract class Format
 {
-    public $defaultDomain = 'app';
+    public string $defaultDomain = 'app';
 
     /**
      * Obtiene las cadenas de traducción disponibles en el contenido indicado
      *
      * @return LString[]
      */
-    public abstract function getStrings(string $content, $context = null): array;
+    public abstract function getStrings(string $content, mixed $context = null): array;
 
     /**
      * Traduce las cadenas del dominio indicado que se encuentran en el contenido
      *
-     * @param string   $content
-     * @param callable $getTranslation Recibe LString como parámetro. Devuelve string o NULL
-     * @param null     $context
-     *
-     * @return string
+     * @param callable(LString $string): ?string $getTranslation Recibe LString como parámetro. Devuelve string o NULL
+     * @param mixed|string                           $context
      */
-    public abstract function translate(string $content, callable $getTranslation, $context = null): string;
+    public abstract function translate(string $content, callable $getTranslation, mixed $context = null): string;
 }
