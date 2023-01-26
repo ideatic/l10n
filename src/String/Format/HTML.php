@@ -306,6 +306,8 @@ class HTML extends Format
                 $suspicious = false;
             } elseif (!preg_match('/[a-zA-Z]/', $innerText)) { // Sin texto
                 $suspicious = false;
+            } elseif (preg_match('/^&([a-z\d]+|#\d+|#x[a-f\d]+);$/', $innerText)) { // Entidad HTML
+                $suspicious = false;
             }
         }
 
