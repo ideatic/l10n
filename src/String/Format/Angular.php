@@ -211,12 +211,14 @@ class Angular extends Format
         if ($string->isICU && $translation != null) {
             $pattern = new Pattern($string->text);
 
-            // Desnormalizar ID
-            $translation = str_replace('{count,', "{{$pattern->nodes[0]->name},", $translation);
+            if ($pattern->nodes[0] instanceof Placeholder && $pattern->nodes[0]->type == 'plural') {
+                // Desnormalizar ID
+                $translation = str_replace('{count,', "{{$pattern->nodes[0]->name},", $translation);
 
-            // Reemplazar # por una expresión angular que formatee la cantidad
-            if ($fixHashPluralSupport && str_contains($string->fullyQualifiedID(), '#')) {
-                $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
+                // Reemplazar # por una expresión angular que formatee la cantidad
+                if ($fixHashPluralSupport && str_contains($string->fullyQualifiedID(), '#')) {
+                    $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
+                }
             }
         }
 
