@@ -1,6 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Utils;
+
+use Exception;
+use Generator;
 
 abstract class IO
 {
@@ -44,12 +49,12 @@ abstract class IO
     /**
      * Obtiene archivos y directorios del sistema de archivos
      */
-    public static function getFiles(string $path, int $depth, array $excludePaths): \Generator
+    public static function getFiles(string $path, int $depth, array $excludePaths): Generator
     {
         // Recorrer directorio
         $dirh = opendir($path);
         if ($dirh === false) {
-            throw new \Exception("Unable to opendir '{$path}'");
+            throw new Exception("Unable to opendir '{$path}'");
         }
 
         $separator = DIRECTORY_SEPARATOR;

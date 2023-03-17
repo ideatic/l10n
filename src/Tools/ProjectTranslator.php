@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Tools;
 
+use Exception;
 use ideatic\l10n\Config;
 use ideatic\l10n\Domain;
 use ideatic\l10n\LString;
@@ -21,7 +24,7 @@ class ProjectTranslator
         $project = $config->projects->$projectName ?? null;
 
         if (!$project) {
-            throw new \Exception("Project '{$projectName}' not found");
+            throw new Exception("Project '{$projectName}' not found");
         }
 
         if (isset($path)) {
@@ -59,7 +62,7 @@ class ProjectTranslator
             $originalContent = $content = file_get_contents($file);
 
             if ($content === false || $content === null) {
-                throw new \Exception("Unable to read '{$file}'");
+                throw new Exception("Unable to read '{$file}'");
             }
 
             $content = $this->translateFile($content, $file, $locale, $config, $projectName, $translator);
@@ -72,7 +75,7 @@ class ProjectTranslator
         // Escribir archivos actualizados
         foreach ($updatedFiles as $path => $content) {
             if (file_put_contents($path, $content) === false) {
-                throw new \Exception("Unable to write '{$path}'");
+                throw new Exception("Unable to write '{$path}'");
             }
         }
 
@@ -92,12 +95,12 @@ class ProjectTranslator
         $project = $config->projects->$projectName ?? null;
 
         if (!$project) {
-            throw new \Exception("Project '{$projectName}' not found");
+            throw new Exception("Project '{$projectName}' not found");
         }
 
         // Crear traductor si no se indica
         if (!$translatorProvider) {
-            $translatorProvider = new \ideatic\l10n\Translation\Provider\Projects($config);
+            $translatorProvider = new Projects($config);
         }
 
         // Procesar el archivo con todos los proveedores definidos para su extensión

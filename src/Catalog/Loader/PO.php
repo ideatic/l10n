@@ -1,19 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Catalog\Loader;
 
+use Exception;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\Gettext\IcuConverter;
 use ideatic\l10n\Utils\ICU\Pattern;
 use Sepia\PoParser\Catalog\Catalog;
+use Sepia\PoParser\Parser;
+use Sepia\PoParser\SourceHandler\StringSource;
 
 class PO extends Loader
 {
     /** @inheritDoc */
     public function load(string $content, string $locale): \ideatic\l10n\Catalog\Catalog
     {
-        $handler = new  \Sepia\PoParser\SourceHandler\StringSource($content);
-        $poParser = new \Sepia\PoParser\Parser($handler);
+        $handler = new  StringSource($content);
+        $poParser = new Parser($handler);
         $domain = $poParser->parse();
 
         $strings = [];
@@ -27,14 +32,14 @@ class PO extends Loader
             if ($entry->isPlural()) {
                 // Obtener expresión ICU original
                 if (!preg_match('/' . preg_quote(\ideatic\l10n\Catalog\Serializer\PO::ICU_PREFIX, '/') . '(.+)/', $string->comments, $match)) {
-                    throw new \Exception("Unable to recover source ICU pattern for '{$string->id}'");
+                    throw new Exception("Unable to recover source ICU pattern for '{$string->id}'");
                 }
 
                 $string->fullID = $match[1]; // Usar patrón ICU original como identificador de la cadena
                 $icuPattern = new Pattern($match[1]);
 
                 if (!\ideatic\l10n\Catalog\Serializer\PO::isSuitableIcuPattern($icuPattern)) {
-                    throw new \Exception("Invalid recovered ICU pattern '{$icuPattern->render()}'");
+                    throw new Exception("Invalid recovered ICU pattern '{$icuPattern->render()}'");
                 }
 
                 $isEmpty = true;
@@ -73,9 +78,9 @@ class PO extends Loader
         }
 
         if (!$pluralRulesStr) {
-            throw new \Exception("No plural rules found in source file");
+            throw new Exception("No plural rules found in source file");
         } elseif (!preg_match('/plural=(.+)/', $pluralRulesStr, $match)) {
-            throw new \Exception("Invalid plural rules '{$pluralRulesStr}'");
+            throw new Exception("Invalid plural rules '{$pluralRulesStr}'");
         }
 
         return rtrim($match[1], ';');

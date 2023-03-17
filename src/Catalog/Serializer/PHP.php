@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Catalog\Serializer;
 
 class PHP extends ArraySerializer
@@ -9,7 +11,10 @@ class PHP extends ArraySerializer
     {
         $phpArray = var_export($this->_generate($domains), true);
 
-        $php = ['<?php'];
+        $php = [
+            '<?php
+declare(strict_types=1);'
+        ];
         if (!$this->comments) {
             $this->comments = 'Created ' . date('r');
         }

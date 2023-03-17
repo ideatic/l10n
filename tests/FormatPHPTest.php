@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 use ideatic\l10n\String\Format\PHP;
 use PHPUnit\Framework\TestCase;

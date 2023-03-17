@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\CLI\Tools;
 
 use ideatic\l10n\Catalog\Serializer\Serializer;
 use ideatic\l10n\CLI\Environment;
+use ideatic\l10n\Domain;
 use ideatic\l10n\Translation\Provider\Projects;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
@@ -77,7 +80,7 @@ class Extractor
     }
 
     /**
-     * @return array<\ideatic\l10n\Domain>
+     * @return array<Domain>
      */
     public static function scanDomains(Environment $environment): array
     {

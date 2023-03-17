@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 
 namespace ideatic\l10n\Utils\Gettext;
 
+use Exception;
 use ideatic\l10n\Utils\ICU\Pattern;
 
 class IcuConverter
@@ -73,9 +76,9 @@ If there are more categories needed for the language, describe what those catego
                 }
 
                 if (!$categoryName) {
-                    throw new \Exception("Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesExpression}\n\tfor n={$index}\nNo category found");
+                    throw new Exception("Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesExpression}\n\tfor n={$index}\nNo category found");
                 } elseif (isset($icuForms[$categoryName])) {
-                    throw new \Exception(
+                    throw new Exception(
                         "Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesExpression}\n\tfor n={$index}\n"
                         . "Collision found for category '{$categoryName}'.\n"
                         /** @phpstan-ignore-next-line */

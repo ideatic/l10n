@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Catalog\Loader;
 
+use Exception;
 use ideatic\l10n\Catalog\Catalog;
 
 abstract class ArrayLoader extends Loader
@@ -12,7 +15,7 @@ abstract class ArrayLoader extends Loader
         foreach ($rawDictionary as $stringID => $translation) {
             if (isset($translation) && $translation !== '') {
                 if (!is_string($translation)) {
-                    throw new \Exception("Only strings values allowed");
+                    throw new Exception("Only strings values allowed");
                 }
 
                 $strings[$stringID] = $translation;

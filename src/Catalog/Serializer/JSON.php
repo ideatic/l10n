@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Catalog\Serializer;
 
 class JSON extends ArraySerializer

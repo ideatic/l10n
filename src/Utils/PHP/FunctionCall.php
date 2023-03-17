@@ -1,6 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Utils\PHP;
+
+use Exception;
+use Throwable;
 
 /**
  * Representa una llamada a una función de PHP
@@ -107,8 +112,8 @@ class FunctionCall
 
         try {
             return eval("return {$code};");
-        } catch (\Throwable $err) {
-            throw new \Exception("Unable to parse function call: {$code}", 1, $err);
+        } catch (Throwable $err) {
+            throw new Exception("Unable to parse function call: {$code}", 1, $err);
         }
     }
 
@@ -145,6 +150,7 @@ class FunctionCall
     private function _isOnlyAllowedTokens(int $index, array $allowed): bool
     {
         $tokens = $this->_getArgumentTokens($index);
+
         foreach ($tokens as $token) {
             if (!in_array($token[0], $allowed)) {
                 return false;

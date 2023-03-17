@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\String\Format;
 
 use ideatic\l10n\LString;
@@ -14,7 +16,7 @@ abstract class Format
     /**
      * Obtiene las cadenas de traducción disponibles en el contenido indicado
      *
-     * @return LString[]
+     * @return array<LString>
      */
     public abstract function getStrings(string $content, mixed $context = null): array;
 
@@ -22,7 +24,7 @@ abstract class Format
      * Traduce las cadenas del dominio indicado que se encuentran en el contenido
      *
      * @param callable(LString $string): ?string $getTranslation Recibe LString como parámetro. Devuelve string o NULL
-     * @param mixed|string                           $context
+     * @param mixed|string                       $context
      */
     public abstract function translate(string $content, callable $getTranslation, mixed $context = null): string;
 }

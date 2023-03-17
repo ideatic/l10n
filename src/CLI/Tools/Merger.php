@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\CLI\Tools;
 
 use ideatic\l10n\Catalog\Catalog;
@@ -13,6 +15,7 @@ use ideatic\l10n\Project;
 use ideatic\l10n\Translation\Provider\Projects;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
+use stdClass;
 
 class Merger
 {
@@ -31,7 +34,7 @@ class Merger
         }
 
         /** @var DomainConfig[] $domainsConfig */
-        $domainsConfig = get_object_vars($environment->config->tools->merge ?? new \stdClass());
+        $domainsConfig = get_object_vars($environment->config->tools->merge ?? new stdClass());
 
         foreach ($domains as $domain) {
             $domainConfig = $domainsConfig[$domain->name] ?? null;
@@ -125,10 +128,10 @@ class Merger
         }
     }
 
-    private static function _getCatalog(Domain $domain, string $locale, Config|\stdClass $config): ?Catalog
+    private static function _getCatalog(Domain $domain, string $locale, Config|stdClass $config): ?Catalog
     {
         /** @var DomainConfig $domainConfig */
-        $domainConfig = get_object_vars($config->tools->merge ?? new \stdClass())[$domain->name] ?? null;
+        $domainConfig = get_object_vars($config->tools->merge ?? new stdClass())[$domain->name] ?? null;
 
         if (isset($domainConfig->source)) { // Descargar
             $domainOrigin = str_replace('{locale}', $locale, $domainConfig->source ?? '');

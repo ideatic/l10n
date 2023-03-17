@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\String\Format;
 
+use Exception;
 use HTML_Parser;
 use HTML_Parser_Attribute;
 use HTML_Parser_Comment;
@@ -9,6 +12,7 @@ use HTML_Parser_Element;
 use HTML_Parser_Text;
 use ideatic\l10n\LString;
 use ideatic\l10n\Plural\ICU;
+use ideatic\l10n\Utils\ICU\Pattern;
 use ideatic\l10n\Utils\Str;
 
 /**
@@ -68,7 +72,7 @@ class HTML extends Format
             $attribute = $element->hasAttribute($attributeName);
 
             if (!$attribute) {
-                throw new \Exception("i18n attribute {$attributeName} not found in {$path}: " . $element->render());
+                throw new Exception("i18n attribute {$attributeName} not found in {$path}: " . $element->render());
             }
 
             $string = $this->_registerString($source, $path, HTML_Parser::entityDecode($attribute->value), $i18nAttribute, $attribute);
@@ -116,8 +120,8 @@ class HTML extends Format
                     // Reemplazar antiguo contenido con el nuevo
                     try {
                         $newContent = HTML_Parser::parse($translation, true)->children;
-                    } catch (\Exception $err) {
-                        throw new \Exception('Unable to parse HTML: ' . $err->getMessage() . ' at ' . $path . ' for ' . $translation);
+                    } catch (Exception $err) {
+                        throw new Exception('Unable to parse HTML: ' . $err->getMessage() . ' at ' . $path . ' for ' . $translation);
                     }
 
                     if (strtolower($element->tag) == 'ng-container' && empty($element->attributes)) { // Eliminar ng-container utilizados solo para i18n
@@ -156,7 +160,7 @@ class HTML extends Format
             }
 
             if (!$parentI18nFound) {
-                throw new \Exception("Invalid i18n attribute found in element in '{$path}': " . $element->render());
+                throw new Exception("Invalid i18n attribute found in element in '{$path}': " . $element->render());
             }
         }
 
@@ -197,7 +201,7 @@ class HTML extends Format
         }
 
         if ($this->autoDetectIcuPatterns) {
-            $pattern = new \ideatic\l10n\Utils\ICU\Pattern($string->text);
+            $pattern = new Pattern($string->text);
             if ($pattern->hasPlaceholders()) {
                 $string->isICU = true;
             }

@@ -1,6 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n;
+
+use Exception;
+use ideatic\l10n\Translation\Provider;
 
 /**
  * Representa una agrupación de cadenas traducibles
@@ -13,7 +18,7 @@ class Domain
     /** @var LString[][] */
     public $strings;
 
-    /** @var \ideatic\l10n\Translation\Provider */
+    /** @var Provider */
     public $translator;
 
     /**
@@ -29,9 +34,9 @@ class Domain
 
         foreach ($strings as $string) {
             if (!($string instanceof LString)) {
-                throw new \Exception("Invalid localizable string received, instance of " . LString::class . " expected");
+                throw new Exception("Invalid localizable string received, instance of " . LString::class . " expected");
             } elseif (isset($string->domain)) {
-                throw new \Exception("String '{$string->id}' already belongs to a domain!");
+                throw new Exception("String '{$string->id}' already belongs to a domain!");
             }
 
             // Asignar grupo

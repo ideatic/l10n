@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\String\Format;
 
 use ideatic\l10n\LString;
 use ideatic\l10n\Plural\Symfony;
+use ideatic\l10n\Utils\PHP\Code;
 use ideatic\l10n\Utils\PHP\FunctionCall;
 
 /**
@@ -18,9 +21,9 @@ class PHP extends Format
         $this->_functions = $functions;
     }
 
-    public function translate(string $content, callable $getTranslation, $context = null): string
+    public function translate(string $content, callable $getTranslation, mixed $context = null): string
     {
-        $correction = 0;
+        $offsetCorrection = 0;
         foreach ($this->getStrings($content, $context) as $string) {
             if (!empty($string->requestedLocale)) { // Se espera la cadena en un locale especificado
                 continue;
@@ -34,10 +37,10 @@ class PHP extends Format
             $translation = $this->_getTranslationCode($string, $translatedString);
 
             // Reemplazar la versión optimizada en el código
-            /** @var \ideatic\l10n\Utils\PHP\FunctionCall $rawCall */
+            /** @var FunctionCall $rawCall */
             $rawCall = $string->raw;
-            $content = substr_replace($content, $translation, $rawCall->offset - $correction, strlen($rawCall->code));
-            $correction += strlen($rawCall->code) - strlen($translation);
+            $content = substr_replace($content, $translation, $rawCall->offset - $offsetCorrection, strlen($rawCall->code));
+            $offsetCorrection += strlen($rawCall->code) - strlen($translation);
         }
 
         return $content;
@@ -47,7 +50,7 @@ class PHP extends Format
     public function getStrings(string $phpCode, mixed $path = null): array
     {
         // Analizar el código y buscar llamadas a métodos de traducción
-        $analyzer = new \ideatic\l10n\Utils\PHP\Code($phpCode);
+        $analyzer = new Code($phpCode);
         $calls = $analyzer->getFunctionCalls(array_keys($this->_functions));
 
         $found = [];

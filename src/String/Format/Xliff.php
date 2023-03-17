@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Por ahora no se utiliza el método XLIFF
  * @deprecated

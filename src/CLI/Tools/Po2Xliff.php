@@ -11,7 +11,7 @@ use ideatic\l10n\Utils\Locale;
 /**
  * Reemplaza las cadenas encontradas en los archivos de un directorio por sus versiones traducidas
  */
-class Translator
+class Po2Xliff
 {
     public static function run(Environment $environment): void
     {

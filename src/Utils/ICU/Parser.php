@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Utils\ICU;
 
+use Exception;
 use ideatic\l10n\Utils\Str;
 
 class Parser
@@ -34,7 +37,7 @@ class Parser
                 }
             } elseif ($char == '}') {
                 if ($this->_throwExpressionEnd) {
-                    throw new \Exception("Unexpected pattern end at position {$this->_position} in '{$icuPattern}'");
+                    throw new Exception("Unexpected pattern end at position {$this->_position} in '{$icuPattern}'");
                 } else {
                     break;
                 }
@@ -95,7 +98,7 @@ class Parser
 
             $valid_types = ['number', 'date', 'time', 'ordinal', 'duration', 'spellout', 'plural', 'selectordinal', 'select'];
             if (!in_array($placeholder->type, $valid_types)) {
-                throw new \Exception("Invalid pattern type '{$placeholder->type}' at position {$this->_position}  in '{$patternStr}'");
+                throw new Exception("Invalid pattern type '{$placeholder->type}' at position {$this->_position}  in '{$patternStr}'");
             }
 
             if ($this->_currentChar($patternStr) != '}') {
@@ -132,7 +135,7 @@ class Parser
             $name = Str::trim($this->_readUntil($pattern, '{'));
 
             if (!$name) {
-                throw new \Exception("No name found for nested pattern at position {$this->_position} in '{$pattern}'");
+                throw new Exception("No name found for nested pattern at position {$this->_position} in '{$pattern}'");
             }
 
             $this->_position++;

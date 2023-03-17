@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Catalog\Loader;
 
 use ideatic\l10n\Catalog\Catalog;
+use InvalidArgumentException;
 
 abstract class Loader
 {
@@ -15,7 +18,7 @@ abstract class Loader
         } elseif ($name == 'php') {
             return new PHP();
         } else {
-            throw new \InvalidArgumentException("Invalid serializer format '{$name}'");
+            throw new InvalidArgumentException("Invalid serializer format '{$name}'");
         }
     }
 

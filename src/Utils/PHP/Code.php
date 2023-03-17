@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Utils\PHP;
+
+use InvalidArgumentException;
 
 /**
  * Representa un fragmento de código PHP que se puede analizar, inspeccionar y
@@ -172,7 +176,7 @@ class Code
     private function _readFunctionArgs(array $tokens, int &$pos): array
     {
         if ($tokens[$pos] != '(') {
-            throw new \InvalidArgumentException('The cursor must be situated at the beginning of a list');
+            throw new InvalidArgumentException('The cursor must be situated at the beginning of a list');
         }
         $level = 0;
         $arguments = [];

@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\String\Format;
 
+use Exception;
 use HTML_Parser;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\ICU\Pattern;
 use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Str;
+use JsonException;
 
 /**
  * Proveedor de cadenas traducibles encontradas en código Javascript / TypeScript
@@ -53,7 +57,7 @@ class Angular extends Format
         $this->_i18nHTML->addHashPluralSupport = $this->fixIcuPluralHashes;
 
         if (!$file) {
-            throw new \Exception("Path required!");
+            throw new Exception("Path required!");
         }
 
         $extension = IO::getExtension($file);
@@ -77,7 +81,7 @@ class Angular extends Format
                         $newTemplate = json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                         $content = str_replace($inlineTemplate['raw'], $newTemplate, $content, $count);
                         if ($count == 0) {
-                            throw new \Exception("Unable to replace component html template at '{$file}'");
+                            throw new Exception("Unable to replace component html template at '{$file}'");
                         }
                     }
                 } else {
@@ -139,7 +143,7 @@ class Angular extends Format
                         } else {
                             $value = json_decode('"' . addcslashes(substr($raw, 1, -1), '"') . '"', false, 512, JSON_THROW_ON_ERROR);
                         }
-                    } catch (\JsonException $err) {
+                    } catch (JsonException $err) {
                         echo "\n" . $raw . "\n";
                         throw $err;
                     }
@@ -179,7 +183,7 @@ class Angular extends Format
                     }
                 }
 
-                throw new \Exception("No i18n placeholder found in expression '{$expr}' at '{$path}'");
+                throw new Exception("No i18n placeholder found in expression '{$expr}' at '{$path}'");
             },
             $string->text
         );
@@ -286,7 +290,7 @@ class Angular_Methods extends CStyle
             $string->domainName = $this->defaultDomain;
 
             if (str_contains($string->text, '${')) {
-                throw new \Exception("Unsupported template string {$string->raw}");
+                throw new Exception("Unsupported template string {$string->raw}");
             }
 
             $strings[] = $string;

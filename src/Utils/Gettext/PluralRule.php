@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 
 namespace ideatic\l10n\Utils\Gettext;
+
+use Exception;
 
 /**
  * A gettext Plural-Forms parser.
@@ -145,7 +149,7 @@ class PluralRule
                     }
 
                     if (!$found) {
-                        throw new \Exception('Mismatched parentheses');
+                        throw new Exception('Mismatched parentheses');
                     }
 
                     $pos++;
@@ -163,7 +167,7 @@ class PluralRule
                     $end_operator = strspn($str, self::OP_CHARS, $pos);
                     $operator = substr($str, $pos, $end_operator);
                     if (!array_key_exists($operator, self::$op_precedence)) {
-                        throw new \Exception(sprintf('Unknown operator "%s"', $operator));
+                        throw new Exception(sprintf('Unknown operator "%s"', $operator));
                     }
 
                     while (!empty($stack)) {
@@ -204,7 +208,7 @@ class PluralRule
                     }
 
                     if (!$found) {
-                        throw new \Exception('Missing starting "?" ternary operator');
+                        throw new Exception('Missing starting "?" ternary operator');
                     }
                     $pos++;
                     break;
@@ -218,14 +222,14 @@ class PluralRule
                         break;
                     }
 
-                    throw new \Exception(sprintf('Unknown symbol "%s"', $next));
+                    throw new Exception(sprintf('Unknown symbol "%s"', $next));
             }
         }
 
         while (!empty($stack)) {
             $o2 = array_pop($stack);
             if ($o2 === '(' || $o2 === ')') {
-                throw new \Exception('Mismatched parentheses');
+                throw new Exception('Mismatched parentheses');
             }
 
             $output[] = ['op', $o2];
@@ -342,12 +346,12 @@ class PluralRule
                     break;
 
                 default:
-                    throw new \Exception(sprintf('Unknown operator "%s"', $next[1]));
+                    throw new Exception(sprintf('Unknown operator "%s"', $next[1]));
             }
         }
 
         if (count($stack) !== 1) {
-            throw new \Exception('Too many values remaining on the stack');
+            throw new Exception('Too many values remaining on the stack');
         }
 
         return (int)$stack[0];

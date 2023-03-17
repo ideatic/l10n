@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Tools;
 
+use Exception;
 use ideatic\l10n\Domain;
 use ideatic\l10n\Project;
 use ideatic\l10n\String\DirectoryProvider;
@@ -9,6 +12,7 @@ use ideatic\l10n\String\Format\Angular;
 use ideatic\l10n\String\Format\PHP;
 use ideatic\l10n\String\MultiProvider;
 use ideatic\l10n\Utils\IO;
+use stdClass;
 
 class Extractor
 {
@@ -17,7 +21,7 @@ class Extractor
 
     /**
      * Scan the projects looking for localizable strings
-     * @return \ideatic\l10n\Domain[]
+     * @return Domain[]
      */
     public function getDomains(): array
     {
@@ -35,7 +39,7 @@ class Extractor
     /**
      * Configura el proveedor de cadenas localizables para el proyecto indicado
      */
-    public static function getProjectProvider(Project|\stdClass $project): DirectoryProvider
+    public static function getProjectProvider(Project|stdClass $project): DirectoryProvider
     {
         $projectProvider = new DirectoryProvider($project->path);
 
@@ -54,7 +58,7 @@ class Extractor
         } elseif ($project->type == 'angular') {
             $projectProvider->addFormat('html,js,ts', new Angular());
         } else {
-            throw new \Exception("Unrecognized project type '{$project->type}'");
+            throw new Exception("Unrecognized project type '{$project->type}'");
         }
 
         if (isset($project->defaultDomain)) {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\CLI;
 
 
@@ -45,6 +47,10 @@ class CLI
                 break;
 
             case 'analyze':
+                Analyzer::run($environment);
+                break;
+
+            case 'po2xliff':
                 Analyzer::run($environment);
                 break;
 

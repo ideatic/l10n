@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Catalog\Serializer;
 
 use ideatic\l10n\Domain;
+use InvalidArgumentException;
 
 abstract class Serializer
 {
@@ -35,7 +38,7 @@ abstract class Serializer
         } elseif ($name == 'php') {
             return new PHP();
         } else {
-            throw new \InvalidArgumentException("Invalid serializer format '{$name}'");
+            throw new InvalidArgumentException("Invalid serializer format '{$name}'");
         }
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Catalog\Loader;
 
 use ideatic\l10n\Catalog\Catalog;

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Catalog\Serializer;
 
+use Exception;
 use ideatic\l10n\Utils\Gettext\PluralExpression;
 use ideatic\l10n\Utils\ICU\Pattern;
 use ideatic\l10n\Utils\ICU\Placeholder;
@@ -105,7 +108,7 @@ class PO extends Serializer
                         $translatedPlural = new Pattern($translation);
 
                         if (!self::isSuitableIcuPattern($translatedPlural)) {
-                            throw new \Exception("Invalid ICU pattern found for message '{$string->id}' translation '{$translation}'");
+                            throw new Exception("Invalid ICU pattern found for message '{$string->id}' translation '{$translation}'");
                         }
 
                         foreach (array_values($translatedPlural->nodes[0]->content) as $i => $placeholder) {

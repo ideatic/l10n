@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\String\Format;
 
+use Exception;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\IO;
+use InvalidArgumentException;
+use Throwable;
 
 /**
  * Proveedor de cadenas traducibles encontradas en código estilo C (Javascript, C, PHP, C#, etc.)
@@ -82,12 +87,12 @@ class CStyle extends Format
             $domainIndex = 1;
             if ($method == '_x') {
                 if (empty($params[1]) || !$this->_isString($params[1])) {
-                    throw new \Exception("Constant context string required for {$string->raw}");
+                    throw new Exception("Constant context string required for {$string->raw}");
                 }
                 $string->context = $this->_parseString($params[1]);
                 $domainIndex = 2;
             } elseif (count($params) > 2) {
-                throw new \Exception("Invalid param count in {$string->raw}");
+                throw new Exception("Invalid param count in {$string->raw}");
             }
 
             $string->offset = $match[0][1];
@@ -111,7 +116,7 @@ class CStyle extends Format
     private function _parseFnArgs(string $source, int $offset = 0, int &$pos = null, string|null &$comments = ''): array
     {
         if ($source[$offset] !== '(') {
-            throw new \InvalidArgumentException("Open parenthesis expected at initial offset, received " . substr($source, $offset, 20));
+            throw new InvalidArgumentException("Open parenthesis expected at initial offset, received " . substr($source, $offset, 20));
         }
         $offset++;
 
@@ -182,7 +187,7 @@ class CStyle extends Format
         try {
             $str = $this->_parseString($string);
             return $str != $string;
-        } catch (\Throwable $err) {
+        } catch (Throwable $err) {
             return false;
         }
     }
@@ -191,7 +196,7 @@ class CStyle extends Format
     {
         $str = json_decode('"' . addcslashes(trim(trim($string), '\'"`'), '"') . '"');
         if (json_last_error() != JSON_ERROR_NONE) {
-            throw new \Exception("Unable to parse CStyle string {$string}: " . json_last_error_msg());
+            throw new Exception("Unable to parse CStyle string {$string}: " . json_last_error_msg());
         }
         return $str;
     }
@@ -236,7 +241,7 @@ class CStyle extends Format
                 $source = str_replace($rawCall, $currentTranslation, $source, $replaceCount);
 
                 if ($replaceCount == 0) {
-                    throw new \Exception("Unable to find string '{$rawCall}', offset {$offset} for translation {$currentTranslation}");
+                    throw new Exception("Unable to find string '{$rawCall}', offset {$offset} for translation {$currentTranslation}");
                 }
 
                 // Seguir buscando coincidencias de la cadena

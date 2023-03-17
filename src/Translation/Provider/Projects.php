@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ideatic\l10n\Translation\Provider;
 
+use Exception;
 use ideatic\l10n\Catalog\Catalog;
 use ideatic\l10n\Catalog\Loader\Loader;
 use ideatic\l10n\Config;
@@ -11,6 +14,7 @@ use ideatic\l10n\ProjectTranslations;
 use ideatic\l10n\Translation\Provider;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
+use stdClass;
 
 /**
  * Implementa un proveedor de traducciones que utiliza los proyectos definidos en la configuración como fuente
@@ -31,7 +35,7 @@ class Projects implements Provider
         static $loadedCatalogs = [];
 
         if (empty($string->domain) && empty($string->domainName)) {
-            throw new \Exception("String domain not defined");
+            throw new Exception("String domain not defined");
         }
 
         $testLocales = [$locale];
@@ -76,8 +80,8 @@ class Projects implements Provider
     {
         // Cargar traducciones desde algún proyecto
         foreach ($this->config->projects as $projectConfig) {
-            /** @var ProjectTranslations|\stdClass $translations */
-            $translations= $projectConfig->translations ?? null;
+            /** @var ProjectTranslations|stdClass $translations */
+            $translations = $projectConfig->translations ?? null;
 
             if (isset($translations->path)) {
                 $path = IO::combinePaths(
