@@ -11,9 +11,7 @@ use const U_ZERO_ERROR;
 
 class Pattern
 {
-    /**
-     * @var array<string|Placeholder>
-     */
+    /** @var array<string|Placeholder>  */
     public array $nodes = [];
 
     public function __construct(string $pattern)

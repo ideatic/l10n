@@ -12,7 +12,7 @@
             "source": {
                 "type": "git",
                 "url": "C:\\Javi\\Escritorio\\Javi\\Dropbox\\Proyectos\\librerias\\php\\html-parser",
-                "reference": "c7efe76b1be3fca6694ca5321b1f8fc8e002f0f3"
+                "reference": "065420f2d6aa0decb76f5177b5716a71698c00e7"
             },
             "require": {
                 "ext-ctype": "*",
@@ -29,7 +29,7 @@
                 "proprietary"
             ],
             "description": "description",
-            "time": "2023-02-27T11:52:39+00:00"
+            "time": "2023-03-17T14:26:01+00:00"
         },
         {
             "name": "sepia/po-parser",

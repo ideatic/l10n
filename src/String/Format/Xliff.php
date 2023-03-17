@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+namespace ideatic\l10n\String\Format;
+
 /**
  * Por ahora no se utiliza el método XLIFF
  * @deprecated
  */
-class NGi18n
+class XLIFF
 {
     public $translationsNotFound = 0;
 

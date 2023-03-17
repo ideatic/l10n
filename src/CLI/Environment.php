@@ -18,7 +18,6 @@ class Environment
     public function __construct()
     {
         $this->directory = getcwd();
-
         $this->config = new Config();
     }
 

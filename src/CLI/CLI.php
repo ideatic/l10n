@@ -50,10 +50,6 @@ class CLI
                 Analyzer::run($environment);
                 break;
 
-            case 'po2xliff':
-                Analyzer::run($environment);
-                break;
-
             default:
                 echo "
 Usage:

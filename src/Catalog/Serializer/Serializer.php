@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ideatic\l10n\Catalog\Serializer;
 
 use ideatic\l10n\Domain;
+use ideatic\l10n\Project;
 use InvalidArgumentException;
 
 abstract class Serializer
@@ -37,6 +38,8 @@ abstract class Serializer
             return new JSON();
         } elseif ($name == 'php') {
             return new PHP();
+        } elseif ($name == 'xliff') {
+            return new XLIFF();
         } else {
             throw new InvalidArgumentException("Invalid serializer format '{$name}'");
         }
@@ -45,10 +48,8 @@ abstract class Serializer
     /**
      * Genera un archivo de localización para los grupos indicados
      *
-     * @param Domain[] $domains
-     *
-     * @return string
+     * @param array<Domain> $domains
      */
-    public abstract function generate(array $domains): string;
+    public abstract function generate(array $domains, \stdClass|Project $config = null): string;
 }
 

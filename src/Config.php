@@ -37,13 +37,14 @@ class Config
         }
 
         /** @var Config|null $config */
-        $config = json_decode(file_get_contents($configPath));
+        $config = json_decode(IO::read($configPath));
         if (!$config || json_last_error() != JSON_ERROR_NONE) {
             throw new Exception("Unable to parse l10n config: " . json_last_error_msg());
         }
 
         // Validar configuración
         foreach ($config->projects as $projectName => $project) {
+            $project->name = $projectName;
             $project->path = realpath(is_dir($project->path) ? $project->path : IO::combinePaths(dirname($configPath), $project->path));
 
             // Comprobar y ajustar rutas
@@ -54,8 +55,8 @@ class Config
             // Establecer valores por defecto
             if (isset($project->translations)) {
                 $project->translations->path = IO::combinePaths($project->path, $project->translations->path);
-                $project->translations->format = $project->translations->format ?? 'po';
-                $project->translations->template = "{domain}.{locale}.{format}";
+                $project->translations->format ??= 'po';
+                $project->translations->template ??= "{domain}.{locale}.{format}";
             }
         }
 
@@ -96,6 +97,7 @@ class Config
 
 /**
  * @property string                       $type
+ * @property string                       $name
  * @property string                       $path
  * @property string                       $defaultDomain
  * @property ProjectTranslations|stdClass $translations

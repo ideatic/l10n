@@ -46,6 +46,17 @@ abstract class IO
         return $p;
     }
 
+    public static function read(string $path): string
+    {
+        $result = file_get_contents($path);
+
+        if ($result === false) {
+            throw new Exception("Unable to read file '{$path}'");
+        }
+
+        return $result;
+    }
+
     /**
      * Obtiene archivos y directorios del sistema de archivos
      */

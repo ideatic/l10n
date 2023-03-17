@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ideatic\l10n\Catalog\Serializer;
 
 use Exception;
+use ideatic\l10n\Project;
 use ideatic\l10n\Utils\Gettext\PluralExpression;
 use ideatic\l10n\Utils\ICU\Pattern;
 use ideatic\l10n\Utils\ICU\Placeholder;
@@ -15,7 +16,7 @@ class PO extends Serializer
     public const ICU_PREFIX = 'ICU: ';
 
     /** @inheritDoc */
-    public function generate(array $domains): string
+    public function generate(array $domains, \stdClass|Project $config = null): string
     {
         $po = [];
 

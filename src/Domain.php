@@ -12,14 +12,10 @@ use ideatic\l10n\Translation\Provider;
  */
 class Domain
 {
-    /** @var string */
-    public $name;
-
-    /** @var LString[][] */
-    public $strings;
-
-    /** @var Provider */
-    public $translator;
+    public string $name;
+    /** @var array<array<LString>> */
+    public array $strings;
+    public Provider $translator;
 
     /**
      * Agrupa las cadenas recibidas en sus correspondientes dominios

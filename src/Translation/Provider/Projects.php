@@ -98,7 +98,7 @@ class Projects implements Provider
 
                 if (file_exists($path)) {
                     $loader = Loader::factory($translations->format);
-                    return $loader->load(file_get_contents($path), $locale);
+                    return $loader->load(IO::read($path), $locale);
                 }
             }
         }

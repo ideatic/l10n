@@ -62,7 +62,7 @@ class DirectoryProvider extends Provider
 
             if (isset($this->_formats[$extension])) {
                 foreach ($this->_formats[$extension] as $format) {
-                    foreach ($format->getStrings(file_get_contents($file), $file) as $string) {
+                    foreach ($format->getStrings(IO::read($file), $file) as $string) {
                         $found[] = $string;
                     }
                 }

@@ -115,7 +115,7 @@ class Merger
                     }
 
                     $catalogPath = IO::combinePaths($project->translations->path, $fileName);
-                    file_put_contents($catalogPath, $serializer->generate([$domain]));
+                    file_put_contents($catalogPath, $serializer->generate([$domain], $project));
 
                     echo "\t\t" . strtr(
                             'Written %path%',

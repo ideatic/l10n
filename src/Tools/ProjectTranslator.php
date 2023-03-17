@@ -16,7 +16,7 @@ use ideatic\l10n\Utils\IO;
 class ProjectTranslator
 {
     /** @var string[] Nombre de los dominios que se van a traducir, si no se especifican se traducirán todos */
-    public $domains;
+    public array $domains;
 
     public function translateDir(Config $config, string $projectName, string $locale, string $path = null): array
     {
@@ -48,7 +48,7 @@ class ProjectTranslator
                 continue;
             }
 
-            foreach ($domain->strings as $stringID => $stringLocations) {
+            foreach ($domain->strings as $stringLocations) {
                 foreach ($stringLocations as $string) {
                     $files[$string->file] = $string->file;
                 }
@@ -58,13 +58,7 @@ class ProjectTranslator
         // Traducir los archivos
         $updatedFiles = [];
         foreach ($files as $file) {
-            /** @var string|false|null $content */
-            $originalContent = $content = file_get_contents($file);
-
-            if ($content === false || $content === null) {
-                throw new Exception("Unable to read '{$file}'");
-            }
-
+            $originalContent = $content = IO::read($file);
             $content = $this->translateFile($content, $file, $locale, $config, $projectName, $translator);
 
             if (strcmp($originalContent, $content) != 0) {

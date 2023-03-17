@@ -6,17 +6,11 @@ namespace ideatic\l10n\Utils\ICU;
 
 class Placeholder
 {
-    /** @var string */
-    public $name;
-
-    /** @var string */
-    public $type;
-
-    /** @var string|Pattern[] */
-    public $content;
-
-    /** @var Pattern */
-    public $parent;
+    public string $name;
+    public string $type;
+    /** @var string|array<Pattern> */
+    public string|array $content;
+    public Pattern $parent;
 
     public function render(bool $prettyPrint = true): string
     {
