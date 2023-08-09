@@ -61,7 +61,7 @@ class Extractor
 
                 $formatName = $environment->params['format'] ?? $extractorConfig->format ?? 'po';
                 $serializer = Serializer::factory($formatName);
-                $serializer->includeLocations = $environment->params['locations'] ?? $extractorConfig->includeLocations ?? true;
+                $serializer->includeLocations = boolval($environment->params['locations'] ?? $extractorConfig->includeLocations ?? true);
                 $serializer->locale = $locale;
                 $serializer->referenceTranslation = $extractorConfig->referenceLanguage ?? null;
 

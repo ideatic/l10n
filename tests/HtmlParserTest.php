@@ -22,6 +22,7 @@ class HtmlParserTest extends TestCase
 
         $dom = HTML_Parser::parse($input);
 
+        $this->assertTrue($dom->findAll('body')[0] instanceof HTML_Parser_Element);
         $this->assertEquals($input, $dom->render());
     }
 
