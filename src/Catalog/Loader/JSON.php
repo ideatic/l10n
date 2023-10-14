@@ -9,19 +9,19 @@ use InvalidArgumentException;
 
 class JSON extends ArrayLoader
 {
-    /** @inheritDoc */
-    public function load(string $content, string $locale): Catalog
-    {
-        $rawDictionary = json_decode($content, true);
+  /** @inheritDoc */
+  public function load(string $content, string $locale): Catalog
+  {
+    $rawDictionary = json_decode($content, true);
 
-        if (json_last_error() != JSON_ERROR_NONE) {
-            throw new InvalidArgumentException("Unable to parse JSON " . json_last_error_msg());
-        } elseif (!is_array($rawDictionary)) {
-            throw new InvalidArgumentException("Invalid JSON, array expected");
-        }
-
-        return $this->_parse($rawDictionary, $locale);
+    if (json_last_error() != JSON_ERROR_NONE) {
+      throw new InvalidArgumentException("Unable to parse JSON " . json_last_error_msg());
+    } elseif (!is_array($rawDictionary)) {
+      throw new InvalidArgumentException("Invalid JSON, array expected");
     }
+
+    return $this->_parse($rawDictionary, $locale);
+  }
 }
 
 

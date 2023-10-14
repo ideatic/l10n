@@ -12,63 +12,63 @@ use ideatic\l10n\Utils\IO;
  */
 class DirectoryProvider extends Provider
 {
-    private string $_path;
+  private string $_path;
 
-    /** @var Format[][] */
-    private array $_formats = [];
+  /** @var Format[][] */
+  private array $_formats = [];
 
-    private array $_excludedPaths = [];
+  private array $_excludedPaths = [];
 
-    public function __construct(string $path)
-    {
-        $this->_path = $path;
+  public function __construct(string $path)
+  {
+    $this->_path = $path;
+  }
+
+  public function addFormat(string $extension, Format $format): void
+  {
+    foreach (explode(',', $extension) as $ext) {
+      if (!isset($this->_formats[$ext])) {
+        $this->_formats[$ext] = [];
+      }
+
+      $this->_formats[$ext][] = $format;
     }
+  }
 
-    public function addFormat(string $extension, Format $format): void
-    {
-        foreach (explode(',', $extension) as $ext) {
-            if (!isset($this->_formats[$ext])) {
-                $this->_formats[$ext] = [];
-            }
+  /**
+   * @return Format[][]
+   */
+  public function extensions(): array
+  {
+    return $this->_formats;
+  }
 
-            $this->_formats[$ext][] = $format;
+  public function excludePath(string|array $path): void
+  {
+    if (is_array($path)) {
+      $this->_excludedPaths = array_merge($this->_excludedPaths, $path);
+    } else {
+      $this->_excludedPaths[] = $path;
+    }
+  }
+
+  /** @inheritDoc */
+  public function getStrings(): array
+  {
+    $found = [];
+
+    foreach (IO::getFiles($this->_path, -1, $this->_excludedPaths) as $file) {
+      $extension = strtolower(IO::getExtension($file) ?: '');
+
+      if (isset($this->_formats[$extension])) {
+        foreach ($this->_formats[$extension] as $format) {
+          foreach ($format->getStrings(IO::read($file), $file) as $string) {
+            $found[] = $string;
+          }
         }
+      }
     }
 
-    /**
-     * @return Format[][]
-     */
-    public function extensions(): array
-    {
-        return $this->_formats;
-    }
-
-    public function excludePath(string|array $path): void
-    {
-        if (is_array($path)) {
-            $this->_excludedPaths = array_merge($this->_excludedPaths, $path);
-        } else {
-            $this->_excludedPaths[] = $path;
-        }
-    }
-
-    /** @inheritDoc */
-    public function getStrings(): array
-    {
-        $found = [];
-
-        foreach (IO::getFiles($this->_path, -1, $this->_excludedPaths) as $file) {
-            $extension = strtolower(IO::getExtension($file) ?: '');
-
-            if (isset($this->_formats[$extension])) {
-                foreach ($this->_formats[$extension] as $format) {
-                    foreach ($format->getStrings(IO::read($file), $file) as $string) {
-                        $found[] = $string;
-                    }
-                }
-            }
-        }
-
-        return $found;
-    }
+    return $found;
+  }
 }

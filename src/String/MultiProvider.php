@@ -9,25 +9,25 @@ namespace ideatic\l10n\String;
  */
 class MultiProvider extends Provider
 {
-    /** @var Provider[] */
-    private array $_providers = [];
+  /** @var Provider[] */
+  private array $_providers = [];
 
-    public function add(Provider $provider): void
-    {
-        $this->_providers[] = $provider;
+  public function add(Provider $provider): void
+  {
+    $this->_providers[] = $provider;
+  }
+
+  /** @inheritDoc */
+  public function getStrings(): array
+  {
+    $found = [];
+
+    foreach ($this->_providers as $provider) {
+      foreach ($provider->getStrings() as $string) {
+        $found[] = $string;
+      }
     }
 
-    /** @inheritDoc */
-    public function getStrings(): array
-    {
-        $found = [];
-
-        foreach ($this->_providers as $provider) {
-            foreach ($provider->getStrings() as $string) {
-                $found[] = $string;
-            }
-        }
-
-        return $found;
-    }
+    return $found;
+  }
 }

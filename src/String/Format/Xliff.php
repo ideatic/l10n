@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\String\Format;
 
+use Exception;
+
 /**
  * Por ahora no se utiliza el método XLIFF
  * @deprecated
  */
 class XLIFF
 {
-    public $translationsNotFound = 0;
+  public $translationsNotFound = 0;
 
-    public function __construct()
-    {
-        throw new \Exception('Not implemented');
-    }
+  public function __construct()
+  {
+    throw new Exception('Not implemented');
+  }
 
-    public function execute(string $path, string $destiny, array $locales)
-    {
-        ini_set('memory_limit', -1);
+  public function execute(string $path, string $destiny, array $locales)
+  {
+    ini_set('memory_limit', -1);
 
         // Parser test
         /*  $path = IO::combinePaths($path, 'src', 'locales', 'messages.xlf');

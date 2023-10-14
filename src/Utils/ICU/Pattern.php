@@ -55,7 +55,7 @@ class Pattern
   }
 
   /**
-   * @param array<string, mixed>  $args
+   * @param array<string, mixed> $args
    */
   public function format(string $locale, array $args = []): string
   {

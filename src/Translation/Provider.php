@@ -8,5 +8,5 @@ use ideatic\l10n\LString;
 
 interface Provider
 {
-    public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?string;
+  public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?string;
 }

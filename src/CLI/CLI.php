@@ -13,15 +13,15 @@ use ideatic\l10n\Utils\IO;
 
 class CLI
 {
-    public static function main(bool $exit = true): void
-    {
-        /** @phpstan-ignore-next-line */
-        (new static)->run(null, $exit);
-    }
+  public static function main(bool $exit = true): void
+  {
+    /** @phpstan-ignore-next-line */
+    (new static)->run(null, $exit);
+  }
 
-    public function run(array $argv = null, bool $exit = true): void
-    {
-        echo "    __   ___   ____         
+  public function run(array $argv = null, bool $exit = true): void
+  {
+    echo "    __   ___   ____         
    / /  <  /  / __ \   ____ 
   / /   / /  / / / /  / __ \
  / /   / /  / /_/ /  / / / /
@@ -29,29 +29,29 @@ class CLI
 
 ";
 
-        $environment = new Environment();
-        $environment->parseParams($argv ?? $_SERVER['argv']);
-        $environment->config->load(IO::combinePaths($environment->directory, 'l10n.json'));
+    $environment = new Environment();
+    $environment->parseParams($argv ?? $_SERVER['argv']);
+    $environment->config->load(IO::combinePaths($environment->directory, 'l10n.json'));
 
-        switch ($environment->method) {
-            case 'extract':
-                Extractor::run($environment);
-                break;
+    switch ($environment->method) {
+      case 'extract':
+        Extractor::run($environment);
+        break;
 
-            case 'merge':
-                Merger::run($environment);
-                break;
+      case 'merge':
+        Merger::run($environment);
+        break;
 
-            case 'translate':
-                Translator::run($environment);
-                break;
+      case 'translate':
+        Translator::run($environment);
+        break;
 
-            case 'analyze':
-                Analyzer::run($environment);
-                break;
+      case 'analyze':
+        Analyzer::run($environment);
+        break;
 
-            default:
-                echo "
+      default:
+        echo "
 Usage:
   {$environment->executableName} tool [arguments]
   
@@ -61,11 +61,11 @@ Available tools:
   translate         Translate localizable strings in a codebase to a certain locale
   analyze           Test localizable strings validity and similarity
  ";
-                break;
-        }
-
-        if ($exit) {
-            exit;
-        }
+        break;
     }
+
+    if ($exit) {
+      exit;
+    }
+  }
 }

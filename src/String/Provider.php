@@ -11,9 +11,9 @@ use ideatic\l10n\LString;
  */
 abstract class Provider
 {
-    /**
-     * Obtiene las cadenas traducibles encontradas por este proveedor
-     * @return LString[]
-     */
-    public abstract function getStrings(): array;
+  /**
+   * Obtiene las cadenas traducibles encontradas por este proveedor
+   * @return LString[]
+   */
+  public abstract function getStrings(): array;
 }

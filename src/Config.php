@@ -11,88 +11,88 @@ use stdClass;
 
 class Config
 {
-    public string $name;
-    /** @var array<Project|stdClass>|stdClass */
-    public array|stdClass $projects;
-    public string $sourceLocale;
-    public string $fallbackLocale;
+  public string $name;
+  /** @var array<Project|stdClass>|stdClass */
+  public array|stdClass $projects;
+  public string $sourceLocale;
+  public string $fallbackLocale;
 
-    /** @var string[] */
-    public array $locales;
+  /** @var string[] */
+  public array $locales;
 
-    public ConfigTools|stdClass $tools;
+  public ConfigTools|stdClass $tools;
 
-    /**
-     * Lee la configuración
-     */
-    public function load(string $configPath): void
-    {
-        // Leer configuración
-        if (!file_exists($configPath)) {
-            $this->_createDefaultConfig($configPath);
-        }
-
-        if (!is_readable($configPath)) {
-            throw new Exception("Unable to read l10n config at '{$configPath}'");
-        }
-
-        /** @var Config|null $config */
-        $config = json_decode(IO::read($configPath));
-        if (!$config || json_last_error() != JSON_ERROR_NONE) {
-            throw new Exception("Unable to parse l10n config: " . json_last_error_msg());
-        }
-
-        // Validar configuración
-        foreach ($config->projects as $projectName => $project) {
-            $project->name = $projectName;
-            $project->path = realpath(is_dir($project->path) ? $project->path : IO::combinePaths(dirname($configPath), $project->path));
-
-            // Comprobar y ajustar rutas
-            if (!$project->path) {
-                throw new Exception("Invalid path for project {$projectName}");
-            }
-
-            // Establecer valores por defecto
-            if (isset($project->translations)) {
-                $project->translations->path = IO::combinePaths($project->path, $project->translations->path);
-                $project->translations->format ??= 'po';
-                $project->translations->template ??= "{domain}.{locale}.{format}";
-            }
-        }
-
-        Utils::set($this, get_object_vars($config));
+  /**
+   * Lee la configuración
+   */
+  public function load(string $configPath): void
+  {
+    // Leer configuración
+    if (!file_exists($configPath)) {
+      $this->_createDefaultConfig($configPath);
     }
 
-    private function _createDefaultConfig(string $path): void
-    {
-        $defaultConfig = new self();
-        $defaultConfig->name = basename(__DIR__);
-        $defaultConfig->sourceLocale = 'en';
-
-        $defaultConfig->tools = new stdClass();
-        $defaultConfig->tools->extractor = new stdClass();
-        $defaultConfig->tools->extractor->format = 'po';
-        $defaultConfig->tools->extractor->outputPath = './';
-
-        /** @var Project $defaultProject */
-        $defaultProject = new stdClass();
-        $defaultProject->type = 'php';
-        $defaultProject->path = './';
-        $defaultProject->translations = new stdClass();
-        $defaultProject->translations->path = 'translations';
-        $defaultProject->translations->format = 'json';
-        $defaultProject->exclude = ['.git', 'vendor', 'node_modules', 'dist'];
-
-        $defaultConfig->projects = [$defaultConfig->name => $defaultProject];
-
-        $result = file_put_contents($path, json_encode($defaultConfig, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
-
-        if (!$result) {
-            throw new Exception("Unable to write default config at {$path}. Please create the file manually.");
-        }
-
-        echo "Created default config at {$path}\n";
+    if (!is_readable($configPath)) {
+      throw new Exception("Unable to read l10n config at '{$configPath}'");
     }
+
+    /** @var Config|null $config */
+    $config = json_decode(IO::read($configPath));
+    if (!$config || json_last_error() != JSON_ERROR_NONE) {
+      throw new Exception("Unable to parse l10n config: " . json_last_error_msg());
+    }
+
+    // Validar configuración
+    foreach ($config->projects as $projectName => $project) {
+      $project->name = $projectName;
+      $project->path = realpath(is_dir($project->path) ? $project->path : IO::combinePaths(dirname($configPath), $project->path));
+
+      // Comprobar y ajustar rutas
+      if (!$project->path) {
+        throw new Exception("Invalid path for project {$projectName}");
+      }
+
+      // Establecer valores por defecto
+      if (isset($project->translations)) {
+        $project->translations->path = IO::combinePaths($project->path, $project->translations->path);
+        $project->translations->format ??= 'po';
+        $project->translations->template ??= "{domain}.{locale}.{format}";
+      }
+    }
+
+    Utils::set($this, get_object_vars($config));
+  }
+
+  private function _createDefaultConfig(string $path): void
+  {
+    $defaultConfig = new self();
+    $defaultConfig->name = basename(__DIR__);
+    $defaultConfig->sourceLocale = 'en';
+
+    $defaultConfig->tools = new stdClass();
+    $defaultConfig->tools->extractor = new stdClass();
+    $defaultConfig->tools->extractor->format = 'po';
+    $defaultConfig->tools->extractor->outputPath = './';
+
+    /** @var Project $defaultProject */
+    $defaultProject = new stdClass();
+    $defaultProject->type = 'php';
+    $defaultProject->path = './';
+    $defaultProject->translations = new stdClass();
+    $defaultProject->translations->path = 'translations';
+    $defaultProject->translations->format = 'json';
+    $defaultProject->exclude = ['.git', 'vendor', 'node_modules', 'dist'];
+
+    $defaultConfig->projects = [$defaultConfig->name => $defaultProject];
+
+    $result = file_put_contents($path, json_encode($defaultConfig, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
+
+    if (!$result) {
+      throw new Exception("Unable to write default config at {$path}. Please create the file manually.");
+    }
+
+    echo "Created default config at {$path}\n";
+  }
 }
 
 /**
