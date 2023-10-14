@@ -18,9 +18,14 @@ class PHP extends ArraySerializer
       foreach ($domain->strings as $strings) {
         $string = reset($strings);
 
-        $translation = $this->locale
-            ? $domain->translator->getTranslation($string, $this->locale, false)
-            : null;
+        $translation = null;
+        if ($this->locale) {
+          $translation = $domain->translator->getTranslation($string, $this->locale, false);
+
+          if (!isset($translation)) {
+            continue;
+          }
+        }
 
         $comments = array_filter($strings, fn(LString $s) => $s->comments);
         if (!empty($comments)) {
