@@ -11,25 +11,19 @@ class PHP extends ArraySerializer
   /** @inheritDoc */
   public function generate(array $domains, \stdClass|Project $config = null): string
   {
-    // $phpArray = var_export($this->_generate($domains), true);
     $phpArray = ['['];
     foreach ($domains as $domain) {
       foreach ($domain->strings as $strings) {
         $string = reset($strings);
 
-        $stringID = $string->fullyQualifiedID();
-        if ($this->locale) {
-          $translation = $domain->translator->getTranslation($string, $this->locale, false);
+        $translation = $this->locale
+            ? $domain->translator->getTranslation($string, $this->locale, false)
+            : null;
 
-          if (isset($translation)) {
-            if ($string->comments) {
-              $phpArray[] = '  ' . var_export($stringID, true) . ' /* ' . $string->comments . ' */ => ' . var_export($translation, true) . ',';
-            } else {
-              $phpArray[] = '  ' . var_export($stringID, true) . ' => ' . var_export($translation, true) . ',';
-            }
-          }
+        if ($string->comments) {
+          $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' /* ' . $string->comments . ' */ => ' . var_export($translation, true) . ',';
         } else {
-          $phpArray[] = '  ' . var_export($stringID, true) . ' => ' . var_export(null, true) . ',';
+          $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' => ' . var_export($translation, true) . ',';
         }
       }
     }
@@ -37,10 +31,8 @@ class PHP extends ArraySerializer
     $phpArray = implode(PHP_EOL, $phpArray);
 
     $php = ['<?php'];
-    if (!$this->comments) {
-      $this->comments = 'Created ' . date('r');
-    }
-    $php[] = "/* {$this->comments} */";
+    $comments = $this->comments ?? 'Created ' . date('r');
+    $php[] = "/* {$comments} */";
     $php[] = '';
     $php[] = "return {$phpArray};";
 
