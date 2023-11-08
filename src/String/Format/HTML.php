@@ -105,6 +105,7 @@ class HTML extends Format
 
       // Normalizar espacios en blanco
       $content = preg_replace('/\s+/', ' ', Str::trim($element->innerHTML()));
+      $content = HTML_Parser::entityDecode($content);
 
       $string = $this->_registerString($source, $path, $content, $i18nAttribute, $element);
       $string->placeholders = $placeholders;
@@ -306,7 +307,7 @@ class HTML extends Format
 
       if (!$innerText) { // Sin texto
         $suspicious = false;
-      } elseif (str_starts_with($innerText, '{{')) { // Expresión angular
+      } elseif (str_starts_with($innerText, '{{') || str_starts_with($innerText, '@if') || str_starts_with($innerText, '@switch')) { // Expresión angular
         $suspicious = false;
       } elseif (!preg_match('/[a-zA-Z]/', $innerText)) { // Sin texto
         $suspicious = false;

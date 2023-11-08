@@ -26,7 +26,7 @@ class Extractor
   public function getDomains(): array
   {
     $i18nProvider = new MultiProvider();
-    foreach ($this->projects as $projectName => $project) {
+    foreach ($this->projects as $project) {
       $projectProvider = self::getProjectProvider($project);
 
       $i18nProvider->add($projectProvider);
