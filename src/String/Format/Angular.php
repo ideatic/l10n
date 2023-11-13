@@ -206,7 +206,10 @@ class Angular extends Format
     }
   }
 
-  public static function fixTranslation(LString $string, ?string $translation, bool $fixHashPluralSupport = false): ?string
+  /**
+   * @param 'template'|'code' $context
+   */
+  public static function fixTranslation(LString $string, ?string $translation, string $context, bool $fixHashPluralSupport = false): ?string
   {
     if ($string->isICU && $translation != null) {
       $pattern = new Pattern($string->text);
@@ -220,6 +223,10 @@ class Angular extends Format
           $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
         }
       }
+    }
+
+    if ($context == 'template') { // El carácter @ es especial en templates
+      $translation = str_replace("@", '&#64;', $translation);
     }
 
     return $translation;
@@ -259,7 +266,7 @@ class Angular_HTML extends HTML
             $translation = strtr($translation, $string->placeholders);
           }
 
-          return Angular::fixTranslation($string, $translation, $this->addHashPluralSupport);
+          return Angular::fixTranslation($string, $translation, 'template', $this->addHashPluralSupport);
         },
         $path
     );
@@ -314,7 +321,7 @@ class Angular_Methods extends CStyle
         function (LString $string) use ($getTranslation, $path) {
           Angular::prepareString($string, $path);
 
-          return Angular::fixTranslation($string, call_user_func($getTranslation, $string));
+          return Angular::fixTranslation($string, call_user_func($getTranslation, $string), 'code');
         },
         $path
     );
