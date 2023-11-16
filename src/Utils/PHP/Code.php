@@ -181,6 +181,7 @@ class Code
     $level = 0;
     $arguments = [];
     $argumentStart = $pos + 1;
+    $argumentName = null;
     $inString = false;
     for ($i = $pos + 1, $l = count($tokens); $i < $l; $i++) {
       if ($inString && $tokens[$i][0] != '"') {
@@ -190,7 +191,12 @@ class Code
       switch ($tokens[$i][0]) {
         case ',': // Separador de argumentos
           if ($level == 0) {
-            $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+            if (isset($argumentName)) {
+              $arguments[$argumentName] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+              $argumentName = null;
+            } else {
+              $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+            }
             $argumentStart = $i + 1;
           }
           break;
@@ -203,7 +209,11 @@ class Code
         case ']':
           if ($level <= 0) {
             if ($argumentStart != $i) {
-              $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+              if (isset($argumentName)) {
+                $arguments[$argumentName] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+              } else {
+                $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+              }
             }
             break 2;
           } else {
@@ -221,7 +231,13 @@ class Code
           if ($i + 1 < $l && $tokens[$i + 1][0] != T_ENCAPSED_AND_WHITESPACE) { // Solo aceptar como válidas llaves para cerrar y abrir bloques
             $level--;
           }
+          break;
 
+        case T_STRING: // Named argument
+          if (($tokens[$i + 1][0] ?? '') == ':') {
+            $argumentName = $tokens[$i][1];
+            $argumentStart = $i + 2;
+          }
           break;
       }
     }
