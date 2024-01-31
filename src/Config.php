@@ -74,7 +74,7 @@ class Config
     $defaultConfig->tools->extractor->format = 'po';
     $defaultConfig->tools->extractor->outputPath = './';
 
-    /** @var Project $defaultProject */
+    /** @var Project|stdClass $defaultProject */
     $defaultProject = new stdClass();
     $defaultProject->type = 'php';
     $defaultProject->path = './';
@@ -100,7 +100,7 @@ class Config
  * @property string                       $name
  * @property string                       $path
  * @property string                       $defaultDomain
- * @property ProjectTranslations|stdClass $translations
+ * @property ProjectTranslations|\stdClass $translations
  * @property string[]                     $translatorMethods
  * @property string[]                     $exclude
  */

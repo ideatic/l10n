@@ -12,6 +12,7 @@ use ideatic\l10n\Config;
 use ideatic\l10n\Domain;
 use ideatic\l10n\DomainConfig;
 use ideatic\l10n\Project;
+use ideatic\l10n\ProjectTranslations;
 use ideatic\l10n\Translation\Provider\Projects;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
@@ -90,19 +91,22 @@ class Merger
         }
 
         // Guardar traducciones en los proyectos que lo requieran
-        /** @var Project $project */
+        /** @var Project|\stdClass $project */
         foreach ($environment->config->projects as $project) {
-          if (!isset($project->translations->path)) {
+          /** @var ProjectTranslations|\stdClass $translations */
+          $translations = $project->translations;
+
+          if (!isset($translations->path)) {
             continue;
           }
 
           // Guardar cadenas
-          $destinyFormat = $project->translations->format;
+          $destinyFormat = $translations->format;
           $serializer = Serializer::factory($destinyFormat);
           $serializer->locale = $locale;
 
           $fileName = strtr(
-              $project->translations->template,
+              $translations->template,
               [
                   '{domain}' => $domain->name,
                   '{locale}' => $locale,
@@ -110,11 +114,11 @@ class Merger
               ]
           );
 
-          if (!is_dir($project->translations->path)) {
-            mkdir($project->translations->path);
+          if (!is_dir($translations->path)) {
+            mkdir($translations->path);
           }
 
-          $catalogPath = IO::combinePaths($project->translations->path, $fileName);
+          $catalogPath = IO::combinePaths($translations->path, $fileName);
           file_put_contents($catalogPath, $serializer->generate([$domain], $project));
 
           echo "\t\t" . strtr(

@@ -31,7 +31,7 @@ class JSON extends ArraySerializer
               'id' => $string->fullyQualifiedID(),
           ];
 
-          $comments = array_filter($strings, fn(LString $s) => $s->comments);
+          $comments = array_filter($strings, fn(LString $s) => !!$s->comments);
           if (!empty($comments)) {
             $row['comments'] = implode(PHP_EOL, array_map(fn(LString $string) => $string->comments, $comments));
           }

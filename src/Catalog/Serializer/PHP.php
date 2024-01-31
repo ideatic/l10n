@@ -27,7 +27,7 @@ class PHP extends ArraySerializer
           }
         }
 
-        $comments = array_filter($strings, fn(LString $s) => $s->comments);
+        $comments = array_filter($strings, fn(LString $s) => !!$s->comments);
         if (!empty($comments)) {
           $comments = implode(PHP_EOL, array_map(fn(LString $string) => $string->comments, $comments));
           $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' /* ' . $comments . ' */ => ' . var_export($translation, true) . ',';

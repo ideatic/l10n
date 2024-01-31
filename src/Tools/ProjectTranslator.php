@@ -20,7 +20,7 @@ class ProjectTranslator
 
   public function translateDir(Config $config, string $projectName, string $locale, string $path = null): array
   {
-    /** @var Project|null $project */
+    /** @var Project|\stdClass|null $project */
     $project = $config->projects->$projectName ?? null;
 
     if (!$project) {
