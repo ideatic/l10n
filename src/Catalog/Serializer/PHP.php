@@ -40,7 +40,9 @@ class PHP extends ArraySerializer
     $phpArray = implode(PHP_EOL, $phpArray);
 
     $php = ['<?php'];
-    $comments = $this->comments ?? 'Created ' . date('r');
+    $php[] = 'declare(strict_types=1);';
+    $php[] = '';
+    $comments = trim($this->comments) ?: 'Created ' . date('r');
     $php[] = "/* {$comments} */";
     $php[] = '';
     $php[] = "return {$phpArray};";
