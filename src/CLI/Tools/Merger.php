@@ -94,7 +94,7 @@ class Merger
         /** @var Project|\stdClass $project */
         foreach ($environment->config->projects as $project) {
           /** @var ProjectTranslations|\stdClass $translations */
-          $translations = $project->translations;
+          $translations = $project->translations ?? null;
 
           if (!isset($translations->path)) {
             continue;
