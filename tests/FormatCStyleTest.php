@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use ideatic\l10n\String\Format\CStyle;
@@ -8,57 +9,69 @@ require_once 'Helpers.php';
 
 class FormatCStyleTest extends TestCase
 {
-    use Helpers;
+  use Helpers;
 
-    public function testBasic()
-    {
-        $input = 'function() {
+  public function testBasic()
+  {
+    $input = 'function() {
         let a = __("Hello world");
         }';
 
-        $expected = 'function() {
+    $expected = 'function() {
         let a = "Hola mundo";
         }';
 
 
-        $translated = $this->_translate(new CStyle(), $input);
+    $translated = $this->_translate(new CStyle(), $input);
 
-        $this->assertEquals($expected, $translated);
-    }
+    $this->assertEquals($expected, $translated);
+  }
 
-    public function testComplexUnoptimized()
-    {
-        $input = 'function() {
+  public function testComplexUnoptimized()
+  {
+    $input = 'function() {
         let a = __("Hello {name}").replace("{name}", "World");
         }';
 
-        $expected = 'function() {
+    $expected = 'function() {
         let a = "Hola {name}".replace("{name}", "World");
         }';
 
 
-        $format = new CStyle();
-        $format->optimizePlaceholderReplacement = false;
-        $translated = $this->_translate($format, $input);
+    $format = new CStyle();
+    $format->optimizePlaceholderReplacement = false;
+    $translated = $this->_translate($format, $input);
 
-        $this->assertEquals($expected, $translated);
-    }
+    $this->assertEquals($expected, $translated);
+  }
 
-    public function testComplexOptimized()
-    {
-        $input = 'function() {
+  public function testComplexOptimized()
+  {
+    $input = 'function() {
         let a = __("Hello {name}").replace("{name}", "World");
         }';
 
-        $expected = 'function() {
+    $expected = 'function() {
         let a = "Hola \' + ("World") + \'";
         }';
 
 
-        $format = new CStyle();
-        $format->optimizePlaceholderReplacement = true;
-        $translated = $this->_translate($format, $input);
+    $format = new CStyle();
+    $format->optimizePlaceholderReplacement = true;
+    $translated = $this->_translate($format, $input);
 
-        $this->assertEquals($expected, $translated);
-    }
+    $this->assertEquals($expected, $translated);
+  }
+
+  public function testMethodSimilarSignature()
+  {
+    $input = "__symbol__('OriginalDelegate');";
+    $expected = $input;
+
+    $format = new CStyle();
+    $format->optimizePlaceholderReplacement = true;
+    $translated = $this->_translate($format, $input);
+
+    $this->assertEquals($expected, $translated);
+  }
 }

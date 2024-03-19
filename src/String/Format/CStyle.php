@@ -54,7 +54,7 @@ class CStyle extends Format
   /** @inheritDoc */
   public function getStrings(string $code, mixed $path = null): array
   {
-    $pattern = '/(' . implode('|', $this->methods) . ')\s*\(/';
+    $pattern = '/\b(' . implode('|', $this->methods) . ')\s*\(/';
 
     preg_match_all($pattern, $code, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
 

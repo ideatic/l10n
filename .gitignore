@@ -1,4 +1,4 @@
 .idea
 vendor/
 cli.bat
-/.phpunit.result.cache
+/tests/.phpunit.result.cache
