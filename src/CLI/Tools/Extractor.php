@@ -10,7 +10,6 @@ use ideatic\l10n\Domain;
 use ideatic\l10n\Translation\Provider\Projects;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
-use ideatic\l10n\Utils\Utils;
 
 class Extractor
 {
@@ -89,7 +88,6 @@ class Extractor
     $extractor = new \ideatic\l10n\Tools\Extractor();
 
     $extractor->projects = $environment->config->projects;
-    Utils::set($extractor, $environment->params);
 
     // Obtener dominios disponibles
     $start = microtime(true);
