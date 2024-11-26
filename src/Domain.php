@@ -29,6 +29,7 @@ class Domain
     $domains = [];
 
     foreach ($strings as $string) {
+        /** @phpstan-ignore instanceof.alwaysTrue */
       if (!($string instanceof LString)) {
         throw new Exception("Invalid localizable string received, instance of " . LString::class . " expected");
       } elseif (isset($string->domain)) {

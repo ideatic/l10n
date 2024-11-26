@@ -10,14 +10,8 @@
   ],
   "type": "library",
   "bin": "bin/l10n",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "C:\\Javi\\Escritorio\\Javi\\Dropbox\\Proyectos\\librerias\\php\\html-parser"
-    }
-  ],
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.3",
     "ideatic/html-parser": "dev-main",
     "sepia/po-parser": "^6.0",
     "ext-json": "*",

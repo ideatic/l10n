@@ -17,7 +17,7 @@ class Config
   public string $sourceLocale;
   public string $fallbackLocale;
 
-  /** @var string[] */
+  /** @var array<string | object{locale: string, name: string}> */
   public array $locales;
 
   public ConfigTools|stdClass $tools;
@@ -74,7 +74,7 @@ class Config
     $defaultConfig->tools->extractor->format = 'po';
     $defaultConfig->tools->extractor->outputPath = './';
 
-    /** @var Project|stdClass $defaultProject */
+    /** @var Project&stdClass $defaultProject */
     $defaultProject = new stdClass();
     $defaultProject->type = 'php';
     $defaultProject->path = './';

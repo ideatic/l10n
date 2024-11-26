@@ -64,7 +64,7 @@ class FunctionCall
    */
   public function fullMethodName(): string
   {
-    return preg_replace('/^' . preg_quote($this->method) . '/', $this->fullMethod, $this->code, 1);
+      return preg_replace('/^' . preg_quote($this->method, '/') . '/', $this->fullMethod, $this->code, 1);
   }
 
   /**
