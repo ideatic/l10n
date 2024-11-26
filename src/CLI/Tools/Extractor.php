@@ -50,7 +50,7 @@ class Extractor
             foreach ($locales as $localeInfo) {
                 $domain->translator = new Projects($environment->config);
 
-                $locale = is_object($localeInfo) ? $localeInfo->locale : $localeInfo;
+                $locale = is_object($localeInfo) ? $localeInfo->id : $localeInfo;
                 if (count($locales) > 1) {
                     if ($localeInfo) {
                         echo "\n\t## " . (is_object($localeInfo) ? $localeInfo->name : Locale::getName($locale)) . " ({$locale})\n";

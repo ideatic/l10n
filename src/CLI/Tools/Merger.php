@@ -42,7 +42,7 @@ class Merger
 
       echo "\n\n#### {$domain->name} domain\n\n";
 
-        $domainLocales = $domainConfig->locales ?? array_map(fn(string|stdClass $info): string => is_object($info) ? $info->locale : $info, $environment->config->locales);
+        $domainLocales = $domainConfig->locales ?? array_map(fn(string|stdClass $info): string => is_object($info) ? $info->id : $info, $environment->config->locales);
       if (isset($environment->params['lang'])) {
         $domainLocales = explode(',', $environment->params['lang']);
       }

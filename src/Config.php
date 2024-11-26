@@ -17,7 +17,7 @@ class Config
   public string $sourceLocale;
   public string $fallbackLocale;
 
-  /** @var array<string | object{locale: string, name: string}> */
+  /** @var array<string | object{id: string, name: string}> */
   public array $locales;
 
   public ConfigTools|stdClass $tools;
