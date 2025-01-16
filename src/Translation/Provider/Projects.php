@@ -82,24 +82,24 @@ class Projects implements Provider
         // Cargar traducciones desde algún proyecto
         foreach ($this->config->projects as $projectConfig) {
             /** @var ProjectTranslations|stdClass $translations */
-            $translations = $projectConfig->translations ?? null;
+            foreach ($projectConfig->translations ?? [] as $translations) {
+                if (isset($translations->path)) {
+                    $path = IO::combinePaths(
+                        $translations->path,
+                        strtr(
+                            $translations->template,
+                            [
+                                '{domain}' => is_string($domain) ? $domain : $domain->name,
+                                '{locale}' => $locale,
+                                '{format}' => Serializer::factory($translations->format)->fileExtension ?? $translations->format,
+                            ],
+                        ),
+                    );
 
-            if (isset($translations->path)) {
-                $path = IO::combinePaths(
-                    $translations->path,
-                    strtr(
-                        $translations->template,
-                        [
-                            '{domain}' => is_string($domain) ? $domain : $domain->name,
-                            '{locale}' => $locale,
-                            '{format}' => Serializer::factory($translations->format)?->fileExtension ?? $translations->format,
-                        ]
-                    )
-                );
-
-                if (file_exists($path)) {
-                    $loader = Loader::factory($translations->format);
-                    return $loader->load(IO::read($path), $locale);
+                    if (file_exists($path)) {
+                        $loader = Loader::factory($translations->format);
+                        return $loader->load(IO::read($path), $locale);
+                    }
                 }
             }
         }

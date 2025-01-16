@@ -54,9 +54,13 @@ class Config
 
       // Establecer valores por defecto
       if (isset($project->translations)) {
-        $project->translations->path = IO::combinePaths($project->path, $project->translations->path);
-        $project->translations->format ??= 'po';
-        $project->translations->template ??= "{domain}.{locale}.{format}";
+          $project->translations = Utils::wrapArray($project->translations);
+          /** @var ProjectTranslations|\stdClass $translations */
+          foreach ($project->translations as $translations) {
+              $translations->path = IO::combinePaths($project->path, $translations->path);
+              $translations->format ??= 'po';
+              $translations->template ??= "{domain}.{locale}.{format}";
+          }
       }
     }
 
@@ -100,7 +104,7 @@ class Config
  * @property string                       $name
  * @property string                       $path
  * @property string                       $defaultDomain
- * @property ProjectTranslations|\stdClass $translations
+ * @property ProjectTranslations|\stdClass|array<ProjectTranslations|\stdClass> $translations
  * @property string[]                     $translatorMethods
  * @property string[]                     $exclude
  */
@@ -118,7 +122,7 @@ interface ProjectTranslations
 }
 
 /**
- * @property ConfigExtractor $extractor
+ * @property ConfigExtractor|stdClass|array<ConfigExtractor|stdClass> $extractor
  * @property DomainConfig    $merge
  */
 interface ConfigTools

@@ -14,7 +14,9 @@ use stdClass;
 
 class PO extends Serializer
 {
-    public const ICU_PREFIX = 'ICU: ';
+    public const string ICU_PREFIX = 'ICU: ';
+
+    public bool $transformICU = true;
 
     /** @inheritDoc */
     public function generate(array $domains, stdClass|Project $config = null): string
@@ -63,9 +65,9 @@ class PO extends Serializer
                 }
 
                 // Comentarios
-                if ($this->referenceTranslation) {
-                    $localeName = Locale::getName($this->referenceTranslation);
-                    $referenceTranslation = $domain->translator->getTranslation($string, $this->referenceTranslation ?? '', false);
+                foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
+                    $localeName = Locale::getName($referenceLocale);
+                    $referenceTranslation = $domain->translator->getTranslation($string, $referenceLocale, false);
 
                     if ($referenceTranslation) {
                         $po[] = "#. {$localeName}: " . str_replace(["\r\n", "\n"], "\n#. ", $referenceTranslation);
@@ -80,7 +82,11 @@ class PO extends Serializer
 
                 // Incluir expresión ICU original
                 if ($isICU) {
-                    $po[] = '#. ' . self::ICU_PREFIX . str_replace(["\r\n", "\n"], "\n#. ", $string->id);
+                    if ($this->transformICU) {
+                        $po[] = '#. ' . self::ICU_PREFIX . str_replace(["\r\n", "\n"], "\n#. ", $string->id);
+                    } else {
+                        $po[] = '#. ICU expression';
+                    }
                 }
 
                 // Ubicaciones
@@ -98,7 +104,7 @@ class PO extends Serializer
                 // Traducción
                 $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false) : '';
 
-                if ($isICU && self::isSuitableIcuPattern(new Pattern($string->text))) { // Intentar transformar al formato de plurales PO
+                if ($isICU && $this->transformICU && self::isSuitableIcuPattern(new Pattern($string->text))) { // Intentar transformar al formato de plurales gettext
                     $originalICU = new Pattern($string->text);
 
                     $originalPlaceholders = array_values($originalICU->nodes[0]->content);
@@ -133,6 +139,10 @@ class PO extends Serializer
 
     private function _escape(string $str): string
     {
+        if ($str === '') {
+            return $str;
+        }
+
         $str = str_replace("\r\n", "\n", $str);
 
         $str = str_replace('"', '\"', $str);

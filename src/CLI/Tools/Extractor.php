@@ -10,73 +10,102 @@ use ideatic\l10n\Domain;
 use ideatic\l10n\Translation\Provider\Projects;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
+use ideatic\l10n\Utils\Utils;
 
 class Extractor
 {
     public static function run(Environment $environment): void
     {
-        $extractorConfig = $environment->config->tools->extractor;
         $domains = self::scanDomains($environment);
 
-        // Definir locales a generar
-        $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
+        foreach (Utils::wrapArray($environment->config->tools->extractor) as $extractorConfig) {
+            // Definir locales a generar
+            $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
 
-        // Definir grupos a generar
-        $domainNames = $environment->params['domains'] ?? $environment->params['domain'] ?? '';
-        if ($domainNames == 'all') {
-            $domainNames = array_column($domains, 'name');
-        } elseif ($domainNames) {
-            $domainNames = explode(',', $domainNames);
-        } elseif (isset($extractorConfig->domains)) {
-            $domainNames = $extractorConfig->domains;
-        } else {
-            $domainNames = array_column($domains, 'name');
-        }
+            // Definir grupos a generar
+            $domainNames = $environment->params['domains'] ?? $environment->params['domain'] ?? '';
+            if ($domainNames == 'all') {
+                $domainNames = array_column($domains, 'name');
+            } elseif ($domainNames) {
+                $domainNames = explode(',', $domainNames);
+            } elseif (isset($extractorConfig->domains)) {
+                $domainNames = $extractorConfig->domains;
+            } else {
+                $domainNames = array_column($domains, 'name');
+            }
+            $domainNames = array_unique($domainNames);
 
-        if ($locale == 'all') {
-            $locales = $environment->config->locales;
-        } else {
-            $locales = [$locale];
-        }
-
-        // Generar archivos
-        foreach ($domains as $domain) {
-            if (!in_array($domain->name, $domainNames)) {
-                continue;
+            if ($locale == 'all') {
+                $locales = array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info, $environment->config->locales);
+            } else {
+                $locales = [$locale];
             }
 
-            echo "\n\n#### {$domain->name} domain\n\n";
-
-            foreach ($locales as $localeInfo) {
-                $domain->translator = new Projects($environment->config);
-
-                $locale = is_object($localeInfo) ? $localeInfo->id : $localeInfo;
-                if (count($locales) > 1) {
-                    if ($localeInfo) {
-                        echo "\n\t## " . (is_object($localeInfo) ? $localeInfo->name : Locale::getName($locale)) . " ({$locale})\n";
-                    } else {
-                        echo "\n\t## Untranslated\n";
-                    }
+            // Generar archivos
+            foreach ($domains as $domain) {
+                if (!in_array($domain->name, $domainNames)) {
+                    continue;
                 }
 
-                $formatName = $environment->params['format'] ?? $extractorConfig->format ?? 'po';
-                $serializer = Serializer::factory($formatName);
-                $serializer->includeLocations = boolval($environment->params['locations'] ?? $extractorConfig->includeLocations ?? true);
-                $serializer->locale = $locale;
-                $serializer->referenceTranslation = $extractorConfig->referenceLanguage ?? null;
+                echo "\n\n#### {$domain->name} domain\n\n";
 
-                // Crear fichero
-                $fileName = strtolower(
-                    $environment->config->name . ($domain->name == 'app' ? '' : ".{$domain->name}") . ($locale ? ".{$locale}" : '') . "." . ($serializer->fileExtension ?? $formatName),
-                );
+                foreach ($locales as $localeInfo) {
+                    $domain->translator = new Projects($environment->config);
 
-                echo "\tGenerating {$fileName}...\n";
-                $content = $serializer->generate([$domain]);
+                    $locale = is_object($localeInfo) ? $localeInfo->id : $localeInfo;
+                    if (count($locales) > 1) {
+                        if ($localeInfo) {
+                            echo "\n\t## " . (is_object($localeInfo) ? $localeInfo->name : Locale::getName($locale)) . " ({$locale})\n";
+                        } else {
+                            echo "\n\t## Untranslated\n";
+                        }
+                    }
 
-                $path = IO::combinePaths($extractorConfig->outputPath ?? $environment->directory, $fileName);
-                file_put_contents($path, $content);
+                    $formatName = $environment->params['format'] ?? $extractorConfig->format ?? 'po';
+                    $serializer = Serializer::factory($formatName);
+                    $serializer->includeLocations = boolval($environment->params['locations'] ?? $extractorConfig->includeLocations ?? true);
+                    $serializer->locale = $locale;
+                    if (isset($serializer->transformICU) && isset($extractorConfig->transformICU)) {
+                        $serializer->transformICU = $extractorConfig->transformICU;
+                    }
 
-                echo "\tFile written at {$path}\n";
+                    if (($extractorConfig->referenceLanguage ?? '') === 'all') {
+                        $serializer->referenceTranslation = array_map(
+                            fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info,
+                            $environment->config->locales,
+                        );
+                    } else {
+                        $serializer->referenceTranslation = $extractorConfig->referenceLanguage ?? null;
+                    }
+
+                    // Crear fichero
+                    if (!empty($extractorConfig->outputPath) && str_contains($extractorConfig->outputPath, '{domain}')) {
+                        $path = strtolower(
+                            strtr(
+                                $extractorConfig->outputPath,
+                                [
+                                    '{domain}' => $domain->name == 'app' ? $environment->config->name : $domain->name,
+                                    '{locale}' => $locale,
+                                    '{format}' => $serializer->fileExtension ?? $formatName,
+                                ],
+                            ),
+                        );
+                    } else {
+                        $path = IO::combinePaths(
+                            $extractorConfig->outputPath ?? $environment->directory,
+                            strtolower(
+                                $environment->config->name . ($domain->name == 'app' ? '' : ".{$domain->name}") . ($locale ? ".{$locale}" : '') . "." . ($serializer->fileExtension ?? $formatName),
+                            ),
+                        );
+                    }
+
+                    $fileName = basename($path);
+                    echo "\tGenerating {$fileName}...\n";
+
+                    file_put_contents($path, $serializer->generate([$domain]));
+
+                    echo "\tFile written at {$path}\n";
+                }
             }
         }
     }

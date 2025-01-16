@@ -28,7 +28,7 @@ class JSON extends ArraySerializer
                     $string = reset($strings);
 
                     $row = [
-                        'id' => $string->id ?: $string->text,
+                        'original' => $string->text ?: $string->id,
                     ];
 
                     if ($string->context) {
@@ -40,6 +40,19 @@ class JSON extends ArraySerializer
                         $row['comments'] = implode(PHP_EOL, array_map(fn(LString $string) => $string->comments, $comments));
                     }
 
+                    foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
+                        if ($referenceLocale != $this->locale) {
+                            $referenceTranslation = $domain->translator->getTranslation($string, $referenceLocale, false);
+
+                            if ($this->locale) {
+                                $row[$referenceLocale] = $referenceTranslation;
+                            } else {
+                                $row['translations'] ??= [];
+                                $row['translations'][$referenceLocale] = $referenceTranslation;
+                            }
+                        }
+                    }
+
                     if ($this->locale) {
                         $translation = $domain->translator->getTranslation($string, $this->locale, false);
 
@@ -48,7 +61,7 @@ class JSON extends ArraySerializer
                         }
                     }
 
-                    if (count($row) == 2 && isset($row['id'], $row['translation']) && $row['id'] == $string->fullyQualifiedID()) {
+                    if (count($row) == 2 && isset($row['translation']) && $row['original'] == $string->fullyQualifiedID()) {
                         $row = $row['translation'];
                     }
 

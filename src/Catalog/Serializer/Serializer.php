@@ -12,7 +12,7 @@ use stdClass;
 abstract class Serializer
 {
     /**
-     * Locale principal del documento. Si no se indica o es false, se generará un documento con las cadenas originales
+     * Locale principal del documento. Si no se indica, se generará un documento con las cadenas originales
      */
     public string|null $locale;
 
@@ -23,8 +23,9 @@ abstract class Serializer
 
     /**
      * Locale utilizado como referencia para la traducción
+     * @param string|list<string>|null $referenceTranslation
      */
-    public string|null $referenceTranslation;
+    public string|array|null $referenceTranslation;
 
     /**
      * Incluir ubicaciones de las cadenas en el código fuente de la aplicación en el documento de traducción

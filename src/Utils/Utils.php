@@ -24,6 +24,13 @@ abstract class Utils
 
     return $object;
   }
+    /**
+     * Wrap an item in an array if it is not already an array
+     */
+    public static function wrapArray(mixed $item): array
+    {
+        return is_array($item) ? $item : [$item];
+    }
 
   /**
    * Renders an abbreviated version of the backtrace

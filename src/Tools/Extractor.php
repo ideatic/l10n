@@ -62,7 +62,7 @@ class Extractor
     }
 
     if (isset($project->defaultDomain)) {
-      foreach ($projectProvider->extensions() as $extension => $extensionFormats) {
+      foreach ($projectProvider->extensions() as $extensionFormats) {
         foreach ($extensionFormats as $format) {
           $format->defaultDomain = $project->defaultDomain;
         }
