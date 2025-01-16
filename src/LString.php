@@ -15,7 +15,7 @@ class LString
   /** Identificador de esta cadena */
   public string $id;
 
-  /**  Texto traducible */
+  /** Texto traducible */
   public string $text;
 
   /**  Identificador completo de la cadena, incluyendo su contexto */
@@ -56,7 +56,7 @@ class LString
     $id = $this->id ?: $this->text;
 
     if (isset($this->context)) {
-      $id .= '@' . $this->context;
+      $id .= "@{$this->context}";
     }
 
     return $id;

@@ -13,7 +13,7 @@ abstract class Loader
   {
     if ($name == 'po') {
       return new PO();
-    } elseif ($name == 'json') {
+    } elseif ($name == 'json' || $name == 'json-extended') {
       return new JSON();
     } elseif ($name == 'php') {
       return new PHP();

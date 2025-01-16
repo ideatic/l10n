@@ -110,7 +110,7 @@ class Merger
               [
                   '{domain}' => $domain->name,
                   '{locale}' => $locale,
-                  '{format}' => $destinyFormat,
+                  '{format}' => $serializer->fileExtension ?? $destinyFormat,
               ]
           );
 
