@@ -104,6 +104,10 @@ class PO extends Serializer
                 // Traducción
                 $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false) : '';
 
+                if ($this->onlyPending && isset($translation) && $translation !== '') {
+                    continue;
+                }
+
                 if ($isICU && $this->transformICU && self::isSuitableIcuPattern(new Pattern($string->text))) { // Intentar transformar al formato de plurales gettext
                     $originalICU = new Pattern($string->text);
 
@@ -140,7 +144,7 @@ class PO extends Serializer
     private function _escape(string $str): string
     {
         if ($str === '') {
-            return $str;
+            return '""';
         }
 
         $str = str_replace("\r\n", "\n", $str);

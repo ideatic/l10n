@@ -17,7 +17,7 @@ class PO extends Loader
     /** @inheritDoc */
     public function load(string $content, string $locale): \ideatic\l10n\Catalog\Catalog
     {
-        $handler = new  StringSource($content);
+        $handler = new StringSource($content);
         $poParser = new Parser($handler);
         $domain = $poParser->parse();
 
@@ -65,7 +65,9 @@ class PO extends Loader
             $strings[$string->fullyQualifiedID()] = $translation;
         }
 
-        return new \ideatic\l10n\Catalog\Catalog($locale, $strings);
+        $catalog = new \ideatic\l10n\Catalog\Catalog($locale, $strings);
+        $catalog->rawContent = $content;
+        return $catalog;
     }
 
     private function _readPluralRules(Catalog $poCatalog): string

@@ -6,6 +6,7 @@ namespace ideatic\l10n\CLI\Tools;
 
 use ideatic\l10n\Catalog\Serializer\Serializer;
 use ideatic\l10n\CLI\Environment;
+use ideatic\l10n\ConfigExtractor;
 use ideatic\l10n\Domain;
 use ideatic\l10n\Translation\Provider\Projects;
 use ideatic\l10n\Utils\IO;
@@ -18,6 +19,7 @@ class Extractor
     {
         $domains = self::scanDomains($environment);
 
+        /** @var ConfigExtractor $extractorConfig */
         foreach (Utils::wrapArray($environment->config->tools->extractor) as $extractorConfig) {
             // Definir locales a generar
             $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
@@ -65,25 +67,49 @@ class Extractor
                     $serializer = Serializer::factory($formatName);
                     $serializer->includeLocations = boolval($environment->params['locations'] ?? $extractorConfig->includeLocations ?? true);
                     $serializer->locale = $locale;
-                    if (isset($serializer->transformICU) && isset($extractorConfig->transformICU)) {
+                    if (isset($serializer->transformICU, $extractorConfig->transformICU)) {
                         $serializer->transformICU = $extractorConfig->transformICU;
                     }
-
-                    if (($extractorConfig->referenceLanguage ?? '') === 'all') {
-                        $serializer->referenceTranslation = array_map(
-                            fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info,
-                            $environment->config->locales,
-                        );
-                    } else {
-                        $serializer->referenceTranslation = $extractorConfig->referenceLanguage ?? null;
+                    if (isset($extractorConfig->onlyPending)) {
+                        $serializer->onlyPending = $extractorConfig->onlyPending;
                     }
 
+                    $serializer->referenceTranslation = [];
+                    foreach (explode(',', $extractorConfig->referenceLanguage ?? '') as $referenceLocale) {
+                        $referenceLocale = trim($referenceLocale);
+
+                        if ($referenceLocale === 'source') {
+                            $referenceLocale = $environment->config->sourceLocale;
+                        }
+
+                        if ($referenceLocale === 'all') {
+                            $serializer->referenceTranslation = array_merge(
+                                $serializer->referenceTranslation,
+                                array_map(
+                                    fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info,
+                                    $environment->config->locales,
+                                ),
+                            );
+                        } elseif ($referenceLocale && $referenceLocale[0] == '-') { // Eliminar idioma de referencia
+                            $serializer->referenceTranslation = array_diff($serializer->referenceTranslation, [substr($referenceLocale, 1)]);
+                        } elseif ($referenceLocale) {
+                            $serializer->referenceTranslation[] = $referenceLocale;
+                        }
+                    }
+                    $serializer->referenceTranslation = array_unique($serializer->referenceTranslation);
+
                     // Crear fichero
-                    if (!empty($extractorConfig->outputPath) && str_contains($extractorConfig->outputPath, '{domain}')) {
+                    $placeholders = [];
+                    foreach ($environment->config->projects as $project) {
+                        $placeholders["{{$project->name}}"] = $project->path;
+                    }
+
+                    if (!empty($extractorConfig->path) && preg_match('/\w+\.\w+/', $extractorConfig->path)) {
                         $path = strtolower(
                             strtr(
-                                $extractorConfig->outputPath,
+                                $extractorConfig->path,
                                 [
+                                    ...$placeholders,
                                     '{domain}' => $domain->name == 'app' ? $environment->config->name : $domain->name,
                                     '{locale}' => $locale,
                                     '{format}' => $serializer->fileExtension ?? $formatName,
@@ -92,7 +118,7 @@ class Extractor
                         );
                     } else {
                         $path = IO::combinePaths(
-                            $extractorConfig->outputPath ?? $environment->directory,
+                            isset($extractorConfig->path) ? strtr($extractorConfig->path, $placeholders) : $environment->directory,
                             strtolower(
                                 $environment->config->name . ($domain->name == 'app' ? '' : ".{$domain->name}") . ($locale ? ".{$locale}" : '') . "." . ($serializer->fileExtension ?? $formatName),
                             ),

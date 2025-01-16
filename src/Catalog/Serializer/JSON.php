@@ -61,6 +61,11 @@ class JSON extends ArraySerializer
                         }
                     }
 
+                    $hasNullValue = static fn(array $array) => array_reduce($array, fn($carry, $item) => $carry || $item === null, false);
+                    if ($this->onlyPending && ($this->locale ? !empty($row['translation']) : !$hasNullValue($row['translations'] ?? []))) {
+                        continue;
+                    }
+
                     if (count($row) == 2 && isset($row['translation']) && $row['original'] == $string->fullyQualifiedID()) {
                         $row = $row['translation'];
                     }

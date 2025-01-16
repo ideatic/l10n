@@ -23,9 +23,11 @@ abstract class ArraySerializer extends Serializer
         if ($this->locale) {
           $translation = $domain->translator->getTranslation($string, $this->locale, false);
 
-          if (isset($translation)) {
+            if (isset($translation) && !$this->onlyPending) {
             $translations[$stringID] = $translation;
-          }
+            } elseif ($this->onlyPending) {
+                $translations[$stringID] = null;
+            }
         } else {
           $translations[$stringID] = null;
         }
