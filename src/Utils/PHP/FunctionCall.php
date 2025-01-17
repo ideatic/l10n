@@ -211,7 +211,8 @@ class FunctionCall
     // Ignorar espacios en blanco y comentarios antes del array
     $allowed = [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT];
 
-    for ($pos = 0; $pos < count($tokens); $pos++) {
+      $pos = 0;
+      for (; $pos < count($tokens); $pos++) {
       if (!in_array($tokens[$pos][0], $allowed)) {
         break;
       }

@@ -127,7 +127,7 @@ interface ConfigTools {}
 
 /**
  * @property string $format
- * @property string $referenceLanguage
+ * @property string|list<string> $referenceLanguage
  * @property string $path
  * @property bool $includeLocations
  * @property bool|null $onlyPending

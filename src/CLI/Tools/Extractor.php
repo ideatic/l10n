@@ -18,13 +18,20 @@ class Extractor
     public static function run(Environment $environment): void
     {
         $domains = self::scanDomains($environment);
+        $lastGeneratedDomain = null;
 
         /** @var ConfigExtractor $extractorConfig */
         foreach (Utils::wrapArray($environment->config->tools->extractor) as $extractorConfig) {
             // Definir locales a generar
             $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
 
-            // Definir grupos a generar
+            if ($locale == 'all') {
+                $locales = array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info, $environment->config->locales);
+            } else {
+                $locales = [$locale];
+            }
+
+            // Definir dominios a incluir en los archivos generados
             $domainNames = $environment->params['domains'] ?? $environment->params['domain'] ?? '';
             if ($domainNames == 'all') {
                 $domainNames = array_column($domains, 'name');
@@ -37,19 +44,16 @@ class Extractor
             }
             $domainNames = array_unique($domainNames);
 
-            if ($locale == 'all') {
-                $locales = array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info, $environment->config->locales);
-            } else {
-                $locales = [$locale];
-            }
-
             // Generar archivos
             foreach ($domains as $domain) {
                 if (!in_array($domain->name, $domainNames)) {
                     continue;
                 }
 
-                echo "\n\n#### {$domain->name} domain\n\n";
+                if ($lastGeneratedDomain !== $domain->name) {
+                    echo "\n\n#### {$domain->name} domain\n\n";
+                }
+                $lastGeneratedDomain = $domain->name;
 
                 foreach ($locales as $localeInfo) {
                     $domain->translator = new Projects($environment->config);
@@ -75,9 +79,7 @@ class Extractor
                     }
 
                     $serializer->referenceTranslation = [];
-                    foreach (explode(',', $extractorConfig->referenceLanguage ?? '') as $referenceLocale) {
-                        $referenceLocale = trim($referenceLocale);
-
+                    foreach (Utils::wrapArray($extractorConfig->referenceLanguage ?? []) as $referenceLocale) {
                         if ($referenceLocale === 'source') {
                             $referenceLocale = $environment->config->sourceLocale;
                         }
@@ -121,12 +123,12 @@ class Extractor
                             isset($extractorConfig->path) ? strtr($extractorConfig->path, $placeholders) : $environment->directory,
                             strtolower(
                                 $environment->config->name . ($domain->name == 'app' ? '' : ".{$domain->name}") . ($locale ? ".{$locale}" : '') . "." . ($serializer->fileExtension ?? $formatName),
-                            ),
+                            )
                         );
                     }
 
-                    $fileName = basename($path);
-                    echo "\tGenerating {$fileName}...\n";
+                    $fileName = str_pad(basename($path) . '...', 20, ' ', STR_PAD_RIGHT);
+                    echo "\tGenerating {$fileName}";
 
                     file_put_contents($path, $serializer->generate([$domain]));
 
