@@ -8,6 +8,7 @@ use Exception;
 use ideatic\l10n\Catalog\Catalog;
 use ideatic\l10n\Catalog\Loader\Loader;
 use ideatic\l10n\Catalog\Serializer\Serializer;
+use ideatic\l10n\Catalog\Translation;
 use ideatic\l10n\Config;
 use ideatic\l10n\Domain;
 use ideatic\l10n\LString;
@@ -30,7 +31,7 @@ class Projects implements Provider
         $this->config = $l10nConfig;
     }
 
-    public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?string
+    public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?Translation
     {
         /** @var Loader[] $loadedCatalogs */
         static $loadedCatalogs = [];
@@ -55,7 +56,7 @@ class Projects implements Provider
             $catalogKey = "{$domainName}@{$locale}";
 
             if ($locale == $this->config->sourceLocale) {
-                return $string->text;
+                return new Translation($string->text);
             }
 
             // Buscar en las traducciones disponibles

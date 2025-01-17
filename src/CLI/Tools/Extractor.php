@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\CLI\Tools;
 
-use ideatic\l10n\Catalog\Serializer\JSON;
 use ideatic\l10n\Catalog\Serializer\Serializer;
 use ideatic\l10n\CLI\Environment;
 use ideatic\l10n\ConfigExtractor;
 use ideatic\l10n\Domain;
-use ideatic\l10n\Translation\Provider\Projects;
+use ideatic\l10n\LString;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
+use ideatic\l10n\Utils\Str;
 use ideatic\l10n\Utils\Utils;
 
 class Extractor
@@ -58,7 +58,8 @@ class Extractor
                 $lastGeneratedDomain = $domain->name;
 
                 foreach ($locales as $localeInfo) {
-                    $domain->translator = new Projects($environment->config);
+                    // Usar como fuente para las traducciones los ficheros serializados de los distintos proyectos
+                    $domain->translator = new \ideatic\l10n\Translation\Provider\Projects($environment->config);
 
                     $locale = is_object($localeInfo) ? $localeInfo->id : $localeInfo;
                     if (count($locales) > 1) {
@@ -76,33 +77,13 @@ class Extractor
                     if (isset($serializer->transformICU, $extractorConfig->transformICU)) {
                         $serializer->transformICU = $extractorConfig->transformICU;
                     }
-                    if (isset($environment->params['onlyPending'])) {
-                        $serializer->onlyPending = boolval($environment->params['onlyPending']);
-                    } elseif (isset($extractorConfig->onlyPending)) {
-                        $serializer->onlyPending = $extractorConfig->onlyPending;
-                    }
+                    $serializer->referenceTranslation = self::_getReferenceTranslations($extractorConfig, $environment);
 
-                    $serializer->referenceTranslation = [];
-                    foreach (Utils::wrapArray($extractorConfig->referenceLanguage ?? []) as $referenceLocale) {
-                        if ($referenceLocale === 'source') {
-                            $referenceLocale = $environment->config->sourceLocale;
-                        }
-
-                        if ($referenceLocale === 'all') {
-                            $serializer->referenceTranslation = array_merge(
-                                $serializer->referenceTranslation,
-                                array_map(
-                                    fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info,
-                                    $environment->config->locales,
-                                ),
-                            );
-                        } elseif ($referenceLocale && $referenceLocale[0] == '-') { // Eliminar idioma de referencia
-                            $serializer->referenceTranslation = array_diff($serializer->referenceTranslation, [substr($referenceLocale, 1)]);
-                        } elseif ($referenceLocale) {
-                            $serializer->referenceTranslation[] = $referenceLocale;
-                        }
+                    // Filtrar las cadenas a incluir
+                    if (!empty($extractorConfig->filter)) {
+                        $domain = clone $domain;
+                        $domain->strings = self::_filterStrings($domain, $extractorConfig, $serializer);
                     }
-                    $serializer->referenceTranslation = array_unique($serializer->referenceTranslation);
 
                     // Crear fichero
                     $placeholders = [];
@@ -127,27 +108,116 @@ class Extractor
                             isset($extractorConfig->path) ? strtr($extractorConfig->path, $placeholders) : $environment->directory,
                             strtolower(
                                 $environment->config->name . ($domain->name == 'app' ? '' : ".{$domain->name}") . ($locale ? ".{$locale}" : '') . "." . ($serializer->fileExtension ?? $formatName),
-                            )
+                            ),
                         );
                     }
 
                     $fileName = str_pad(basename($path) . '...', 20, ' ', STR_PAD_RIGHT);
                     echo "\tGenerating {$fileName}";
 
-                    if (($extractorConfig->mergeWithExisting ?? false) && file_exists($path)) {
-                        if ($serializer instanceof JSON) {
-                            file_put_contents($path, $serializer->generateAndMerge(IO::read($path), [$domain]));
-                        } else {
-                            throw new \Exception("Merging with existing files is only supported for JSON files");
-                        }
-                    } else {
-                        file_put_contents($path, $serializer->generate([$domain]));
-                    }
+                    file_put_contents($path, $serializer->generate([$domain]));
 
                     echo "\tFile written at {$path}\n";
                 }
             }
         }
+    }
+
+    /**
+     * Obtiene los idiomas de referencia que se van a incluir en los archivos generados
+     * @return list<string>
+     */
+    public static function _getReferenceTranslations(ConfigExtractor|\stdClass $extractorConfig, Environment $environment): array
+    {
+        $referenceTranslation = [];
+        foreach (Utils::wrapArray($extractorConfig->referenceLanguage ?? []) as $referenceLocale) {
+            if ($referenceLocale === 'source') {
+                $referenceLocale = $environment->config->sourceLocale;
+            }
+
+            if ($referenceLocale === 'all') {
+                $referenceTranslation = array_merge(
+                    $referenceTranslation,
+                    array_map(
+                        fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info,
+                        $environment->config->locales,
+                    ),
+                );
+            } elseif ($referenceLocale && $referenceLocale[0] == '-') { // Eliminar idioma de referencia
+                $referenceTranslation = array_diff($referenceTranslation, [substr($referenceLocale, 1)]);
+            } elseif ($referenceLocale) {
+                $referenceTranslation[] = $referenceLocale;
+            }
+        }
+
+        return array_unique($referenceTranslation);
+    }
+
+    /**
+     * Filtra las cadenas que van a ser serializadas
+     * @return array<array<LString>>
+     */
+    public static function _filterStrings(Domain $domain, ConfigExtractor|\stdClass $extractorConfig, Serializer $serializer): array
+    {
+        return array_filter($domain->strings, function (/** @param list<LString> $strings */ array $strings) use ($extractorConfig, $domain, $serializer) {
+            $valid = true;
+
+            // Incluir si tiene un comentario específico
+            if ($extractorConfig->filter->hasComment ?? false) {
+                $hasSpecificComment = function (LString $string) use ($extractorConfig): bool {
+                    if ($extractorConfig->filter->hasComment === true) {
+                        if (!!Str::trim($string->comments)) {
+                            return true;
+                        }
+                    } elseif (str_contains($string->comments ?? '', $extractorConfig->filter->hasComment)) {
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                if (count(array_filter($strings, $hasSpecificComment)) > 0) {
+                    return true;
+                }
+
+
+                // Comprobar también los comentarios de las traducciones
+                if ($serializer->locale) {
+                    $translation = $domain->translator->getTranslation(reset($strings), $serializer->locale, false);
+                    if ($translation?->metadata && $hasSpecificComment($translation->metadata)) {
+                        return true;
+                    }
+                } else {
+                    foreach ($serializer->referenceTranslation as $locale) {
+                        $translation = $domain->translator->getTranslation(reset($strings), $locale, false);
+                        if ($translation?->metadata && $hasSpecificComment($translation->metadata)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            if ($extractorConfig->filter->onlyPending ?? false) {
+                if ($serializer->locale) {
+                    if ($domain->translator->getTranslation(reset($strings), $serializer->locale, false) !== null) {
+                        $valid = false;
+                    }
+                } else { // Incluir si al menos un idioma de referencia no tiene traducción
+                    $allTranslated = true;
+                    foreach ($serializer->referenceTranslation as $locale) {
+                        if ($domain->translator->getTranslation(reset($strings), $locale, false) === null) {
+                            $allTranslated = false;
+                        }
+                    }
+
+                    if ($allTranslated) {
+                        $valid = false;
+                    }
+                }
+            }
+
+            return $valid;
+        });
     }
 
     /**

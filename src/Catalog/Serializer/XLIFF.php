@@ -24,8 +24,6 @@ class XLIFF extends Serializer
   {
     if (!isset($config->translations->source)) {
       throw new Exception("Original XLIFF must be indicated in the 'translations > source' field for project {$config->name}");
-    } elseif($this->onlyPending) {
-      throw new Exception('XLIFF serializer does not support "onlyPending" option');
     }
 
     [$source, $sourceStrings] = $this->_parseSource(IO::read(IO::combinePaths($config->path, $config->translations->source)));
@@ -50,7 +48,7 @@ class XLIFF extends Serializer
         $transUnit = $sourceStrings[$stringID] ?? throw new Exception("Unable to find XLIFF trans-unit element for string '{$string->id}'");
 
         // Incluir traducción
-        $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false) : '';
+        $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false)?->translation : '';
         if ($translation) {
           if ($replacePlural) {
             $pattern = new Pattern($translation);

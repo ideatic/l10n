@@ -14,6 +14,7 @@ use ideatic\l10n\Project;
 use ideatic\l10n\ProjectTranslations;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
+use ideatic\l10n\Utils\Str;
 use ideatic\l10n\Utils\Utils;
 use stdClass;
 
@@ -55,11 +56,24 @@ class Merger
 
                 // Obtener catálogo con las traducciones actualizadas desde todas las fuentes
                 $loadedCatalogs = [];
+                /** @var DomainConfig|stdClass $translationsSource */
                 foreach (Utils::wrapArray($domainsConfig[$domain->name]) as $sourceIndex => $translationsSource) {
                     $translationsCatalog = self::_getCatalog($domain, $translationsSource, $locale, $environment);
 
                     if ($translationsCatalog) {
                         $loadedCatalogs[] = $translationsCatalog;
+
+
+                        if ($translationsSource->addComment ?? null) {
+                            foreach ($domain->strings as $string) {
+                                foreach ($loadedCatalogs as $catalog) {
+                                    if ($catalog->getTranslation($string[0]) !== null && $catalog === $translationsCatalog) {
+                                        $string[0]->comments ??= '';
+                                        $string[0]->comments = Str::trim("{$string[0]->comments}\n{$translationsSource->addComment}");
+                                    }
+                                }
+                            }
+                        }
                     } else { // Usar traducciones ya existentes en otros proyectos
                         echo "\tUnable to get translations for '{$domain->name}', locale {$locale}, source #{$sourceIndex}\n";
                         /*   $domain->translator = new Projects($environment->config);
@@ -74,7 +88,7 @@ class Merger
                 // Mostrar resumen
                 $notFound = array_filter(
                     $domain->strings,
-                    fn($stringLocations) => $domain->translator->getTranslation($stringLocations[0], $locale) === null,
+                    fn(array $stringLocations) => $domain->translator->getTranslation($stringLocations[0], $locale) === null,
                 );
 
                 if (!empty($notFound)) {
@@ -159,9 +173,11 @@ class Merger
         return array_unique($localesToMerge);
     }
 
+    /**
+     * Guarda las cadenas traducidas del proyecto indicado en la ubicación especificada
+     */
     public static function _saveProjectTranslations(stdClass|Project $project, Domain $domain, string $locale, ProjectTranslations|\stdClass $translationsStore): void
     {
-        // Guardar cadenas
         $destinyFormat = $translationsStore->format;
         $serializer = Serializer::factory($destinyFormat);
         $serializer->locale = $locale;

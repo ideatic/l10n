@@ -32,11 +32,6 @@ abstract class Serializer
      */
     public bool $includeLocations = true;
 
-    /**
-     * Solo incluir cadenas pendientes de traducción
-     */
-    public bool $onlyPending = false;
-
     public string|null $fileExtension = null;
 
     public static function factory(string $name): self

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ideatic\l10n\Catalog\Loader;
 
 use Exception;
+use ideatic\l10n\Catalog\Translation;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\Gettext\IcuConverter;
 use ideatic\l10n\Utils\ICU\Pattern;
@@ -62,12 +63,10 @@ class PO extends Loader
                 continue;
             }
 
-            $strings[$string->fullyQualifiedID()] = $translation;
+            $strings[$string->fullyQualifiedID()] = new Translation($translation, $string);
         }
 
-        $catalog = new \ideatic\l10n\Catalog\Catalog($locale, $strings);
-        $catalog->rawContent = $content;
-        return $catalog;
+        return new \ideatic\l10n\Catalog\Catalog($locale, $strings);
     }
 
     private function _readPluralRules(Catalog $poCatalog): string

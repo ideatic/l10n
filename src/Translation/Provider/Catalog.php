@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\Translation\Provider;
 
+use ideatic\l10n\Catalog\Translation;
 use ideatic\l10n\LString;
 use ideatic\l10n\Translation\Provider;
 
@@ -17,7 +18,7 @@ class Catalog implements Provider
      */
     public function __construct(private readonly \ideatic\l10n\Catalog\Catalog|array $_catalog) {}
 
-    public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?string
+    public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?Translation
     {
         if (is_array($this->_catalog)) {
             /** @var \ideatic\l10n\Catalog\Catalog $catalog */

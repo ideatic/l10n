@@ -130,8 +130,7 @@ interface ConfigTools {}
  * @property string|list<string> $referenceLanguage
  * @property string $path
  * @property bool $includeLocations
- * @property bool $mergeWithExisting Si existe un fichero ya, combinar las traducciones existentes con las nuevas
- * @property bool|null $onlyPending
+ * @property object{onlyPending: bool, hasComment: string}|null $filter
  * @property string[] $domains
  * @property ?bool $enabled
  */
@@ -142,6 +141,7 @@ interface ConfigExtractor {}
  * @property string $script
  * @property string $format
  * @property string[] $locales
+ * @property ?string $addComment
  */
 interface DomainConfig {}
 

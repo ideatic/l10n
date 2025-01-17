@@ -22,11 +22,7 @@ class PHP extends ArraySerializer
                 if ($this->locale) {
                     $translation = $domain->translator->getTranslation($string, $this->locale, false);
 
-                    if ($this->onlyPending) {
-                        if (isset($translation)) {
-                            continue;
-                        }
-                    } elseif (!isset($translation)) {
+                    if (!isset($translation)) {
                         continue;
                     }
                 }
@@ -34,9 +30,9 @@ class PHP extends ArraySerializer
                 $comments = array_filter($strings, fn(LString $s) => !!$s->comments);
                 if (!empty($comments)) {
                     $comments = implode(PHP_EOL, array_map(fn(LString $string) => $string->comments, $comments));
-                    $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' /* ' . $comments . ' */ => ' . var_export($translation, true) . ',';
+                    $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' /* ' . $comments . ' */ => ' . var_export($translation->translation, true) . ',';
                 } else {
-                    $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' => ' . var_export($translation, true) . ',';
+                    $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' => ' . var_export($translation->translation, true) . ',';
                 }
             }
         }

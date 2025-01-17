@@ -70,7 +70,7 @@ class PO extends Serializer
                     $referenceTranslation = $domain->translator->getTranslation($string, $referenceLocale, false);
 
                     if ($referenceTranslation) {
-                        $po[] = "#. {$localeName}: " . str_replace(["\r\n", "\n"], "\n#. ", $referenceTranslation);
+                        $po[] = "#. {$localeName}: " . str_replace(["\r\n", "\n"], "\n#. ", $referenceTranslation->translation);
                     }
                 }
 
@@ -102,11 +102,7 @@ class PO extends Serializer
                 }
 
                 // Traducción
-                $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false) : '';
-
-                if ($this->onlyPending && isset($translation) && $translation !== '') {
-                    continue;
-                }
+                $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false)?->translation : '';
 
                 if ($isICU && $this->transformICU && self::isSuitableIcuPattern(new Pattern($string->text))) { // Intentar transformar al formato de plurales gettext
                     $originalICU = new Pattern($string->text);
