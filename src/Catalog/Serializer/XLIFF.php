@@ -24,6 +24,8 @@ class XLIFF extends Serializer
   {
     if (!isset($config->translations->source)) {
       throw new Exception("Original XLIFF must be indicated in the 'translations > source' field for project {$config->name}");
+    } elseif($this->onlyPending) {
+      throw new Exception('XLIFF serializer does not support "onlyPending" option');
     }
 
     [$source, $sourceStrings] = $this->_parseSource(IO::read(IO::combinePaths($config->path, $config->translations->source)));

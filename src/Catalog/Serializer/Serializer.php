@@ -61,7 +61,7 @@ abstract class Serializer
     /**
      * Genera un archivo de localización para los grupos indicados
      *
-     * @param array<Domain> $domains
+     * @param list<Domain> $domains
      */
     public abstract function generate(array $domains, stdClass|Project $config = null): string;
 }

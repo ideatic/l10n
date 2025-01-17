@@ -56,7 +56,7 @@ class Merger
                 // Obtener catálogo con las traducciones actualizadas desde todas las fuentes
                 $loadedCatalogs = [];
                 foreach (Utils::wrapArray($domainsConfig[$domain->name]) as $sourceIndex => $translationsSource) {
-                    $translationsCatalog = self::_getCatalog($domain, $translationsSource, $locale);
+                    $translationsCatalog = self::_getCatalog($domain, $translationsSource, $locale, $environment);
 
                     if ($translationsCatalog) {
                         $loadedCatalogs[] = $translationsCatalog;
@@ -102,24 +102,34 @@ class Merger
         }
     }
 
-    private static function _getCatalog(Domain $domain, DomainConfig|stdClass $domainConfig, string $locale): ?Catalog
+    private static function _getCatalog(Domain $domain, DomainConfig|stdClass $domainConfig, string $locale, Environment $environment): ?Catalog
     {
+        $replacements = [
+            '{domain}' => $domain->name,
+            '{locale}' => $locale,
+        ];
+        foreach ($environment->config->projects as $project) {
+            $replacements["{{$project->name}}"] = $project->path;
+        }
+
         if (isset($domainConfig->source)) {
-            $location = str_replace('{locale}', $locale, $domainConfig->source);
+            $location = strtr($domainConfig->source, $replacements);
 
             if (str_contains($domainConfig->source, '://')) { // Descargar de Internet
                 echo "\t\tDownloading {$location}...\n";
                 $content = @file_get_contents($location);
             } else {
+                echo "\t\tReading {$location}...\n";
                 $content = @file_get_contents($location);
             }
         } elseif (isset($domainConfig->script)) { // Ejecutar comando
-            exec($domainConfig->script, $content);
+            exec(strtr($domainConfig->script, $replacements), $content);
+        } else {
+            echo "\t\tNo source defined for domain '{$domain->name}' locale {$locale}\n";
+            return null;
         }
 
-        if (!isset($content)) {
-            return null;
-        } elseif (empty($content)) {
+        if (empty($content)) {
             echo "\033[31m\t\tEmpty response for domain '{$domain->name}' locale {$locale}\033[0m\n";
             // throw new \Exception("\tEmpty response for domain '{$domain->name}' locale {$locale}\n");
             return null;

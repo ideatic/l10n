@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\CLI\Tools;
 
+use ideatic\l10n\Catalog\Serializer\JSON;
 use ideatic\l10n\Catalog\Serializer\Serializer;
 use ideatic\l10n\CLI\Environment;
 use ideatic\l10n\ConfigExtractor;
@@ -22,14 +23,15 @@ class Extractor
 
         /** @var ConfigExtractor $extractorConfig */
         foreach (Utils::wrapArray($environment->config->tools->extractor) as $extractorConfig) {
+            if (!($extractorConfig->enabled ?? true)) {
+                continue;
+            }
+
             // Definir locales a generar
             $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
-
-            if ($locale == 'all') {
-                $locales = array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info, $environment->config->locales);
-            } else {
-                $locales = [$locale];
-            }
+            $locales = $locale === 'all'
+                ? array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info, $environment->config->locales)
+                : [$locale];
 
             // Definir dominios a incluir en los archivos generados
             $domainNames = $environment->params['domains'] ?? $environment->params['domain'] ?? '';
@@ -74,7 +76,9 @@ class Extractor
                     if (isset($serializer->transformICU, $extractorConfig->transformICU)) {
                         $serializer->transformICU = $extractorConfig->transformICU;
                     }
-                    if (isset($extractorConfig->onlyPending)) {
+                    if (isset($environment->params['onlyPending'])) {
+                        $serializer->onlyPending = boolval($environment->params['onlyPending']);
+                    } elseif (isset($extractorConfig->onlyPending)) {
                         $serializer->onlyPending = $extractorConfig->onlyPending;
                     }
 
@@ -130,7 +134,15 @@ class Extractor
                     $fileName = str_pad(basename($path) . '...', 20, ' ', STR_PAD_RIGHT);
                     echo "\tGenerating {$fileName}";
 
-                    file_put_contents($path, $serializer->generate([$domain]));
+                    if (($extractorConfig->mergeWithExisting ?? false) && file_exists($path)) {
+                        if ($serializer instanceof JSON) {
+                            file_put_contents($path, $serializer->generateAndMerge(IO::read($path), [$domain]));
+                        } else {
+                            throw new \Exception("Merging with existing files is only supported for JSON files");
+                        }
+                    } else {
+                        file_put_contents($path, $serializer->generate([$domain]));
+                    }
 
                     echo "\tFile written at {$path}\n";
                 }

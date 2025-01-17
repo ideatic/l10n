@@ -298,6 +298,23 @@ class Angular_Methods extends CStyle
             $string->line = substr_count($code, "\n", 0, $string->offset) + 1;
             $string->domainName = $this->defaultDomain;
 
+            // Comentarios y contexto https://angular.dev/guide/i18n/prepare#i18n-metadata-for-translation
+            if (str_starts_with($string->text, ':')) {
+                $metadataEnd = mb_strpos($string->text, ':', 1);
+                $metadata = mb_substr($string->text, 1, $metadataEnd - 1);
+                $string->id = $string->text = mb_substr($string->text, $metadataEnd + 1);
+
+                if (str_contains($metadata, '|')) {
+                    if ($metadata[0] == '|') {
+                        $string->comments = mb_substr($metadata, 1);
+                    } else {
+                        [$string->context, $string->comments] = explode('|', $metadata, 2);
+                    }
+                } else {
+                    $string->context = $metadata;
+                }
+            }
+
             if (str_contains($string->text, '${')) {
                 throw new Exception("Unsupported template string {$string->raw}");
             }

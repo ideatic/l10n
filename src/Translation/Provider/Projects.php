@@ -92,8 +92,8 @@ class Projects implements Provider
                                 '{domain}' => is_string($domain) ? $domain : $domain->name,
                                 '{locale}' => $locale,
                                 '{format}' => Serializer::factory($translations->format)->fileExtension ?? $translations->format,
-                            ],
-                        ),
+                            ]
+                        )
                     );
 
                     if (file_exists($path)) {
