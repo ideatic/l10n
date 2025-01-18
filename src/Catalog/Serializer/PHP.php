@@ -15,7 +15,8 @@ class PHP extends ArraySerializer
     {
         $phpArray = ['['];
         foreach ($domains as $domain) {
-            foreach ($domain->strings as $strings) {
+            $lastKey = array_key_last($domain->strings);
+            foreach ($domain->strings as $key => $strings) {
                 $string = reset($strings);
 
                 $translation = null;
@@ -27,12 +28,16 @@ class PHP extends ArraySerializer
                     }
                 }
 
-                $comments = array_filter($strings, fn(LString $s) => !!$s->comments);
+
+                $comments = array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => trim($s->comments ?? ''))));
+
                 if (!empty($comments)) {
-                    $comments = implode(PHP_EOL, array_map(fn(LString $string) => $string->comments, $comments));
-                    $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' /* ' . $comments . ' */ => ' . var_export($translation->translation, true) . ',';
+                    $comments = implode(PHP_EOL, $comments);
+                    $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' /* ' . $comments . ' */ => ' . var_export($translation->translation, true)
+                        . ($key == $lastKey ? '' : ',');
                 } else {
-                    $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' => ' . var_export($translation->translation, true) . ',';
+                    $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' => ' . var_export($translation->translation, true)
+                        . ($key == $lastKey ? '' : ',');
                 }
             }
         }

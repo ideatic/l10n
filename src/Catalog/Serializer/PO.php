@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ideatic\l10n\Catalog\Serializer;
 
 use Exception;
+use ideatic\l10n\LString;
 use ideatic\l10n\Project;
 use ideatic\l10n\Utils\Gettext\PluralExpression;
 use ideatic\l10n\Utils\ICU\Pattern;
@@ -65,18 +66,15 @@ class PO extends Serializer
                 }
 
                 // Comentarios
+                foreach (array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => trim($s->comments ?? '')))) as $comment) {
+                    $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $comment);
+                }
                 foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
                     $localeName = Locale::getName($referenceLocale);
                     $referenceTranslation = $domain->translator->getTranslation($string, $referenceLocale, false);
 
                     if ($referenceTranslation) {
                         $po[] = "#. {$localeName}: " . str_replace(["\r\n", "\n"], "\n#. ", $referenceTranslation->translation);
-                    }
-                }
-
-                foreach ($strings as $str) {
-                    if ($str->comments) {
-                        $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $str->comments);
                     }
                 }
 

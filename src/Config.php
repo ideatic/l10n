@@ -130,7 +130,7 @@ interface ConfigTools {}
  * @property string|list<string> $referenceLanguage
  * @property string $path
  * @property bool $includeLocations
- * @property object{onlyPending: bool, hasComment: string}|null $filter
+ * @property object{onlyPending: bool, hasComment: string, limit: int}|null $filter
  * @property string[] $domains
  * @property ?bool $enabled
  */

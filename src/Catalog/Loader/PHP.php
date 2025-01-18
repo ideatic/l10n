@@ -60,14 +60,13 @@ class PHP extends Loader
 
                 // Leer valor
                 if ($token->id == T_CONSTANT_ENCAPSED_STRING) {
-                    $value = substr($token->text, 1, -1);
+                    $value = str_replace("\\'","'",substr($token->text, 1, -1));
                 } else {
                     throw new \Exception("Invalid PHP translation file: a string was expected as value, {$token->text} found at {$token->line}:{$token->pos}");
                 }
 
                 $pos++;
                 $token = $this->_ignoreEmptyTokens($tokens, $pos);
-
 
                 // Leer todos los comentarios hasta la posición actual
                 $metadata = new LString();

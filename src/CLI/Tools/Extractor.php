@@ -159,7 +159,7 @@ class Extractor
      */
     public static function _filterStrings(Domain $domain, ConfigExtractor|\stdClass $extractorConfig, Serializer $serializer): array
     {
-        return array_filter($domain->strings, function (/** @param list<LString> $strings */ array $strings) use ($extractorConfig, $domain, $serializer) {
+        $filtered = array_filter($domain->strings, function (/** @param list<LString> $strings */ array $strings) use ($extractorConfig, $domain, $serializer) {
             $valid = true;
 
             // Incluir si tiene un comentario específico
@@ -195,6 +195,8 @@ class Extractor
                         }
                     }
                 }
+
+                return false;
             }
 
             if ($extractorConfig->filter->onlyPending ?? false) {
@@ -218,6 +220,12 @@ class Extractor
 
             return $valid;
         });
+
+        if ($extractorConfig->filter->limit ?? false) {
+            $filtered = array_slice($filtered, 0, $extractorConfig->filter->limit);
+        }
+
+        return $filtered;
     }
 
     /**

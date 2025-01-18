@@ -63,13 +63,20 @@ class Merger
                     if ($translationsCatalog) {
                         $loadedCatalogs[] = $translationsCatalog;
 
-
-                        if ($translationsSource->addComment ?? null) {
+                        if ($translationsSource->addComment ?? null) { // Añadir comentario si el proveedor de la traducción es el actual
                             foreach ($domain->strings as $string) {
                                 foreach ($loadedCatalogs as $catalog) {
-                                    if ($catalog->getTranslation($string[0]) !== null && $catalog === $translationsCatalog) {
-                                        $string[0]->comments ??= '';
-                                        $string[0]->comments = Str::trim("{$string[0]->comments}\n{$translationsSource->addComment}");
+                                    $translation = $catalog->getTranslation($string[0]) !== null;
+                                    if ($translation) {
+                                        if ($catalog === $translationsCatalog) {
+                                            // Añadir comentario a la última copia de la cadena para que aparezca al final
+                                            $stringToComment = $string[array_key_last($string)];
+
+                                            $stringToComment->comments ??= '';
+                                            $stringToComment->comments = Str::trim("{$stringToComment->comments}\n{$translationsSource->addComment}");
+                                        } else {
+                                            break;
+                                        }
                                     }
                                 }
                             }
