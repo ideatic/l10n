@@ -199,10 +199,10 @@ class Extractor
                 return false;
             }
 
-            if ($extractorConfig->filter->onlyPending ?? false) {
+            if ($extractorConfig->filter->status ?? false) {
                 if ($serializer->locale) {
                     if ($domain->translator->getTranslation(reset($strings), $serializer->locale, false) !== null) {
-                        $valid = false;
+                        $valid = $extractorConfig->filter->status == 'pending' ? false : true;
                     }
                 } else { // Incluir si al menos un idioma de referencia no tiene traducción
                     $allTranslated = true;
@@ -213,7 +213,7 @@ class Extractor
                     }
 
                     if ($allTranslated) {
-                        $valid = false;
+                        $valid = $extractorConfig->filter->status == 'pending' ? false : true;
                     }
                 }
             }

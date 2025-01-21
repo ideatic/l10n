@@ -28,7 +28,7 @@ class JSON extends ArraySerializer
                     $string = reset($strings);
 
                     $row = [
-                        'original' => $string->text ?: $string->id,
+                        'original' => $string->id,
                     ];
 
                     if ($string->context) {

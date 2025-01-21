@@ -11,6 +11,7 @@ use ideatic\l10n\Utils\Gettext\PluralExpression;
 use ideatic\l10n\Utils\ICU\Pattern;
 use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\Locale;
+use ideatic\l10n\Utils\Str;
 use stdClass;
 
 class PO extends Serializer
@@ -66,7 +67,7 @@ class PO extends Serializer
                 }
 
                 // Comentarios
-                foreach (array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => trim($s->comments ?? '')))) as $comment) {
+                foreach (array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => Str::trim($s->comments ?? '')))) as $comment) {
                     $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $comment);
                 }
                 foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
