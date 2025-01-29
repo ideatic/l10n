@@ -98,8 +98,7 @@ class Code
                             // Obtener nombre del método y llamada completa
                             $call->method = $startToken[1];
                             $call->offset = $lastNoWhitespaceOffset;
-                            $call->line = $startToken[2] ??
-                                substr_count($this->_source, "\n", 0, $call->offset) + 1;
+                            $call->line = $startToken[2] ?? substr_count($this->_source, "\n", 0, $call->offset) + 1;
 
                             $fullCallStart = $this->_readBackwards(
                                 $tokens,
@@ -210,10 +209,21 @@ class Code
                 case ']':
                     if ($level <= 0) {
                         if ($argumentStart != $i) {
-                            if (isset($argumentName)) {
-                                $arguments[$argumentName] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
-                            } else {
-                                $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+                            // Comprobar si hay un argumento pendiente y no son todos los tokens T_WHITESPACE
+                            $hasCode = false;
+                            for ($j = $argumentStart; $j < $i; $j++) {
+                                if ($tokens[$j][0] != T_WHITESPACE) {
+                                    $hasCode = true;
+                                    break;
+                                }
+                            }
+
+                            if ($hasCode) {
+                                if (isset($argumentName)) {
+                                    $arguments[$argumentName] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+                                } else {
+                                    $arguments[] = $this->_tokensToString($tokens, $argumentStart, $i - 1);
+                                }
                             }
                         }
                         break 2;
