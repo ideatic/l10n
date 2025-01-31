@@ -66,14 +66,14 @@ class Merger
                         if ($translationsSource->addComment ?? null) { // Añadir comentario si el proveedor de la traducción es el actual
                             foreach ($domain->strings as $string) {
                                 foreach ($loadedCatalogs as $catalog) {
-                                    $translation = $catalog->getTranslation($string[0]) !== null;
-                                    if ($translation) {
+                                    $translation = $catalog->getTranslation($string[0]);
+                                    if (isset($translation)) { // Si la cadena está en el catálogo
                                         if ($catalog === $translationsCatalog) {
-                                            // Añadir comentario a la última copia de la cadena para que aparezca al final
-                                            $stringToComment = $string[array_key_last($string)];
-
-                                            $stringToComment->comments ??= '';
-                                            $stringToComment->comments = Str::trim("{$stringToComment->comments}\n{$translationsSource->addComment}");
+                                            // Comprobar si ya existe el comentario en alguna línea
+                                            if (!in_array($translationsSource->addComment, explode("\n", $translation->metadata->comments ?? ''))) {
+                                                $translation->metadata->comments ??= '';
+                                                $translation->metadata->comments = Str::trim("{$translation->metadata->comments}\n{$translationsSource->addComment}");
+                                            }
                                         } else {
                                             break;
                                         }
@@ -82,12 +82,7 @@ class Merger
                             }
                         }
                     } else { // Usar traducciones ya existentes en otros proyectos
-                        echo "\tUnable to get translations for '{$domain->name}', locale {$locale}, source #{$sourceIndex}\n";
-                        /*   $domain->translator = new Projects($environment->config);
-                           if (!$domain->translator->loadCatalog($domain, $locale)) {
-                               echo "\tUnable to retrieve or merge translations\n";
-                               continue;
-                           }*/
+                        echo "\t\tUnable to get translations for '{$domain->name}', locale {$locale}, source #{$sourceIndex}\n";
                     }
                 }
                 $domain->translator = new \ideatic\l10n\Translation\Provider\Catalog($loadedCatalogs);
@@ -137,28 +132,34 @@ class Merger
             $location = strtr($domainConfig->source, $replacements);
 
             if (str_contains($domainConfig->source, '://')) { // Descargar de Internet
-                echo "\t\tDownloading {$location}...\n";
+                echo "\t\tDownloading {$location}...";
                 $content = @file_get_contents($location);
             } else {
-                echo "\t\tReading {$location}...\n";
+                echo "\t\tReading {$location}...";
                 $content = @file_get_contents($location);
             }
         } elseif (isset($domainConfig->script)) { // Ejecutar comando
+            echo "\t\tExecuting script...";
             exec(strtr($domainConfig->script, $replacements), $content);
         } else {
-            echo "\t\tNo source defined for domain '{$domain->name}' locale {$locale}\n";
+            // echo "\t\tNo source defined for domain '{$domain->name}' locale {$locale}\n";
             return null;
         }
 
         if (empty($content)) {
-            echo "\033[31m\t\tEmpty response for domain '{$domain->name}' locale {$locale}\033[0m\n";
+            echo "\033[31m\n\t\tEmpty response for domain '{$domain->name}' locale {$locale}\033[0m\n";
             // throw new \Exception("\tEmpty response for domain '{$domain->name}' locale {$locale}\n");
             return null;
         }
 
         // Procesar archivo recibido
         $loader = Loader::factory($domainConfig->format ?? 'po');
-        return $loader->load($content, $locale);
+        $catalog = $loader->load($content, $locale);
+        $catalog->removeComments(); // Eliminar comentarios de las traducciones para que no se incluyan al serializar
+
+        echo " {$catalog->entryCount()} entries\n";
+
+        return $catalog;
     }
 
     /**

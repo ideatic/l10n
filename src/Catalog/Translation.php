@@ -16,7 +16,7 @@ class Translation
 
     public function __construct(
         public readonly string $translation,
-        public readonly LString|null $metadata = null
+        public readonly LString $metadata = new LString()
     )
     {
 

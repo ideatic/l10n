@@ -29,4 +29,11 @@ class Catalog
     {
         return count($this->_translations);
     }
+
+    public function removeComments()
+    {
+        foreach ($this->_translations as $translation) {
+            $translation->metadata->comments = '';
+        }
+    }
 }

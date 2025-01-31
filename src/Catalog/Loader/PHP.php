@@ -49,7 +49,7 @@ class PHP extends Loader
 
             if ($token->id == T_CONSTANT_ENCAPSED_STRING) {
                 // Leer clave
-                $key = substr($token->text, 1, -1);
+                $key =str_replace("\\'", "'", substr($token->text, 1, -1));
                 $pos++;
                 $token = $this->_ignoreEmptyTokens($tokens, $pos);
                 if ($token->id != T_DOUBLE_ARROW) {
@@ -60,7 +60,7 @@ class PHP extends Loader
 
                 // Leer valor
                 if ($token->id == T_CONSTANT_ENCAPSED_STRING) {
-                    $value = str_replace("\\'","'",substr($token->text, 1, -1));
+                    $value = str_replace("\\'", "'", substr($token->text, 1, -1));
                 } else {
                     throw new \Exception("Invalid PHP translation file: a string was expected as value, {$token->text} found at {$token->line}:{$token->pos}");
                 }

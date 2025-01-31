@@ -26,6 +26,9 @@ class JSON extends ArraySerializer
             foreach ($domains as $domain) {
                 foreach ($domain->strings as $strings) {
                     $string = reset($strings);
+                    $translation = $this->locale
+                        ? $domain->translator->getTranslation($string, $this->locale, false)
+                        : null;
 
                     $row = [
                         'original' => $string->id,
@@ -36,8 +39,13 @@ class JSON extends ArraySerializer
                     }
 
                     $comments = array_filter($strings, fn(LString $s) => !!$s->comments);
+                    if (!empty($translation?->metadata->comments)) {
+                        $comments[] = $translation->metadata->comments;
+                    }
+
+                    $comments = implode(PHP_EOL, array_unique(array_map(fn(LString $string) => $string->comments, $comments)));
                     if (!empty($comments)) {
-                        $row['comments'] = implode(PHP_EOL, array_unique(array_map(fn(LString $string) => $string->comments, $comments)));
+                        $row['comments'] = $comments;
                     }
 
                     foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
@@ -53,12 +61,8 @@ class JSON extends ArraySerializer
                         }
                     }
 
-                    if ($this->locale) {
-                        $translation = $domain->translator->getTranslation($string, $this->locale, false);
-
-                        if (isset($translation)) {
-                            $row['translation'] = $translation->translation;
-                        }
+                    if (isset($translation)) {
+                        $row['translation'] = $translation->translation;
                     }
 
                     if (count($row) == 2 && isset($row['translation']) && $row['original'] == $string->fullyQualifiedID()) {

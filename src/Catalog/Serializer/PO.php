@@ -67,7 +67,7 @@ class PO extends Serializer
                 }
 
                 // Comentarios
-                foreach (array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => Str::trim($s->comments ?? '')))) as $comment) {
+                foreach (array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => strlen(Str::trim($s->comments ?? '')) > 0))) as $comment) {
                     $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $comment);
                 }
                 foreach ($this->referenceTranslation ?? [] as $referenceLocale) {

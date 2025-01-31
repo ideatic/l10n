@@ -23,7 +23,7 @@ class JSON extends ArrayLoader
         // Check if is the extended format
         foreach ($rawDictionary as $key => $value) {
             if (is_array($value)) {
-                $rawDictionary[$key] = $value['translation'] ?? $value['translations'][$locale] ?? null;
+                $rawDictionary[$key] = $value['translations'][$locale] ?? $value['translation'] ?? null;
             }
         }
 
