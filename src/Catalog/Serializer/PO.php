@@ -58,6 +58,7 @@ class PO extends Serializer
         foreach ($domains as $domain) {
             foreach ($domain->strings as $strings) {
                 $string = reset($strings);
+                $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false) : null;
 
                 $isICU = false;
                 foreach ($strings as $str) {
@@ -87,6 +88,10 @@ class PO extends Serializer
                         $po[] = '#. ICU expression';
                     }
                 }
+                
+                if (!empty($translation?->metadata->comments)) {
+                    $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $translation->metadata->comments);
+                }
 
                 // Ubicaciones
                 if ($this->includeLocations) {
@@ -101,8 +106,6 @@ class PO extends Serializer
                 }
 
                 // Traducción
-                $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false)?->translation : '';
-
                 if ($isICU && $this->transformICU && self::isSuitableIcuPattern(new Pattern($string->text))) { // Intentar transformar al formato de plurales gettext
                     $originalICU = new Pattern($string->text);
 
@@ -111,11 +114,11 @@ class PO extends Serializer
                     $po[] = 'msgid ' . $this->_escape($originalPlaceholders[0]->render());
                     $po[] = 'msgid_plural ' . $this->_escape($originalPlaceholders[1]->render());
 
-                    if ($translation) {
-                        $translatedPlural = new Pattern($translation);
+                    if ($translation?->translation) {
+                        $translatedPlural = new Pattern($translation->translation);
 
                         if (!self::isSuitableIcuPattern($translatedPlural)) {
-                            throw new Exception("Invalid ICU pattern found for message '{$string->id}' translation '{$translation}'");
+                            throw new Exception("Invalid ICU pattern found for message '{$string->id}' translation '{$translation->translation}'");
                         }
 
                         foreach (array_values($translatedPlural->nodes[0]->content) as $i => $placeholder) {
@@ -126,7 +129,7 @@ class PO extends Serializer
                     }
                 } else {
                     $po[] = 'msgid ' . $this->_escape($string->id);
-                    $po[] = 'msgstr ' . $this->_escape($translation ?? '');
+                    $po[] = 'msgstr ' . $this->_escape($translation->translation ?? '');
                 }
 
                 $po[] = '';

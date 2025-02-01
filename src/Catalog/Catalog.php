@@ -30,7 +30,7 @@ class Catalog
         return count($this->_translations);
     }
 
-    public function removeComments()
+    public function removeComments(): void
     {
         foreach ($this->_translations as $translation) {
             $translation->metadata->comments = '';
