@@ -171,7 +171,7 @@ class Angular extends Format
     {
         // Reemplazar expresiones
         $parsed = preg_replace_callback(
-            '/{{([^{].+?)}}/',
+            '/{{([^{].+?)}}/us',
             function ($match) use ($string, $path) {
                 $expr = HTML_Parser::entityDecode($match[1]);
                 foreach (explode('|', $expr) as $pipe) {
@@ -185,7 +185,7 @@ class Angular extends Format
 
                 throw new Exception("No i18n placeholder found in expression '{$expr}' at '{$path}'");
             },
-            $string->text,
+            $string->text
         );
 
         if ($parsed != $string->text) {
