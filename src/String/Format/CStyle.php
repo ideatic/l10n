@@ -225,7 +225,7 @@ class CStyle extends Format
                         break;
                     } else {
                         $args[1] = trim($args[1]);
-                        $search = substr($args[0], 1, -1);
+                        $search = substr(trim($args[0]), 1, -1);
                         $replacement = "' + ({$args[1]}) + '";
                         $currentTranslation = str_replace($search, $replacement, $currentTranslation, $replaceCount);
 
