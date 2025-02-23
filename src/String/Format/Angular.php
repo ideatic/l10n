@@ -241,9 +241,9 @@ class Angular_HTML extends HTML
     public bool $addHashPluralSupport = true;
 
     /** @inheritDoc */
-    public function getStrings(string $code, mixed $path = null): array
+    public function getStrings(string $html, mixed $path = null): array
     {
-        $strings = parent::getStrings($code, $path);
+        $strings = parent::getStrings($html, $path);
 
         foreach ($strings as $string) {
             Angular::prepareString($string, $path);
@@ -253,12 +253,12 @@ class Angular_HTML extends HTML
     }
 
     /** @inheritDoc */
-    public function translate(string $content, callable $getTranslation, $path = null): string
+    public function translate(string $content, callable $getTranslation, $context = null): string
     {
         return parent::translate(
             $content,
-            function (LString $string) use ($getTranslation, $path) {
-                Angular::prepareString($string, $path);
+            function (LString $string) use ($getTranslation, $context) {
+                Angular::prepareString($string, $context);
 
                 $translation = call_user_func($getTranslation, $string);
 
@@ -268,7 +268,7 @@ class Angular_HTML extends HTML
 
                 return Angular::fixTranslation($string, $translation, 'template', $this->addHashPluralSupport);
             },
-            $path,
+            $context
         );
     }
 }
@@ -312,6 +312,10 @@ class Angular_Methods extends CStyle
                     }
                 } else {
                     $string->context = $metadata;
+                }
+
+                if (str_contains($string->comments, '@@')) {
+                    [$string->comments, $string->id] = explode('@@', $string->comments, 2);
                 }
             }
 

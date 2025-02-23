@@ -24,6 +24,10 @@ class JSON extends ArrayLoader
         foreach ($rawDictionary as $key => $value) {
             if (is_array($value)) {
                 $rawDictionary[$key] = $value['translations'][$locale] ?? $value['translation'] ?? null;
+                
+                if (is_array($rawDictionary[$key]) && array_key_exists('translation', $rawDictionary[$key])) {
+                    $rawDictionary[$key] = $rawDictionary[$key]['translation'];
+                }
             }
         }
 
