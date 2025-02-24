@@ -314,7 +314,7 @@ class Angular_Methods extends CStyle
                     $string->context = $metadata;
                 }
 
-                if (str_contains($string->comments, '@@')) {
+                if (str_contains($string->comments ?? '', '@@')) {
                     [$string->comments, $string->id] = explode('@@', $string->comments, 2);
                 }
             }
