@@ -21,17 +21,26 @@ class JSON extends ArrayLoader
         }
 
         // Check if is the extended format
+        $preparedDictionary = [];
         foreach ($rawDictionary as $key => $value) {
+            if (isset($value['id'])) {
+                $key = $value['id'];
+            } elseif (is_int($key) && isset($value['original'])) {
+                $key = $value['original'];
+            }
+
             if (is_array($value)) {
-                $rawDictionary[$key] = $value['translations'][$locale] ?? $value['translation'] ?? null;
-                
-                if (is_array($rawDictionary[$key]) && array_key_exists('translation', $rawDictionary[$key])) {
-                    $rawDictionary[$key] = $rawDictionary[$key]['translation'];
+                $value = $value['translations'][$locale] ?? $value['translation'] ?? null;
+
+                if (is_array($value) && array_key_exists('translation', $value)) {
+                    $value = $value['translation'];
                 }
             }
+
+            $preparedDictionary[$key] = $value;
         }
 
-        return $this->_parse($rawDictionary, $locale);
+        return $this->_parse($preparedDictionary, $locale);
     }
 }
 

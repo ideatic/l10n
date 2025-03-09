@@ -25,14 +25,18 @@ class JSON extends ArraySerializer
 
             foreach ($domains as $domain) {
                 foreach ($domain->strings as $strings) {
+                    $row = [];
                     $string = reset($strings);
                     $translation = $this->locale
                         ? $domain->translator->getTranslation($string, $this->locale, false)
                         : null;
 
-                    $row = [
-                        'original' => $string->id,
-                    ];
+
+                    if ($string->fullyQualifiedID() != $string->id) {
+                        $row['id'] = $string->fullyQualifiedID();
+                    }
+
+                    $row['original'] = $string->id;
 
                     if ($string->context) {
                         $row['context'] = $string->context;
@@ -69,7 +73,7 @@ class JSON extends ArraySerializer
                         $row = $row['translation'];
                     }
 
-                    $translations[$string->fullyQualifiedID()] = $row;
+                    $translations[] = $row;
                 }
             }
 

@@ -120,6 +120,10 @@ class Merger
 
     private static function _getCatalog(Domain $domain, DomainConfig|stdClass $domainConfig, string $locale, Environment $environment): ?Catalog
     {
+        if (isset($domainConfig->locales) && !in_array($locale, $domainConfig->locales)) {
+            return null;
+        }
+
         $replacements = [
             '{domain}' => $domain->name,
             '{locale}' => $locale,

@@ -41,8 +41,8 @@ class LString
 
   public ?string $requestedLocale;
 
-  /** @var mixed Elemento donde se encontró esta cadena (llamada a método PHP, elemento HTML, etc.) */
-  public $raw;
+  /** @var mixed Elemento donde se encontró esta cadena (llamada a función PHP, elemento HTML, etc.) */
+  public mixed $raw;
 
   /**
    * Genera la ID completa utilizada por defecto
