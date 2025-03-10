@@ -52,6 +52,10 @@ class JSON extends ArraySerializer
                         $row['comments'] = $comments;
                     }
 
+                    if ($this->includeLocations) {
+                        $row['locations'] = array_map(fn(LString $str) => "{$str->file}:{$str->line}", $strings);
+                    }
+
                     foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
                         if ($referenceLocale != $this->locale) {
                             $referenceTranslation = $domain->translator->getTranslation($string, $referenceLocale, false);
