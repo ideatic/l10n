@@ -42,6 +42,10 @@ class JSON extends ArraySerializer
                         $row['context'] = $string->context;
                     }
 
+                    if ($string->isICU) {
+                        $row['format'] = 'icu';
+                    }
+
                     $comments = array_filter($strings, fn(LString $s) => !!$s->comments);
                     if (!empty($translation?->metadata->comments)) {
                         $comments[] = $translation->metadata->comments;
