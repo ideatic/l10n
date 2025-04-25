@@ -91,16 +91,16 @@ class Extractor
                         $placeholders["{{$project->name}}"] = $project->path;
                     }
 
-                    if (!empty($extractorConfig->path) && preg_match('/\w+\.\w+/', $extractorConfig->path)) {
+                    if (!empty($extractorConfig->path) && preg_match('/[\w\}]+\.\w+/', $extractorConfig->path)) {
                         $path = strtolower(
                             strtr(
                                 $extractorConfig->path,
                                 [
                                     ...$placeholders,
-                                    '{domain}' => $domain->name == 'app' ? $environment->config->name : $domain->name,
+                                    '{domain}' => $domain->name,
                                     '{locale}' => $locale,
                                     '{format}' => $serializer->fileExtension ?? $formatName,
-                                ],
+                                ]
                             ),
                         );
                     } else {

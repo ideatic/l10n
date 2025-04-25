@@ -34,18 +34,24 @@ class Merger
             );
         }
 
-        $domainsConfig = get_object_vars($environment->config->tools->merge ?? new stdClass());
+        $domainsConfig = $environment->config->tools->merge ?? new stdClass();
+        if (is_array($domainsConfig)) {
+            $domainsConfig = ['all' => $domainsConfig];
+        } else {
+            $domainsConfig = get_object_vars($environment->config->tools->merge ?? new stdClass());
+        }
 
         foreach ($domains as $domain) {
             echo "\n\n#### {$domain->name} domain\n\n";
 
-            if (!isset($domainsConfig[$domain->name])) {
+            $domainConfig = $domainsConfig[$domain->name] ?? $domainsConfig['all'] ?? null;
+            if (!isset($domainConfig)) {
                 echo "\tNo configuration found for domain '{$domain->name}'\n";
                 continue;
             }
 
             // Obtener primero todos los idiomas a procesar
-            $localesToMerge = self::_getLocalesToMerge($domainsConfig[$domain->name], $environment);
+            $localesToMerge = self::_getLocalesToMerge($domainConfig, $environment);
 
             foreach ($localesToMerge as $locale) {
                 if ($locale == $environment->config->sourceLocale) {
@@ -57,7 +63,7 @@ class Merger
                 // Obtener catálogo con las traducciones actualizadas desde todas las fuentes
                 $loadedCatalogs = [];
                 /** @var DomainConfig|stdClass $translationsSource */
-                foreach (Utils::wrapArray($domainsConfig[$domain->name]) as $sourceIndex => $translationsSource) {
+                foreach (Utils::wrapArray($domainConfig) as $sourceIndex => $translationsSource) {
                     $translationsCatalog = self::_getCatalog($domain, $translationsSource, $locale, $environment);
 
                     if ($translationsCatalog) {
