@@ -10,7 +10,6 @@ use ideatic\l10n\LString;
 use ideatic\l10n\Utils\ICU\Pattern;
 use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\IO;
-use ideatic\l10n\Utils\Str;
 use JsonException;
 
 /**
@@ -175,9 +174,9 @@ class Angular extends Format
             function ($match) use ($string, $path) {
                 $expr = HTML_Parser::entityDecode($match[1]);
                 foreach (explode('|', $expr) as $pipe) {
-                    $parts = explode(':', Str::trim($pipe));
-                    if (Str::trim($parts[0]) == 'i18n' && isset($parts[1])) {
-                        $placeholderName = trim(Str::trim($parts[1]), '"\'');
+                    $parts = explode(':', mb_trim($pipe));
+                    if (mb_trim($parts[0]) == 'i18n' && isset($parts[1])) {
+                        $placeholderName = trim(mb_trim($parts[1]), '"\'');
                         $string->placeholders[$placeholderName] = str_replace("|{$pipe}", '', $match[0]);
                         return $placeholderName;
                     }

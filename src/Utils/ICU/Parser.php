@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ideatic\l10n\Utils\ICU;
 
 use Exception;
-use ideatic\l10n\Utils\Str;
 
 class Parser
 {
@@ -132,7 +131,7 @@ class Parser
     $result = [];
 
     do {
-      $name = Str::trim($this->_readUntil($pattern, '{'));
+      $name = mb_trim($this->_readUntil($pattern, '{'));
 
       if (!$name) {
         throw new Exception("No name found for nested pattern at position {$this->_position} in '{$pattern}'");
@@ -161,7 +160,7 @@ class Parser
     return $this->_readUntil(
         $string,
         function ($char) {
-          return strlen(Str::trim($char)) != 0;
+          return strlen(mb_trim($char)) != 0;
         }
     );
   }

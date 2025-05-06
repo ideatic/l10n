@@ -11,7 +11,6 @@ use ideatic\l10n\Domain;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
-use ideatic\l10n\Utils\Str;
 use ideatic\l10n\Utils\Utils;
 
 class Extractor
@@ -166,7 +165,7 @@ class Extractor
             if ($extractorConfig->filter->hasComment ?? false) {
                 $hasSpecificComment = function (LString $string) use ($extractorConfig): bool {
                     if ($extractorConfig->filter->hasComment === true) {
-                        if (!!Str::trim($string->comments)) {
+                        if (!!mb_trim($string->comments)) {
                             return true;
                         }
                     } elseif (str_contains($string->comments ?? '', $extractorConfig->filter->hasComment)) {

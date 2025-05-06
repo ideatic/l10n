@@ -14,7 +14,6 @@ use ideatic\l10n\String\Format\Angular_HTML;
 use ideatic\l10n\Utils\ICU\Pattern;
 use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\IO;
-use ideatic\l10n\Utils\Str;
 use stdClass;
 
 class XLIFF extends Serializer
@@ -135,7 +134,7 @@ class XLIFF extends Serializer
         return reset($foundStrings)->id;
       }
     } else {
-      return Str::trim($innerHTML);
+      return mb_trim($innerHTML);
     }
   }
 

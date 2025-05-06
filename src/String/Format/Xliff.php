@@ -159,7 +159,7 @@ class XLIFF
         $string->id = $this->_convertPlaceholders($element, $placeholders);
 
         // Normalizar espacios
-        $string->id = preg_replace('/\s+/', ' ', Str::trim($string->id));
+        $string->id = preg_replace('/\s+/', ' ', mb_trim($string->id));
 
         // Obtener contexto y comentarios
         foreach ($element->parent->findAll('note') as $note) {
@@ -211,9 +211,9 @@ class XLIFF
         }
 
         foreach (explode('|', substr($expression, 2, -2)) as $pipe) {
-            $parts = explode(':', Str::trim($pipe));
-            if (Str::trim($parts[0]) == 'i18n' && isset($parts[1])) {
-                return trim(Str::trim($parts[1]), '"\'');
+            $parts = explode(':', mb_trim($pipe));
+            if (mb_trim($parts[0]) == 'i18n' && isset($parts[1])) {
+                return trim(mb_trim($parts[1]), '"\'');
             }
         }
 

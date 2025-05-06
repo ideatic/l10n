@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1e8a393d296c355c5692ad4b74df3477",
+    "content-hash": "bc0b86743fcf5e8f3b1e2051703cbcaa",
     "packages": [
         {
             "name": "ideatic/html-parser",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ideatic/html-parser.git",
-                "reference": "02f489c81a17e8024f67715b47c3e31f2451e244"
+                "reference": "475e3ae63c82ce7a02498461cd1bf2a0ec4ebf39"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ideatic/html-parser/zipball/02f489c81a17e8024f67715b47c3e31f2451e244",
-                "reference": "02f489c81a17e8024f67715b47c3e31f2451e244",
+                "url": "https://api.github.com/repos/ideatic/html-parser/zipball/475e3ae63c82ce7a02498461cd1bf2a0ec4ebf39",
+                "reference": "475e3ae63c82ce7a02498461cd1bf2a0ec4ebf39",
                 "shasum": ""
             },
             "require": {
@@ -41,7 +41,7 @@
                 "issues": "https://github.com/ideatic/html-parser/issues",
                 "source": "https://github.com/ideatic/html-parser/tree/main"
             },
-            "time": "2025-02-11T14:24:40+00:00"
+            "time": "2025-05-06T16:56:52+00:00"
         },
         {
             "name": "sepia/po-parser",
@@ -1821,7 +1821,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.4",
+        "php": ">=8.3",
         "ext-json": "*",
         "ext-intl": "*"
     },

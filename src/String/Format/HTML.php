@@ -13,7 +13,6 @@ use HTML_Parser_Text;
 use ideatic\l10n\LString;
 use ideatic\l10n\Plural\ICU;
 use ideatic\l10n\Utils\ICU\Pattern;
-use ideatic\l10n\Utils\Str;
 
 /**
  * Proveedor de cadenas traducibles encontradas en código Javascript / TypeScript
@@ -104,7 +103,7 @@ class HTML extends Format
             $placeholders = $this->_processChildPlaceholders($element);
 
             // Normalizar espacios en blanco
-            $content = preg_replace('/\s+/', ' ', Str::trim($element->innerHTML()));
+            $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
             $content = HTML_Parser::entityDecode($content);
 
             $string = $this->_registerString($source, $path, $content, $i18nAttribute, $element);
@@ -127,10 +126,10 @@ class HTML extends Format
 
                     if (strtolower($element->tag) == 'ng-container' && empty($element->attributes)) { // Eliminar ng-container utilizados solo para i18n
                         // Eliminar espacios en blanco antes y después
-                        while ($element->nextSibling() instanceof HTML_Parser_Text && !Str::trim($element->nextSibling()->render())) {
+                        while ($element->nextSibling() instanceof HTML_Parser_Text && !mb_trim($element->nextSibling()->render())) {
                             $element->nextSibling()->remove();
                         }
-                        while ($element->previousSibling() instanceof HTML_Parser_Text && !Str::trim($element->previousSibling()->render())) {
+                        while ($element->previousSibling() instanceof HTML_Parser_Text && !mb_trim($element->previousSibling()->render())) {
                             $element->previousSibling()->remove();
                         }
 
@@ -300,10 +299,10 @@ class HTML extends Format
         if ($suspicious) {
             $innerText = HTML_Parser::entityDecode($element->innerText());
             $innerText = str_replace('&ngsp;', ' ', $innerText);
-            $innerText = Str::trim($innerText);
+            $innerText = mb_trim($innerText);
             $innerText = trim($innerText, '()=');
             $innerText = str_replace('≈', '', $innerText);
-            $innerText = Str::trim($innerText);
+            $innerText = mb_trim($innerText);
 
             if (!$innerText) { // Sin texto
                 $suspicious = false;

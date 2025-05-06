@@ -14,7 +14,6 @@ use ideatic\l10n\Project;
 use ideatic\l10n\ProjectTranslations;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
-use ideatic\l10n\Utils\Str;
 use ideatic\l10n\Utils\Utils;
 use stdClass;
 
@@ -78,7 +77,7 @@ class Merger
                                             // Comprobar si ya existe el comentario en alguna línea
                                             if (!in_array($translationsSource->addComment, explode("\n", $translation->metadata->comments ?? ''))) {
                                                 $translation->metadata->comments ??= '';
-                                                $translation->metadata->comments = Str::trim("{$translation->metadata->comments}\n{$translationsSource->addComment}");
+                                                $translation->metadata->comments = mb_trim("{$translation->metadata->comments}\n{$translationsSource->addComment}");
                                             }
                                         } else {
                                             break;
