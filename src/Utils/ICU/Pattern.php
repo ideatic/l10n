@@ -16,18 +16,12 @@ class Pattern
 
   public function __construct(string $pattern)
   {
-    (new Parser())->parse($pattern, $this);
+    new Parser()->parse($pattern, $this);
   }
 
   public function hasPlaceholders(): bool
   {
-    foreach ($this->nodes as $node) {
-      if ($node instanceof Placeholder) {
-        return true;
-      }
-    }
-
-    return false;
+      return array_any($this->nodes, static fn($node) => $node instanceof Placeholder);
   }
 
   /**

@@ -11,7 +11,7 @@ use stdClass;
 class PHP extends ArraySerializer
 {
     /** @inheritDoc */
-    public function generate(array $domains, stdClass|Project $config = null): string
+    public function generate(array $domains, stdClass|Project|null $config = null): string
     {
         $phpArray = ['['];
         foreach ($domains as $domain) {

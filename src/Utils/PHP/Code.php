@@ -39,7 +39,7 @@ class Code
         return $this->_source;
     }
 
-    private function _tokensToString(array $tokens, int $start = 0, int $end = null): string
+    private function _tokensToString(array $tokens, int $start = 0, ?int $end = null): string
     {
         if (!isset($end)) {
             $end = count($tokens) - 1;
@@ -61,11 +61,11 @@ class Code
     /**
      * Analiza todas las llamadas a funciones que se producen en el fragmento de código PHP analizado
      *
-     * @param array<string> $fnNames
+     * @param array<string>|null $fnNames
      *
      * @return FunctionCall[]
      */
-    public function getFunctionCalls(array $fnNames = null): array
+    public function getFunctionCalls(?array $fnNames = null): array
     {
         // Comprobación rápida de que hay llamadas a las funciones indicadas usando regex
         if (!empty($fnNames)) {
@@ -146,7 +146,7 @@ class Code
     /**
      * Obtiene o establece los tokens PHP representados por esta instancia
      */
-    public function tokens(array $tokens = null): array
+    public function tokens(?array $tokens = null): array
     {
         if (isset($tokens)) { // Setter
             if ($tokens != $this->_tokens) { //Comprobar si han cambiado

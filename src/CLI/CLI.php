@@ -19,7 +19,7 @@ class CLI
     (new static)->run(null, $exit);
   }
 
-  public function run(array $argv = null, bool $exit = true): void
+  public function run(?array $argv = null, bool $exit = true): void
   {
     echo "    __   ___   ____         
    / /  <  /  / __ \   ____ 

@@ -151,12 +151,7 @@ class FunctionCall
   {
     $tokens = $this->_getArgumentTokens($index);
 
-    foreach ($tokens as $token) {
-      if (!in_array($token[0], $allowed)) {
-        return false;
-      }
-    }
-    return true;
+      return array_all($tokens, static fn($token) => in_array($token[0], $allowed));
   }
 
   /**

@@ -21,7 +21,7 @@ class Environment
     $this->config = new Config();
   }
 
-  public function parseParams(array $argv = null): void
+  public function parseParams(?array $argv = null): void
   {
     $argv = $argv ?? $_SERVER['argv'];
 

@@ -18,7 +18,7 @@ class JSON extends ArraySerializer
     public bool $extended = false;
 
     /** @inheritDoc */
-    public function generate(array $domains, stdClass|Project $config = null): string
+    public function generate(array $domains, stdClass|Project|null $config = null): string
     {
         if ($this->extended) {
             $translations = [];

@@ -35,7 +35,7 @@ abstract class Utils
   /**
    * Renders an abbreviated version of the backtrace
    */
-  public static function backtraceSmall(array $trace = null, bool $rtl = false): string
+  public static function backtraceSmall(?array $trace = null, bool $rtl = false): string
   {
     if (!$trace) {
       $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);

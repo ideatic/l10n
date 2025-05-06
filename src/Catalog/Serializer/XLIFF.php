@@ -20,7 +20,7 @@ use stdClass;
 class XLIFF extends Serializer
 {
   /** @inheritDoc */
-  public function generate(array $domains, stdClass|Project $config = null): string
+  public function generate(array $domains, stdClass|Project|null $config = null): string
   {
     if (!isset($config->translations->source)) {
       throw new Exception("Original XLIFF must be indicated in the 'translations > source' field for project {$config->name}");

@@ -58,6 +58,6 @@ abstract class Serializer
      *
      * @param list<Domain> $domains
      */
-    public abstract function generate(array $domains, stdClass|Project $config = null): string;
+    public abstract function generate(array $domains, stdClass|Project|null $config = null): string;
 }
 

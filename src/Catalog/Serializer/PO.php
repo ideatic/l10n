@@ -21,7 +21,7 @@ class PO extends Serializer
     public bool $transformICU = true;
 
     /** @inheritDoc */
-    public function generate(array $domains, stdClass|Project $config = null): string
+    public function generate(array $domains, stdClass|Project|null $config = null): string
     {
         $po = [];
 

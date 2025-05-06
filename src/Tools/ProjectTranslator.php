@@ -18,7 +18,7 @@ class ProjectTranslator
     /** @var string[] Nombre de los dominios que se van a traducir, si no se especifican se traducirán todos */
     public array $domains;
 
-    public function translateDir(Config $config, string $projectName, string $locale, string $path = null): array
+    public function translateDir(Config $config, string $projectName, string $locale, ?string $path = null): array
     {
         /** @var Project|\stdClass|null $project */
         $project = $config->projects->$projectName ?? null;
