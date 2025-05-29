@@ -316,6 +316,9 @@ class Angular_Methods extends CStyle
                 if (str_contains($string->comments ?? '', '@@')) {
                     [$string->comments, $string->id] = explode('@@', $string->comments, 2);
                 }
+                if (str_contains($string->comments ?? '', '##')) {
+                    [$string->comments, $string->domainName] = explode('##', $string->comments, 2);
+                }
             }
 
             if (str_contains($string->text, '${')) {

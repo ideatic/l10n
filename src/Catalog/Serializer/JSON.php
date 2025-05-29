@@ -51,7 +51,7 @@ class JSON extends ArraySerializer
                         $comments[] = $translation->metadata->comments;
                     }
 
-                    $comments = implode(PHP_EOL, array_unique(array_map(fn(LString $string) => $string->comments, $comments)));
+                    $comments = mb_trim(implode(PHP_EOL, array_unique(array_map(fn(LString $string) => $string->comments, $comments))));
                     if (!empty($comments)) {
                         $row['comments'] = $comments;
                     }

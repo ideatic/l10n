@@ -32,8 +32,8 @@ class JSON extends ArrayLoader
             if (is_array($value)) {
                 $value = $value['translations'][$locale] ?? $value['translation'] ?? null;
 
-                if (is_array($value) && array_key_exists('translation', $value)) {
-                    $value = $value['translation'];
+                if (is_array($value) && (array_key_exists('translation', $value) || array_key_exists('text', $value) || array_key_exists('value', $value))) {
+                    $value = $value['translation'] ?? $value['text'] ?? $value['value'];
                 }
             }
 
