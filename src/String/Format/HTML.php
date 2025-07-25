@@ -104,13 +104,20 @@ class HTML extends Format
             $placeholders = $this->_processChildPlaceholders($element);
 
             // Normalizar espacios en blanco
-            $normalizeWhitespaces = $element->hasAttribute('i18nWhitespaces')?->value != 'keep' ?? $this->normalizeWhitespaces;
-
-            if ($normalizeWhitespaces) {
-                $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
-            } else {
-                $content = mb_trim($element->innerHTML());
+            switch ($element->hasAttribute('i18nWhitespaces')?->value ?? ($this->normalizeWhitespaces ? 'normalize' : 'keep')) {
+                case 'keep':
+                    $content = $element->innerHTML();
+                    break;
+                case 'normalize':
+                    $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
+                    break;
+                case 'trim':
+                    $content = mb_trim($element->innerHTML());
+                    break;
+                default:
+                    throw new Exception("Invalid i18nWhitespaces value in {$path}: " . $element->render());
             }
+
             $content = HTML_Parser::entityDecode($content);
 
             $string = $this->_registerString($source, $path, $content, $i18nAttribute, $element);
