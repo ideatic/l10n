@@ -104,9 +104,7 @@ class HTML extends Format
             $placeholders = $this->_processChildPlaceholders($element);
 
             // Normalizar espacios en blanco
-            $normalizeWhitespaces = $element->hasAttribute('i18nNormalizeWhitespaces') ?
-                filter_var($element->hasAttribute('i18nNormalizeWhitespaces')->value, FILTER_VALIDATE_BOOL)
-                : $this->normalizeWhitespaces;
+            $normalizeWhitespaces = $element->hasAttribute('i18nWhitespaces')?->value != 'keep' ?? $this->normalizeWhitespaces;
 
             if ($normalizeWhitespaces) {
                 $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
