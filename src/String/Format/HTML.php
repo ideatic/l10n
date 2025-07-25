@@ -20,6 +20,7 @@ use ideatic\l10n\Utils\ICU\Pattern;
 class HTML extends Format
 {
     public bool $autoDetectIcuPatterns = true;
+    public bool $normalizeWhitespaces = true;
     private array $_foundStrings;
 
     /** @inheritDoc */
@@ -103,7 +104,15 @@ class HTML extends Format
             $placeholders = $this->_processChildPlaceholders($element);
 
             // Normalizar espacios en blanco
-            $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
+            $normalizeWhitespaces = $element->hasAttribute('i18nNormalizeWhitespaces') ?
+                filter_var($element->hasAttribute('i18nNormalizeWhitespaces')->value, FILTER_VALIDATE_BOOL)
+                : $this->normalizeWhitespaces;
+
+            if ($normalizeWhitespaces) {
+                $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
+            } else {
+                $content = mb_trim($element->innerHTML());
+            }
             $content = HTML_Parser::entityDecode($content);
 
             $string = $this->_registerString($source, $path, $content, $i18nAttribute, $element);

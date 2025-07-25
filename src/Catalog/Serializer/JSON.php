@@ -36,7 +36,12 @@ class JSON extends ArraySerializer
                         $row['id'] = $string->fullyQualifiedID();
                     }
 
-                    $row['original'] = $string->id;
+                    if ($string->text !== $string->id) {
+                        $row['id'] = $string->id;
+                        $row['original'] = $string->text;
+                    } else {
+                        $row['original'] = $string->id;
+                    }
 
                     if ($string->context) {
                         $row['context'] = $string->context;
