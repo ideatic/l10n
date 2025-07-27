@@ -114,6 +114,13 @@ class HTML extends Format
                 case 'trim':
                     $content = mb_trim($element->innerHTML());
                     break;
+                case 'unindent':
+                    // Encontrar y eliminar la indentación común
+                    $content = $element->innerHTML();
+                    preg_match_all('/^[ \t]*(?=\S)/m', $content, $matches);
+                    $minIndent = min(array_map(mb_strlen(...), array_filter($matches[0])));
+                    $content = mb_trim(preg_replace('/^[ \t]{' . $minIndent . '}/m', '', $content));
+                    break;
                 default:
                     throw new Exception("Invalid i18nWhitespaces value in {$path}: " . $element->render());
             }
@@ -129,7 +136,7 @@ class HTML extends Format
                 if ($translation !== null) {
                     // Eliminar atributo i18n
                     $i18nAttribute->remove();
-
+                    $element->hasAttribute('i18nWhitespaces')?->remove();
 
                     // Reemplazar antiguo contenido con el nuevo
                     try {
