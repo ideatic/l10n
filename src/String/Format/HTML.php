@@ -108,19 +108,23 @@ class HTML extends Format
                 case 'keep':
                     $content = $element->innerHTML();
                     break;
+
                 case 'normalize':
                     $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
                     break;
                 case 'trim':
+
                     $content = mb_trim($element->innerHTML());
                     break;
+
                 case 'unindent':
                     // Encontrar y eliminar la indentación común
                     $content = $element->innerHTML();
                     preg_match_all('/^[ \t]*(?=\S)/m', $content, $matches);
-                    $minIndent = min(array_map(mb_strlen(...), array_filter($matches[0])));
+                    $minIndent = empty(array_filter($matches[0])) ? 0 : min(array_map(mb_strlen(...), array_filter($matches[0])));
                     $content = mb_trim(preg_replace('/^[ \t]{' . $minIndent . '}/m', '', $content));
                     break;
+                    
                 default:
                     throw new Exception("Invalid i18nWhitespaces value in {$path}: " . $element->render());
             }
