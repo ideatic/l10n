@@ -54,6 +54,13 @@ class Domain
                 $domain->strings[$stringID] = [];
             }
 
+            // Comprobar que para la misma ID, tiene el mismo contenido
+            foreach ($domain->strings[$stringID] as $otherString) {
+                if ($otherString->text !== $string->text) {
+                    throw new Exception("String '{$stringID}' already exists in domain '{$domain->name}' with different content!");
+                }
+            }
+
             $domain->strings[$stringID][] = $string;
 
             $string->domain = $domain;
