@@ -282,6 +282,9 @@ class Angular_Methods extends CStyle
     {
         $strings = parent::getStrings($code, $path);
 
+        // Eliminar comentarios de código
+        $code = preg_replace('/\/\/.*|\/\*[\s\S]*?\*\//', '', $code);
+
         // Incluir llamadas a $localize``
         $pattern = '/\$localize`(.*?)`/s';
         preg_match_all($pattern, $code, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
