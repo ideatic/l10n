@@ -36,11 +36,19 @@ class JSON extends ArraySerializer
                         $row['id'] = $string->fullyQualifiedID();
                     }
 
-                    if ($string->text !== $string->id) {
+                    $idIsNormalizedText = $string->text == $string->id;
+                    if ($string->isICU && !$idIsNormalizedText) {
+                        $pattern = new \ideatic\l10n\Utils\ICU\Pattern($string->text);
+                        if (count($pattern->nodes) == 1 && $pattern->nodes[0] instanceof \ideatic\l10n\Utils\ICU\Placeholder && $pattern->nodes[0]->type == 'plural') {
+                            $pattern->nodes[0]->name = 'count';
+                            $idIsNormalizedText = $pattern->render(false) == $string->id;
+                        }
+                    }
+                    if ($idIsNormalizedText) {
+                        $row['original'] = $string->id;
+                    } else {
                         $row['id'] = $string->id;
                         $row['original'] = $string->text;
-                    } else {
-                        $row['original'] = $string->id;
                     }
 
                     if ($string->context) {
