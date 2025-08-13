@@ -102,7 +102,7 @@ abstract class IO
     public static function isGlobMatch(string $string, string $pattern): bool
     {
         // Check if pattern contains **
-        if (strpos($pattern, '**') === false) {
+        if (!str_contains($pattern, '**')) {
             // No **, use standard fnmatch
             return fnmatch($pattern, $string);
         }

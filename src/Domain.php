@@ -49,15 +49,12 @@ class Domain
 
             // Agrupar cadenas similares
             $stringID = $string->fullyQualifiedID();
-
-            if (!isset($domain->strings[$stringID])) {
-                $domain->strings[$stringID] = [];
-            }
+            $domain->strings[$stringID] ??= [];
 
             // Comprobar que para la misma ID, tiene el mismo contenido
             foreach ($domain->strings[$stringID] as $otherString) {
-                if ($otherString->text !== $string->text) {
-                    throw new Exception("String '{$stringID}' already exists in domain '{$domain->name}' with different content!");
+                if ($otherString->text !== $string->text && !$otherString->isICU && !$string->isICU) {
+                    throw new Exception("String '{$stringID}' already exists in domain '{$domain->name}' with different content! @ {$string->file}");
                 }
             }
 
