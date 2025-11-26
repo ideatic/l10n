@@ -124,7 +124,7 @@ class HTML extends Format
                     $minIndent = empty(array_filter($matches[0])) ? 0 : min(array_map(mb_strlen(...), array_filter($matches[0])));
                     $content = mb_trim(preg_replace('/^[ \t]{' . $minIndent . '}/m', '', $content));
                     break;
-                    
+
                 default:
                     throw new Exception("Invalid i18nWhitespaces value in {$path}: " . $element->render());
             }
@@ -185,7 +185,7 @@ class HTML extends Format
             }
 
             if (!$parentI18nFound) {
-                throw new Exception("Invalid i18n attribute found in element in '{$path}': " . $element->render());
+                throw new Exception("i18n special attribute with no i18n parent found in element in '{$path}': {$element->render()}");
             }
         }
 

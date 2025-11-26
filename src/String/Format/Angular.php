@@ -177,6 +177,11 @@ class Angular extends Format
                     $parts = explode(':', mb_trim($pipe));
                     if (mb_trim($parts[0]) == 'i18n' && isset($parts[1])) {
                         $placeholderName = trim(mb_trim($parts[1]), '"\'');
+
+                        if ($placeholderName === '') {
+                            throw new Exception("Invalid i18n placeholder name in expression '{$expr}' @ {$path}");
+                        }
+
                         $string->placeholders[$placeholderName] = str_replace("|{$pipe}", '', $match[0]);
                         return $placeholderName;
                     }
@@ -198,8 +203,25 @@ class Angular extends Format
         // Normalizar ID (en angular, el nombre del placeholder ICU es su valor interpolado, usar 'count' en su lugar)
         if ($string->isICU && $string->id == $string->text) {
             $pattern = new Pattern($string->text);
-            if (count($pattern->nodes) == 1 && $pattern->nodes[0] instanceof Placeholder && $pattern->nodes[0]->type == 'plural') {
-                $pattern->nodes[0]->name = 'count';
+            $placeholders = array_filter($pattern->nodes, fn($node) => $node instanceof Placeholder);
+
+            // Procesar pipes i18n para nombrar los placeholders correctamente
+            $changed = false;
+            if (count($placeholders) == 1 && $placeholders[0]->type == 'plural' && !preg_match('/\|\s+i18n\:/', $placeholders[0]->name)) {
+                $placeholders[0]->name = 'count';
+                $changed = true;
+            } else {
+                foreach ($placeholders as $placeholder) {
+                    foreach (explode('|', $placeholder->name) as $pipe) {
+                        $parts = explode(':', mb_trim($pipe));
+                        if (mb_trim($parts[0]) == 'i18n' && isset($parts[1])) {
+                            $placeholder->name = trim(mb_trim($parts[1]), '"\'');
+                            $changed = true;
+                        }
+                    }
+                }
+            }
+            if ($changed) {
                 $string->id = $pattern->render(false);
             }
         }
@@ -221,6 +243,9 @@ class Angular extends Format
                 if ($fixHashPluralSupport && str_contains($string->fullyQualifiedID(), '#')) {
                     $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
                 }
+
+                // Eliminar pipe i18n
+                $translation = preg_replace('/\|\s+i18n\s*:\s*[\'"]\w+[\'"]\s*/', '', $translation);
             }
         }
 
