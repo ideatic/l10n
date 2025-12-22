@@ -53,7 +53,7 @@ class PO extends Loader
                 // Traducir formato GetText a ICU utilizando la plantilla original como referencia
                 $translation = $isEmpty
                     ? null
-                    : IcuConverter::getTextPluralToICU($icuPattern, $entry->getMsgStrPlurals(), $this->_readPluralRules($domain))
+                    : IcuConverter::replacePluralsFormsFromGetText($icuPattern, $locale, $entry->getMsgStrPlurals(), $this->_readPluralRules($domain))
                         ->render(false);
             } else {
                 $translation = $entry->getMsgStr() ?: null;

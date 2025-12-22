@@ -5,94 +5,236 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\Utils\Gettext;
 
-use Exception;
 use ideatic\l10n\Utils\ICU\Pattern;
+use ideatic\l10n\Utils\ICU\Placeholder;
 
+/**
+ * Utility to convert Gettext Plural Rules into ICU MessageFormat Patterns.
+ *
+ * This class bridges the gap between Gettext's mathematical plural logic
+ * (e.g., "n != 1") and ICU's grammatical categories (e.g., "one", "few", "other").
+ */
 class IcuConverter
 {
+    /**
+     * Cache for the mapping logic to avoid re-probing 101 times per string.
+     * Key = "locale|rule_hash"
+     * @var array<string, array{categories: array<string, int>, explicits: array<int, int>, fallbackIndex: int}>
+     */
+    private static array $_ruleMapCache = [];
 
-  /**
-   * Convierte un plural formato Gettext a formato ICU
-   */
-  public static function getTextPluralToICU(Pattern $baseIcuPattern, array $getTextPluralForms, string $pluralRulesExpression): Pattern
-  {
-    // Obtener regla para formar el plural Gettext
-    $pluralRules = new PluralRule($pluralRulesExpression);
+    /**
+     * Replace the plural forms in an ICU Pattern based on Gettext plural forms and rules.
+     *
+     * @param Pattern $icuPattern The original/template ICU pattern.
+     * @param string $locale The target locale.
+     * @param array<int, string> $getTextPluralForms Gettext plural forms, indexed numerically.
+     * @param string $pluralRulesExpression The Gettext plural rule (e.g., 'plural=(n != 1);').
+     */
+    public static function replacePluralsFormsFromGetText(Pattern $icuPattern, string $locale, array $getTextPluralForms, string $pluralRulesExpression): Pattern
+    {
+        $icuForms = self::getTextPluralToICU($locale, $getTextPluralForms, $pluralRulesExpression);
 
-    // http://cldr.unicode.org/index/cldr-spec/plural-rules#TOC-Choosing-Plural-Category-Names
-    // https://unicode-org.github.io/cldr-staging/charts/37/supplemental/language_plural_rules.html
-    /*If no forms change, then stop (there are no plural rules — everything gets 'other')
-'one': Use the category 'one' for the form used with 1.
-'other': Use the category 'other' for the form used with the most integers.
-'two': Use the category 'two' for the form used with 2, if it is limited to numbers whose integer values end with '2'.
-'zero': Use the category 'zero' for the form used with 0, if it is limited to numbers whose integer values end with '0'.
-'few': Use the category 'few' for the form used with the least remaining number (such as '4')
-'many': Use the category 'many' for the form used with the least remaining number (such as '10')
-If there needs to be a category for items only have fractional values, use 'many'
-If there are more categories needed for the language, describe what those categories need to cover in the bug report.*/
+        $replacedPattern = clone $icuPattern;
 
-    $icuForms = [];
-    if (count($getTextPluralForms) == 1) {
-      $icuForms['other'] = new Pattern(reset($getTextPluralForms));
-    } else {
-      // Obtener una muestra de los números que se utilizan en cada forma plural, y ordenarlos por frecuencia
-      $validNumbers = [];
-      foreach ($getTextPluralForms as $index => $pluralForm) {
-        // Encontrar qué números utilizan esta forma plural
-        $validNumbers[$index] = [];
-        for ($i = 0; $i < 1000; $i++) {
-          if ($pluralRules->get($i) == $index) {
-            $validNumbers[$index][] = $i;
-          }
-        }
-      }
-
-      uasort(
-          $validNumbers,
-          function ($arr) {
-            return count($arr);
-          }
-      );
-      $mostUsedForms = array_keys($validNumbers);
-
-
-      // Asignar a cada forma plural su categoría ICU
-      foreach ($getTextPluralForms as $index => $pluralForm) {
-        $validFormNumbers = $validNumbers[$index];
-
-        $categoryName = null;
-        if (count($validFormNumbers) == 1 && reset($validFormNumbers) == 1) {
-          $categoryName = 'one';
-        } elseif (count($validFormNumbers) == 1 && reset($validFormNumbers) == 2) {
-          $categoryName = 'two';
-        } elseif (count($validFormNumbers) == 1 && reset($validFormNumbers) == 0) {
-          $categoryName = 'zero';
-        } elseif ($index == $mostUsedForms[0]) {
-          $categoryName = 'other';
-        } elseif ($index == $mostUsedForms[1]) {
-          $categoryName = 'many';
-        } elseif ($index == $mostUsedForms[2]) {
-          $categoryName = 'few';
+        // Ensure nodes exist and are iterable
+        if (!isset($replacedPattern->nodes) || !is_array($replacedPattern->nodes)) {
+            return $replacedPattern;
         }
 
-        if (!$categoryName) {
-          throw new Exception("Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesExpression}\n\tfor n={$index}\nNo category found");
-        } elseif (isset($icuForms[$categoryName])) {
-          throw new Exception(
-              "Unable to find ICU plural category name for Gettext rule:\n\t{$pluralRulesExpression}\n\tfor n={$index}\n"
-              . "Collision found for category '{$categoryName}'.\n"
-              /** @phpstan-ignore-next-line */
-              . "Valid numbers in this rule: " . implode(', ', array_slice($validNumbers, 0, 5))
-          );
+        foreach ($replacedPattern->nodes as $index => $node) {
+            if ($node instanceof Placeholder && is_array($node->content)) {
+                // We overwrite the options with our calculated forms.
+                $replacedPattern->nodes[$index] = clone $node;
+                $replacedPattern->nodes[$index]->content = $icuForms;
+                return $replacedPattern;
+            }
         }
 
-        $icuForms[$categoryName] = new Pattern($pluralForm);
-      }
+        // Fallback: If no complex structure is found, assume the pattern
+        // wraps a single plural element at the root.
+        if (isset($replacedPattern->nodes[0]) && $replacedPattern->nodes[0] instanceof Placeholder) {
+            $replacedPattern->nodes[0] = clone $replacedPattern->nodes[0];
+            $replacedPattern->nodes[0]->content = $icuForms;
+        }
+
+        return $replacedPattern;
     }
 
-    $translatedPatter = clone $baseIcuPattern;
-    $translatedPatter->nodes[0]->content = $icuForms;
+    /**
+     * Converts a Gettext plural (0, 1, 2, etc.) format to ICU Formats (zero, one, few, other, etc.).
+     *
+     * @param string $locale The target locale.
+     * @param array<int, string> $getTextPluralForms Gettext plural forms, indexed numerically.
+     * @param string $pluralRulesExpression The Gettext plural rule (e.g., 'plural=(n != 1);').
+     *
+     * @return array<string, Pattern> Map of ICU plural keys to their corresponding Patterns.
+     */
+    public static function getTextPluralToICU(string $locale, array $getTextPluralForms, string $pluralRulesExpression): array
+    {
+        // 1. Generate a Mapping Strategy (Cached).
+        // This calculates which ICU category (e.g., 'few') maps to which Gettext index (e.g., 2).
+        $mapping = self::_getMappingStrategy($locale, $pluralRulesExpression);
 
-    return $translatedPatter;
-  }
+        // 2. Build the ICU Forms based on the mapping.
+        $icuForms = [];
+
+        // Apply standard categories (zero, one, two, few, many, other).
+        foreach ($mapping['categories'] as $category => $gtIndex) {
+            if (isset($getTextPluralForms[$gtIndex])) {
+                $icuForms[$category] = new Pattern($getTextPluralForms[$gtIndex]);
+            }
+        }
+
+        // Apply explicit value overrides (e.g., =0, =1).
+        // This fixes edge cases where Gettext treats a specific number differently
+        // than the language's standard grammar rules (e.g., strictly matching 0).
+        foreach ($mapping['explicits'] as $number => $gtIndex) {
+            if (isset($getTextPluralForms[$gtIndex])) {
+                $icuForms["={$number}"] = new Pattern($getTextPluralForms[$gtIndex]);
+            }
+        }
+
+        // 3. Ensure a mandatory 'other' fallback exists.
+        // ICU requires 'other'. If the mapping didn't produce one, we use the most frequent Gettext form.
+        if (!isset($icuForms['other'])) {
+            $fallbackIndex = $mapping['fallbackIndex'];
+            $icuForms['other'] = new Pattern($getTextPluralForms[$fallbackIndex] ?? '');
+        }
+
+        // 4. Sort forms: Explicit values first (=0), then categories in logical order.
+        uksort($icuForms, function (string $a, string $b): int {
+            $categoryOrder = ['zero', 'one', 'two', 'few', 'many', 'other'];
+            $aIsExplicit = str_starts_with($a, '=');
+            $bIsExplicit = str_starts_with($b, '=');
+
+            // Explicit values (e.g., =1) always come before keywords.
+            if ($aIsExplicit && !$bIsExplicit) {
+                return -1;
+            } elseif (!$aIsExplicit && $bIsExplicit) {
+                return 1;
+            } elseif ($aIsExplicit && $bIsExplicit) { // If both are explicit, sort numerically (=0 before =1).
+                return (int)substr($a, 1) <=> (int)substr($b, 1);
+            }
+
+            // Otherwise, sort by standard category order.
+            return array_search($a, $categoryOrder) <=> array_search($b, $categoryOrder);
+        });
+
+        return $icuForms;
+    }
+
+
+    /**
+     * Probes the Locale and Gettext Rule to determine the mapping strategy.
+     *
+     * It runs numbers 0 through 100 through both the Gettext logic and the ICU formatter
+     * to see which Gettext index aligns with which ICU category.
+     *
+     * @param string $locale The target locale.
+     * @param string $expression The Gettext plural expression.
+     *
+     * @return array{categories: array<string, int>, explicits: array<int, int>, fallbackIndex: int}
+     * @throws \Exception
+     */
+    private static function _getMappingStrategy(string $locale, string $expression): array
+    {
+        // Normalize expression
+        $expression = str_replace(['plural=', ';'], '', $expression);
+        $cacheKey = $locale . '|' . md5($expression);
+
+        if (isset(self::$_ruleMapCache[$cacheKey])) {
+            return self::$_ruleMapCache[$cacheKey];
+        }
+
+        // Prepare the tools
+        $pluralRules = new PluralRule($expression);
+
+        // Oracle pattern: asks ICU "What is this number?" (zero, one, few, etc.)
+        $oraclePattern = '{n, plural, zero {zero} one {one} two {two} few {few} many {many} other {other}}';
+        $formatter = new \MessageFormatter($locale, $oraclePattern);
+
+        if ($formatter->getErrorCode() != U_ZERO_ERROR) {
+            // MessageFormatter constructor returns null/false on failure depending on PHP version/context
+            throw new \Exception("Invalid locale '{$locale}' or unable to create MessageFormatter: " . $formatter->getErrorMessage());
+        }
+
+        // Temporary storage
+        $categoryHits = [];  // $categoryHits[icu_category][gettext_index] = frequency
+        $numberToIndex = []; // $numberToIndex[number] = ['cat' => '...', 'idx' => int]
+        $indexFrequency = []; // Tracks which Gettext index is used most overall
+
+        // Probe numbers 0 to 100 to detect patterns
+        for ($i = 0; $i <= 100; $i++) {
+            $gtIndex = $pluralRules->get($i);
+            $icuCategory = $formatter->format(['n' => $i]);
+
+            if ($icuCategory === false) {
+                continue;
+            }
+
+            $numberToIndex[$i] = ['cat' => $icuCategory, 'idx' => $gtIndex];
+
+            // Track frequency to find the "dominant" index for this ICU category
+            if (!isset($categoryHits[$icuCategory][$gtIndex])) {
+                $categoryHits[$icuCategory][$gtIndex] = 0;
+            }
+            $categoryHits[$icuCategory][$gtIndex]++;
+
+            // Overall frequency for global fallback
+            if (!isset($indexFrequency[$gtIndex])) {
+                $indexFrequency[$gtIndex] = 0;
+            }
+            $indexFrequency[$gtIndex]++;
+        }
+
+        // Determine the "Dominant" Index for each Category.
+        // Example: If ICU 'other' maps to Gettext Index 1 (90 times) and Index 0 (2 times),
+        // we assume Index 1 is the intended translation for 'other'.
+        $finalCategories = [];
+        $dominantIndices = []; // Key: Category, Value: Index
+
+        foreach ($categoryHits as $cat => $counts) {
+            // Sort by frequency descending
+            arsort($counts);
+
+            $keys = array_keys($counts);
+            if (count($keys) > 1 && $counts[$keys[0]] === $counts[$keys[1]]) {
+                sort($keys); // Preferir índice numérico más bajo (0) en caso de empate de frecuencia
+                $dominantIndex = $keys[0];
+            } else {
+                $dominantIndex = array_key_first($counts);
+            }
+
+            $finalCategories[$cat] = $dominantIndex;
+            $dominantIndices[$cat] = $dominantIndex;
+        }
+
+        // Identify Explicit Overrides.
+        // If a specific number maps to a Gettext index that is NOT the dominant index
+        // for its linguistic category, we must treat it as an explicit value (e.g. =0).
+        $explicits = [];
+        foreach ($numberToIndex as $num => $data) {
+            $cat = $data['cat'];
+            $idx = $data['idx'];
+
+            if (isset($dominantIndices[$cat]) && $dominantIndices[$cat] !== $idx) {
+                $explicits[$num] = $idx;
+            }
+        }
+
+        // Determine best global fallback (usually the most frequent index)
+        arsort($indexFrequency);
+        $fallbackIndex = array_key_first($indexFrequency) ?? 0;
+
+        $result = [
+            'categories' => $finalCategories,
+            'explicits' => $explicits,
+            'fallbackIndex' => $fallbackIndex,
+        ];
+
+        self::$_ruleMapCache[$cacheKey] = $result;
+
+        return $result;
+    }
 }
