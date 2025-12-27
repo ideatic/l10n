@@ -207,7 +207,7 @@ class Angular extends Format
 
             // Procesar pipes i18n para nombrar los placeholders correctamente
             $changed = false;
-            if (count($placeholders) == 1 && $placeholders[0]->type == 'plural' && !preg_match('/\|\s+i18n\:/', $placeholders[0]->name)) {
+            if (count($placeholders) == 1 && reset($placeholders)->type == 'plural' && !preg_match('/\|\s+i18n\:/', $placeholders[0]->name)) {
                 $placeholders[0]->name = 'count';
                 $changed = true;
             } else {
