@@ -21,6 +21,7 @@ class HTML extends Format
 {
     public bool $autoDetectIcuPatterns = true;
     public bool $normalizeWhitespaces = true;
+    public bool $supportAngularExpressions = true;
     private array $_foundStrings;
 
     /** @inheritDoc */
@@ -37,7 +38,7 @@ class HTML extends Format
 
     private function _process(string $html, ?string $path = null, ?callable $getTranslation = null): string|array
     {
-        $dom = HTML_Parser::parse($html);
+        $dom = HTML_Parser::parse($html, supportExpressions:$this->supportAngularExpressions);
 
         foreach ($dom->children as $node) {
             if ($node instanceof HTML_Parser_Element) {

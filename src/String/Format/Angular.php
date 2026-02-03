@@ -30,6 +30,7 @@ class Angular extends Format
         // Atributos HTML
         $this->_i18nHTML = new Angular_HTML();
         $this->_i18nHTML->autoDetectIcuPatterns = true;
+        $this->_i18nHTML->supportAngularExpressions = true;
 
         // Llamadas a __(), $localize, etc. en código TypeScript
         // Llamadas a __(), $localize, etc. en código expresiones HTML

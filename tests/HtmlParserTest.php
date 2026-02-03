@@ -52,4 +52,20 @@ class HtmlParserTest extends TestCase
     $dom = HTML_Parser::parse($input, true);
     $this->assertEquals($input, $dom->render());
   }
+
+  public function testAngularForWithNestedIfElse()
+  {
+    $input = '@for (network of preparedNetworks(); track network) {
+      @if (network.icon.startsWith(\'<svg\')) {
+        <a target="_blank" [href]="network.url" [title]="network.name" [innerHTML]="network.icon | safe: \'html\'" (click)="trackClick(network.url)"> </a>
+      } @else {
+        <a target="_blank" [href]="network.url" [title]="network.name" (click)="trackClick(network.url)">
+          <i [icon]="network.icon"></i>
+        </a>
+      }
+    }';
+
+    $dom = HTML_Parser::parse($input, true, null, true);
+    $this->assertEquals($input, $dom->render());
+  }
 }
