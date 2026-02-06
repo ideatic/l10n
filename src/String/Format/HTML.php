@@ -42,7 +42,7 @@ class HTML extends Format
             $html,
             strict: $this->supportAngularExpressions,
             preserveAttributesWhitespace: false,
-            supportExpressions: $this->supportAngularExpressions
+            supportAngularExpressions: $this->supportAngularExpressions
         );
 
         foreach ($dom->children as $node) {
@@ -110,6 +110,7 @@ class HTML extends Format
             $placeholders = $this->_processChildPlaceholders($element);
 
             // Normalizar espacios en blanco
+            /** @phpstan-ignore nullsafe.neverNull */
             switch ($element->hasAttribute('i18nWhitespaces')?->value ?? ($this->normalizeWhitespaces ? 'normalize' : 'keep')) {
                 case 'keep':
                     $content = $element->innerHTML();

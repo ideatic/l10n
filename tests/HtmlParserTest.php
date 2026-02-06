@@ -60,7 +60,7 @@ class HtmlParserTest extends TestCase
         <a target="_blank" [href]="network.url" [title]="network.name" [innerHTML]="network.icon | safe: \'html\'" (click)="trackClick(network.url)"> </a>
       } @else {
         <a target="_blank" [href]="network.url" [title]="network.name" (click)="trackClick(network.url)">
-          <i [icon]="network.icon"></i>
+          <i [icon]="network.icon"></i> I\'m
         </a>
       }
     }';
