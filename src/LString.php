@@ -65,7 +65,7 @@ class LString
     public function __debugInfo()
     {
         $data = get_object_vars($this);
-        $data['domainName'] ??= $this->domain?->name;
+        $data['domainName'] ??= isset($this->domain) ? $this->domain->name : null;
         unset($data['domain']);
         return $data;
     }

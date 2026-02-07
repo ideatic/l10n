@@ -85,7 +85,11 @@ class JSON extends ArraySerializer
                         }
                     }
 
-                    $row['translation'] = $translation?->translation;
+                    if (isset($translation?->translation)) {
+                        $row['translation'] = $translation->translation;
+                    } elseif ($this->locale) {
+                        $row['translation'] = null;
+                    }
 
                     /*if (count($row) == 2 && isset($row['translation']) && $row['original'] == $string->fullyQualifiedID()) {
                         $row = $row['translation'];
