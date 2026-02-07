@@ -76,7 +76,6 @@ class JSON extends ArraySerializer
                     foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
                         if ($referenceLocale != $this->locale) {
                             $referenceTranslation = $domain->translator->getTranslation($string, $referenceLocale, false);
-
                             if ($this->locale) {
                                 $row[$referenceLocale] = $referenceTranslation?->translation;
                             } else {
@@ -90,9 +89,9 @@ class JSON extends ArraySerializer
                         $row['translation'] = $translation->translation;
                     }
 
-                    if (count($row) == 2 && isset($row['translation']) && $row['original'] == $string->fullyQualifiedID()) {
+                    /*if (count($row) == 2 && isset($row['translation']) && $row['original'] == $string->fullyQualifiedID()) {
                         $row = $row['translation'];
-                    }
+                    }*/
 
                     $translations[] = $row;
                 }

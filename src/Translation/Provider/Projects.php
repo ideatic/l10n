@@ -23,13 +23,7 @@ use stdClass;
  */
 class Projects implements Provider
 {
-    /** @var Config */
-    public $config;
-
-    public function __construct(Config $l10nConfig)
-    {
-        $this->config = $l10nConfig;
-    }
+    public function __construct(public readonly Config $config) {}
 
     public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?Translation
     {

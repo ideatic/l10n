@@ -22,7 +22,7 @@ class Domain
      *
      * @param LString[] $strings
      *
-     * @return self[]
+     * @return list<self>
      */
     public static function generate(array $strings): array
     {

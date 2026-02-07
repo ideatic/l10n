@@ -6,22 +6,22 @@ namespace ideatic\l10n\CLI\Tools;
 
 use ideatic\l10n\Catalog\Serializer\Serializer;
 use ideatic\l10n\CLI\Environment;
-use ideatic\l10n\ConfigExtractor;
 use ideatic\l10n\Domain;
+use ideatic\l10n\ExportWorkflow;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
 use ideatic\l10n\Utils\Utils;
 
-class Extractor
+class Exporter
 {
     public static function run(Environment $environment): void
     {
         $domains = self::scanDomains($environment);
         $lastGeneratedDomain = null;
 
-        /** @var ConfigExtractor $extractorConfig */
-        foreach (Utils::wrapArray($environment->config->tools->extractor) as $extractorConfig) {
+        /** @var ExportWorkflow $extractorConfig */
+        foreach (Utils::wrapArray($environment->config->exports) as $extractorConfig) {
             if (!($extractorConfig->enabled ?? true)) {
                 continue;
             }
@@ -29,7 +29,7 @@ class Extractor
             // Definir locales a generar
             $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
             $locales = $locale === 'all'
-                ? array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info, $environment->config->locales)
+                ? array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->code : $info, $environment->config->targetLocales)
                 : [$locale];
 
             // Definir dominios a incluir en los archivos generados
@@ -114,6 +114,10 @@ class Extractor
                     $fileName = str_pad(basename($path) . '...', 20, ' ', STR_PAD_RIGHT);
                     echo "\tGenerating {$fileName}";
 
+                    if (!is_dir(dirname($path))) {
+                        mkdir(dirname($path), 0777, true);
+                    }
+
                     file_put_contents($path, $serializer->generate([$domain]));
 
                     echo "\tFile written at {$path}\n";
@@ -126,7 +130,7 @@ class Extractor
      * Obtiene los idiomas de referencia que se van a incluir en los archivos generados
      * @return list<string>
      */
-    public static function _getReferenceTranslations(ConfigExtractor|\stdClass $extractorConfig, Environment $environment): array
+    public static function _getReferenceTranslations(ExportWorkflow|\stdClass $extractorConfig, Environment $environment): array
     {
         $referenceTranslation = [];
         foreach (Utils::wrapArray($extractorConfig->referenceLanguage ?? []) as $referenceLocale) {
@@ -138,8 +142,8 @@ class Extractor
                 $referenceTranslation = array_merge(
                     $referenceTranslation,
                     array_map(
-                        fn(string|\stdClass $info): string => is_object($info) ? $info->id : $info,
-                        $environment->config->locales,
+                        fn(string|\stdClass $info): string => is_object($info) ? $info->code : $info,
+                        $environment->config->targetLocales,
                     ),
                 );
             } elseif ($referenceLocale && $referenceLocale[0] == '-') { // Eliminar idioma de referencia
@@ -156,7 +160,7 @@ class Extractor
      * Filtra las cadenas que van a ser serializadas
      * @return array<array<LString>>
      */
-    public static function _filterStrings(Domain $domain, ConfigExtractor|\stdClass $extractorConfig, Serializer $serializer): array
+    public static function _filterStrings(Domain $domain, ExportWorkflow|\stdClass $extractorConfig, Serializer $serializer): array
     {
         $filtered = array_filter($domain->strings, function (/** @param list<LString> $strings */ array $strings) use ($extractorConfig, $domain, $serializer) {
             $valid = true;

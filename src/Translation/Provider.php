@@ -7,6 +7,9 @@ namespace ideatic\l10n\Translation;
 use ideatic\l10n\Catalog\Translation;
 use ideatic\l10n\LString;
 
+/**
+ * Interfaz para proveedores de traducciones
+ */
 interface Provider
 {
   public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?Translation;

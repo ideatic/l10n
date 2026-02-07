@@ -18,9 +18,19 @@ class Config
     public string $fallbackLocale;
 
     /** @var array<string | object{id: string, name: string}> */
-    public array $locales;
+    public array $targetLocales;
 
-    public ConfigTools|stdClass $tools;
+    /**
+     * Destino(s) de las cadenas encontradas en el código fuente
+     * @var ExportWorkflow|stdClass|list<ExportWorkflow|stdClass>
+     */
+    public ExportWorkflow|stdClass|array $exports;
+
+    /**
+     * Fuentes de las traducciones. Un array asociativo donde la clave es el nombre del dominio y el valor sus fuentes de traducción.
+     * @var stdClass|array<string, ImportSource | list<ImportSource>>
+     */
+    public object|array $sources;
 
     /**
      * Lee la configuración
@@ -73,10 +83,9 @@ class Config
         $defaultConfig->name = basename(__DIR__);
         $defaultConfig->sourceLocale = 'en';
 
-        $defaultConfig->tools = new stdClass();
-        $defaultConfig->tools->extractor = new stdClass();
-        $defaultConfig->tools->extractor->format = 'po';
-        $defaultConfig->tools->extractor->path = './';
+        $defaultConfig->exports = new stdClass();
+        $defaultConfig->exports->format = 'po';
+        $defaultConfig->exports->path = './';
 
         /** @var Project&stdClass $defaultProject */
         $defaultProject = new stdClass();
@@ -104,7 +113,7 @@ class Config
  * @property string $name
  * @property string $path
  * @property string $defaultDomain
- * @property ProjectTranslations|\stdClass|array<ProjectTranslations|\stdClass> $translations
+ * @property ProjectTranslations|\stdClass|array<ProjectTranslations|\stdClass> $translations Ubicación de los recursos de traducción de este proyecto
  * @property string[] $translatorMethods
  * @property string[] $exclude
  */
@@ -115,15 +124,10 @@ interface Project {}
  * @property string $format
  * @property string $template
  * @property bool|null $includeLocations
+ * @property string|list<string> $referenceTranslations
  * @property bool|null $transformICU
  */
 interface ProjectTranslations {}
-
-/**
- * @property ConfigExtractor|stdClass|array<ConfigExtractor|stdClass> $extractor
- * @property array<string, DomainConfig | list<DomainConfig>> $merge
- */
-interface ConfigTools {}
 
 /**
  * @property string $format
@@ -134,7 +138,7 @@ interface ConfigTools {}
  * @property string[] $domains
  * @property ?bool $enabled
  */
-interface ConfigExtractor {}
+interface ExportWorkflow {}
 
 /**
  * @property string|null $source
@@ -143,6 +147,6 @@ interface ConfigExtractor {}
  * @property string[] $locales
  * @property ?string $addComment
  */
-interface DomainConfig {}
+interface ImportSource {}
 
 

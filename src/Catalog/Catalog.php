@@ -6,6 +6,9 @@ namespace ideatic\l10n\Catalog;
 
 use ideatic\l10n\LString;
 
+/**
+ * Un catálogo representa una colección de traducciones para un mismo idioma. Normalmente se corresponde con un archivo de traducción.
+ */
 class Catalog
 {
     /**
