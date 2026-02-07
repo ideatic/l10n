@@ -7,20 +7,23 @@ namespace ideatic\l10n\CLI\Tools;
 use ideatic\l10n\Catalog\Serializer\Serializer;
 use ideatic\l10n\CLI\Environment;
 use ideatic\l10n\Domain;
-use ideatic\l10n\ExportWorkflow;
+use ideatic\l10n\ExtractionDestiny;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Locale;
 use ideatic\l10n\Utils\Utils;
 
-class Exporter
+/**
+ * Herramienta para extraer las cadenas localizables del código fuente y generar archivos de traducción
+ */
+class Extractor
 {
     public static function run(Environment $environment): void
     {
         $domains = self::scanDomains($environment);
         $lastGeneratedDomain = null;
 
-        /** @var ExportWorkflow $extractorConfig */
+        /** @var ExtractionDestiny $extractorConfig */
         foreach (Utils::wrapArray($environment->config->exports) as $extractorConfig) {
             if (!($extractorConfig->enabled ?? true)) {
                 continue;
@@ -57,10 +60,10 @@ class Exporter
                 $lastGeneratedDomain = $domain->name;
 
                 foreach ($locales as $localeInfo) {
-                    // Usar como fuente para las traducciones los ficheros serializados de los distintos proyectos
+                    // Usar como fuente para las traducciones los ficheros de traducción de los distintos proyectos
                     $domain->translator = new \ideatic\l10n\Translation\Provider\Projects($environment->config);
 
-                    $locale = is_object($localeInfo) ? $localeInfo->id : $localeInfo;
+                    $locale = is_object($localeInfo) ? $localeInfo->code : $localeInfo;
                     if (count($locales) > 1) {
                         if ($localeInfo) {
                             echo "\n\t## " . (is_object($localeInfo) ? $localeInfo->name : Locale::getName($locale)) . " ({$locale})\n";
@@ -130,7 +133,7 @@ class Exporter
      * Obtiene los idiomas de referencia que se van a incluir en los archivos generados
      * @return list<string>
      */
-    public static function _getReferenceTranslations(ExportWorkflow|\stdClass $extractorConfig, Environment $environment): array
+    public static function _getReferenceTranslations(ExtractionDestiny|\stdClass $extractorConfig, Environment $environment): array
     {
         $referenceTranslation = [];
         foreach (Utils::wrapArray($extractorConfig->referenceLanguage ?? []) as $referenceLocale) {
@@ -160,19 +163,19 @@ class Exporter
      * Filtra las cadenas que van a ser serializadas
      * @return array<array<LString>>
      */
-    public static function _filterStrings(Domain $domain, ExportWorkflow|\stdClass $extractorConfig, Serializer $serializer): array
+    public static function _filterStrings(Domain $domain, ExtractionDestiny|\stdClass $destinyConfig, Serializer $serializer): array
     {
-        $filtered = array_filter($domain->strings, function (/** @param list<LString> $strings */ array $strings) use ($extractorConfig, $domain, $serializer) {
+        $filtered = array_filter($domain->strings, function (/** @param list<LString> $strings */ array $strings) use ($destinyConfig, $domain, $serializer) {
             $valid = true;
 
             // Incluir si tiene un comentario específico
-            if ($extractorConfig->filter->hasComment ?? false) {
-                $hasSpecificComment = function (LString $string) use ($extractorConfig): bool {
-                    if ($extractorConfig->filter->hasComment === true) {
-                        if (!!mb_trim($string->comments)) {
+            if ($destinyConfig->filter->hasComment ?? false) {
+                $hasSpecificComment = function (LString $string) use ($destinyConfig): bool {
+                    if ($destinyConfig->filter->hasComment === true) {
+                        if (!!mb_trim($string->comments ?? '')) {
                             return true;
                         }
-                    } elseif (str_contains($string->comments ?? '', $extractorConfig->filter->hasComment)) {
+                    } elseif (str_contains(mb_strtolower($string->comments ?? ''), mb_strtolower($destinyConfig->filter->hasComment))) {
                         return true;
                     }
 
@@ -186,13 +189,15 @@ class Exporter
 
                 // Comprobar también los comentarios de las traducciones
                 if ($serializer->locale) {
-                    $translation = $domain->translator->getTranslation(reset($strings), $serializer->locale, false);
+                    $translation = $domain->translator->getTranslation(array_first($strings), $serializer->locale, false);
+
                     if ($translation?->metadata && $hasSpecificComment($translation->metadata)) {
                         return true;
                     }
-                } else {
+                }
+                if(!empty($serializer->referenceTranslation)) {
                     foreach ($serializer->referenceTranslation as $locale) {
-                        $translation = $domain->translator->getTranslation(reset($strings), $locale, false);
+                        $translation = $domain->translator->getTranslation(array_first($strings), $locale, false);
                         if ($translation?->metadata && $hasSpecificComment($translation->metadata)) {
                             return true;
                         }
@@ -202,21 +207,21 @@ class Exporter
                 return false;
             }
 
-            if ($extractorConfig->filter->status ?? false) {
+            if ($destinyConfig->filter->status ?? false) {
                 if ($serializer->locale) {
-                    if ($domain->translator->getTranslation(reset($strings), $serializer->locale, false) !== null) {
-                        $valid = $extractorConfig->filter->status == 'pending' ? false : true;
+                    if ($domain->translator->getTranslation(array_first($strings), $serializer->locale, false) !== null) {
+                        $valid = $destinyConfig->filter->status == 'pending' ? false : true;
                     }
                 } else { // Incluir si al menos un idioma de referencia no tiene traducción
                     $allTranslated = true;
                     foreach ($serializer->referenceTranslation as $locale) {
-                        if ($domain->translator->getTranslation(reset($strings), $locale, false) === null) {
+                        if ($domain->translator->getTranslation(array_first($strings), $locale, false) === null) {
                             $allTranslated = false;
                         }
                     }
 
                     if ($allTranslated) {
-                        $valid = $extractorConfig->filter->status == 'pending' ? false : true;
+                        $valid = $destinyConfig->filter->status == 'pending' ? false : true;
                     }
                 }
             }
@@ -224,8 +229,8 @@ class Exporter
             return $valid;
         });
 
-        if ($extractorConfig->filter->limit ?? false) {
-            $filtered = array_slice($filtered, 0, $extractorConfig->filter->limit);
+        if ($destinyConfig->filter->limit ?? false) {
+            $filtered = array_slice($filtered, 0, $destinyConfig->filter->limit);
         }
 
         return $filtered;

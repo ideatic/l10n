@@ -29,7 +29,7 @@ class XLIFF extends Serializer
 
     foreach ($domains as $domain) {
       foreach ($domain->strings as $strings) {
-        $string = reset($strings);
+        $string = array_first($strings);
         $stringID = $string->id;
 
         // Convertir traducciones ICU al formato esperado por angular
@@ -131,7 +131,7 @@ class XLIFF extends Serializer
       } elseif (count($foundStrings) > 1) {
         throw new Exception('Multiple strings found in XLIFF source string: ' . $sourceTag->render());
       } else {
-        return reset($foundStrings)->id;
+        return array_first($foundStrings)->id;
       }
     } else {
       return mb_trim($innerHTML);

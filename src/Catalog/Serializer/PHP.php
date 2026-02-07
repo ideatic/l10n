@@ -17,7 +17,7 @@ class PHP extends ArraySerializer
         foreach ($domains as $domain) {
             $lastKey = array_key_last($domain->strings);
             foreach ($domain->strings as $key => $strings) {
-                $string = reset($strings);
+                $string = array_first($strings);
 
                 $translation = null;
                 if ($this->locale) {

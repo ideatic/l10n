@@ -17,7 +17,7 @@ abstract class ArraySerializer extends Serializer
 
         foreach ($domains as $domain) {
             foreach ($domain->strings as $strings) {
-                $string = reset($strings);
+                $string = array_first($strings);
 
                 $stringID = $string->fullyQualifiedID();
                 if ($this->locale) {

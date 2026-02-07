@@ -13,7 +13,7 @@ class Analyzer
     $threshold = $environment->params['t'] ?? 90;
 
     // Obtener grupos
-    $domains = Exporter::scanDomains($environment);
+    $domains = Extractor::scanDomains($environment);
 
     foreach ($domains as $domain) {
       $ignore = [];

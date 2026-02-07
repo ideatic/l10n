@@ -165,7 +165,7 @@ class HTML extends Format
                             $element->previousSibling()->remove();
                         }
 
-                        $element->replaceWith(count($newContent) == 1 ? reset($newContent) : $newContent);
+                        $element->replaceWith(count($newContent) == 1 ? array_first($newContent) : $newContent);
                     } else {
                         $element->children = $newContent;
                     }

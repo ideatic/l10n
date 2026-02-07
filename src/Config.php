@@ -22,9 +22,9 @@ class Config
 
     /**
      * Destino(s) de las cadenas encontradas en el código fuente
-     * @var ExportWorkflow|stdClass|list<ExportWorkflow|stdClass>
+     * @var ExtractionDestiny|stdClass|list<ExtractionDestiny|stdClass>
      */
-    public ExportWorkflow|stdClass|array $exports;
+    public ExtractionDestiny|stdClass|array $exports;
 
     /**
      * Fuentes de las traducciones. Un array asociativo donde la clave es el nombre del dominio y el valor sus fuentes de traducción.
@@ -138,9 +138,10 @@ interface ProjectTranslations {}
  * @property string[] $domains
  * @property ?bool $enabled
  */
-interface ExportWorkflow {}
+interface ExtractionDestiny {}
 
 /**
+ * @property string|null $name
  * @property string|null $source
  * @property string $script
  * @property string $format

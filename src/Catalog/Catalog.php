@@ -12,7 +12,7 @@ use ideatic\l10n\LString;
 class Catalog
 {
     /**
-     * @param array<string, Translation> $_translations
+     * @param array<string, Translation> $_translations Diccionario de traducciones, indexado por el ID completo de la cadena (ID + contexto) y el valor de la traducción.
      */
     public function __construct(
         public readonly string $locale,
@@ -38,5 +38,22 @@ class Catalog
         foreach ($this->_translations as $translation) {
             $translation->metadata->comments = '';
         }
+    }
+
+    public function __debugInfo()
+    {
+        $translations = [];
+        foreach ($this->_translations as $id => $translation) {
+            $translations[] = [
+                'id' => $id,
+                'translation' => $translation->translation,
+                'metadata' => $translation->metadata,
+            ];
+        }
+
+        return [
+            'locale' => $this->locale,
+            'translations' => $translations,
+        ];
     }
 }

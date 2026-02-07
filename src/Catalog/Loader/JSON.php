@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace ideatic\l10n\Catalog\Loader;
 
 use ideatic\l10n\Catalog\Catalog;
+use ideatic\l10n\Catalog\Translation;
+use ideatic\l10n\LString;
 use InvalidArgumentException;
 
 class JSON extends ArrayLoader
@@ -21,31 +23,51 @@ class JSON extends ArrayLoader
         }
 
         // Check if is the extended format
-        $preparedDictionary = [];
+        $strings = [];
+        $isList = array_is_list($rawDictionary);
         foreach ($rawDictionary as $key => $value) {
-            if (isset($value['id'])) {
-                $key = $value['id'];
-            } elseif (is_int($key) && isset($value['original'])) {
-                $key = $value['original'];
-            }
+            $stringID = $key;
+            $metadata = new LString();
 
             if (is_array($value)) {
-                $value = $value['translations'][$locale] ?? $value['translation'] ?? null;
-
-                if (is_array($value)
-                    && (array_key_exists('translation', $value)
-                        || array_key_exists('text', $value)
-                        || array_key_exists('value', $value)
-                        || array_key_exists('string', $value))
-                ) {
-                    $value = $value['translation'] ?? $value['text'] ?? $value['value'] ?? $value['string'];
+                if (isset($value['id'])) {
+                    $stringID = $value['id'];
+                } elseif ($isList && isset($value['original'])) {
+                    $stringID = $value['original'];
                 }
+
+                $translation = $value['translations'][$locale] ?? $value['translation'] ?? null;
+
+                if (is_array($translation)) {
+                    foreach (['translation', 'text', 'value', 'string'] as $field) {
+                        if (array_key_exists($field, $translation)) {
+                            $translation = $translation[$field];
+                            break;
+                        }
+                    }
+                }
+
+                if (is_array($translation)) {
+                    throw new InvalidArgumentException("Only string values allowed for translation of '{$stringID}'");
+                }
+
+                $metadata->comments = $value['comments'] ?? null;
+                $metadata->context = $value['context'] ?? null;
+                if (($value['format'] ?? null) === 'icu') {
+                    $metadata->isICU = true;
+                }
+            } else {
+                $translation = $value;
             }
 
-            $preparedDictionary[$key] = $value;
+
+            if (isset($translation) && $translation !== '') {
+                $metadata->id = $stringID;
+                $strings[$stringID] = new Translation($translation, $metadata);
+            }
         }
 
-        return $this->_parse($preparedDictionary, $locale);
+        return new Catalog($locale, $strings);
     }
 }
 

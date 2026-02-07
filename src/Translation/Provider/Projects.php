@@ -23,13 +23,13 @@ use stdClass;
  */
 class Projects implements Provider
 {
+    /** @var array<string,Catalog> */
+    private array $_loadedCatalogs = [];
+
     public function __construct(public readonly Config $config) {}
 
     public function getTranslation(LString $string, string $locale, bool $allowFallback = true): ?Translation
     {
-        /** @var Loader[] $loadedCatalogs */
-        static $loadedCatalogs = [];
-
         if (empty($string->domain) && empty($string->domainName)) {
             throw new Exception("String domain not defined");
         }
@@ -54,15 +54,13 @@ class Projects implements Provider
             }
 
             // Buscar en las traducciones disponibles
-            if (!array_key_exists($catalogKey, $loadedCatalogs)) { // Intentar traducciones de este dominio
-                $loadedCatalogs[$catalogKey] = $this->loadCatalog($string->domain ?? $string->domainName, $locale);
+            if (!array_key_exists($catalogKey, $this->_loadedCatalogs)) { // Intentar traducciones de este dominio
+                $this->_loadedCatalogs[$catalogKey] = $this->loadCatalog($string->domain ?? $string->domainName, $locale);
             }
 
-            if (!empty($loadedCatalogs[$catalogKey])) {
-                $translation = $loadedCatalogs[$catalogKey]->getTranslation($string);
-                if ($translation !== null) {
-                    return $translation;
-                }
+            $translation = $this->_loadedCatalogs[$catalogKey]?->getTranslation($string);
+            if ($translation !== null) {
+                return $translation;
             }
         }
 

@@ -6,7 +6,7 @@ namespace ideatic\l10n\CLI;
 
 
 use ideatic\l10n\CLI\Tools\Analyzer;
-use ideatic\l10n\CLI\Tools\Exporter;
+use ideatic\l10n\CLI\Tools\Extractor;
 use ideatic\l10n\CLI\Tools\Importer;
 use ideatic\l10n\CLI\Tools\Translator;
 use ideatic\l10n\Utils\IO;
@@ -34,8 +34,8 @@ class CLI
         $environment->config->load(IO::combinePaths($environment->directory, 'l10n.json'));
 
         switch ($environment->method) {
-            case 'export':
-                Exporter::run($environment);
+            case 'extract':
+                Extractor::run($environment);
                 break;
 
             case 'import':
@@ -56,7 +56,7 @@ Usage:
   {$environment->executableName} tool [arguments]
   
 Available tools:
-  export            Extract localizable strings
+  extract           Extract localizable strings
   import            Import translations from sources and write them to each project's translation files
   translate         Translate localizable strings in a codebase to a certain locale
   analyze           Test localizable strings validity and similarity

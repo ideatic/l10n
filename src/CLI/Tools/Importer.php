@@ -10,6 +10,7 @@ use ideatic\l10n\Catalog\Serializer\Serializer;
 use ideatic\l10n\CLI\Environment;
 use ideatic\l10n\Domain;
 use ideatic\l10n\ImportSource;
+use ideatic\l10n\LString;
 use ideatic\l10n\Project;
 use ideatic\l10n\ProjectTranslations;
 use ideatic\l10n\Utils\IO;
@@ -22,7 +23,7 @@ class Importer
     public static function run(Environment $environment): void
     {
         // Obtener dominios disponibles
-        $domains = Exporter::scanDomains($environment);
+        $domains = Extractor::scanDomains($environment);
 
         if (isset($environment->params['domain'])) {
             $domains = array_filter(
@@ -66,11 +67,18 @@ class Importer
                 );
 
                 if (!empty($notFound)) {
+                    $summaryString = function (LString $string): string {
+                        $string = mb_trim(str_replace(["\n", "\r"], ['\n', '\r'], $string->text));
+                        if (mb_strlen($string) > 50) {
+                            $string = mb_substr($string, 0, 47) . '...';
+                        }
+                        return "'{$string}'";
+                    };
                     echo "\t\t" . strtr(
                             '%count% strings not found: %strings%',
                             [
                                 '%count%' => number_format(count($notFound)),
-                                '%strings%' => implode(', ', array_map(fn(array $strings) => $strings[0]->id, array_slice($notFound, 0, 5))) . '...',
+                                '%strings%' => implode(', ', array_map(fn(array $strings) => $summaryString($strings[0]), array_slice($notFound, 0, 5))) . '...',
                             ],
                         ) . "\n";
                 }
@@ -110,34 +118,32 @@ class Importer
     }
 
     /**
-     * @param ImportSource|stdClass|list<ImportSource> $source
+     * @param ImportSource|stdClass|list<ImportSource> $sources
      */
     public static function _prepareTranslator(
-        ImportSource|stdClass|array $source,
+        ImportSource|stdClass|array $sources,
         Domain $domain,
         string $locale,
         Environment $environment
     ): \ideatic\l10n\Translation\Provider {
         $loadedCatalogs = [];
-        /** @var ImportSource|stdClass $translationsSource */
-        foreach (Utils::wrapArray($source) as $sourceIndex => $translationsSource) {
-            $translationsCatalog = self::_getCatalogFromSource($domain, $translationsSource, $locale, $environment);
+        /** @var ImportSource|stdClass $source */
+        foreach (Utils::wrapArray($sources) as $sourceIndex => $source) {
+            $translationsCatalog = self::_getCatalogFromSource($domain, $source, $locale, $environment);
 
             if ($translationsCatalog) {
                 $loadedCatalogs[] = $translationsCatalog;
 
-                if ($translationsSource->addComment ?? null) { // Añadir comentario si el proveedor de la traducción es el actual
+                if ($source->addComment ?? null) { // Añadir comentario si el proveedor de la traducción es el actual
                     foreach ($domain->strings as $string) {
                         foreach ($loadedCatalogs as $catalog) {
                             $translation = $catalog->getTranslation($string[0]);
                             if (isset($translation)) { // Si la cadena está en el catálogo
-
-
                                 if ($catalog === $translationsCatalog) {
                                     // Comprobar si ya existe el comentario en alguna línea
-                                    if (!in_array($translationsSource->addComment, explode("\n", $translation->metadata->comments ?? ''))) {
+                                    if (!in_array($source->addComment, explode("\n", $translation->metadata->comments ?? ''))) {
                                         $translation->metadata->comments ??= '';
-                                        $translation->metadata->comments = mb_trim("{$translation->metadata->comments}\n{$translationsSource->addComment}");
+                                        $translation->metadata->comments = mb_trim("{$translation->metadata->comments}\n{$source->addComment}");
                                     }
                                 } else {
                                     break;
@@ -146,20 +152,26 @@ class Importer
                         }
                     }
                 }
-            } else { // Usar traducciones ya existentes en otros proyectos
-                echo "\t\tUnable to get translations for '{$domain->name}', locale {$locale}, source #{$sourceIndex}\n";
+            } else {
+                $sourceName = isset($source->name) ? "'{$source->name}'" : "#{$sourceIndex}";
+                echo "\t\tUnable to get translations for '{$domain->name}', locale {$locale}, source {$sourceName}\n";
             }
         }
 
-        if (isset($domain->translator) && $domain->translator instanceof \ideatic\l10n\Translation\Provider\Catalog) {
-            // Si ya había un proveedor de traducciones, añadir las nuevas traducciones al principio para que tengan prioridad
-            foreach (array_reverse($loadedCatalogs) as $catalog) {
-                $domain->translator->prependCatalog($catalog);
-            }
-            return $domain->translator;
-        } else {
-            return new \ideatic\l10n\Translation\Provider\Catalog($loadedCatalogs);
+        // Configurar el traductor del dominio para que utilice las traducciones cargadas, dando prioridad a las fuentes más recientes
+        $domain->translator ??= new \ideatic\l10n\Translation\Provider\Fallback();
+        if (!($domain->translator instanceof \ideatic\l10n\Translation\Provider\Fallback)) {
+            throw new \Exception("Domain '{$domain->name}' already has a translator assigned, but it's not a Fallback provider, can't merge translations!");
         }
+
+        foreach (array_reverse($loadedCatalogs) as $catalog) {
+            $domain->translator->prependTranslator(new \ideatic\l10n\Translation\Provider\Catalog($catalog));
+        }
+
+        // Añadir como último recurso las traducciones ya existentes en los archivos de traducción de los proyectos
+        $domain->translator->addTranslator(new \ideatic\l10n\Translation\Provider\Projects($environment->config));
+
+        return $domain->translator;
     }
 
     private static function _getCatalogFromSource(Domain $domain, ImportSource|stdClass $source, string $locale, Environment $environment): ?Catalog
@@ -238,7 +250,7 @@ class Importer
         );
 
         if (!is_dir($translationsStore->path)) {
-            mkdir($translationsStore->path);
+            mkdir($translationsStore->path, recursive: true);
         }
 
         $catalogPath = IO::combinePaths($translationsStore->path, $fileName);

@@ -26,7 +26,7 @@ class JSON extends ArraySerializer
             foreach ($domains as $domain) {
                 foreach ($domain->strings as $strings) {
                     $row = [];
-                    $string = reset($strings);
+                    $string = array_first($strings);
                     $translation = $this->locale
                         ? $domain->translator->getTranslation($string, $this->locale, false)
                         : null;
@@ -85,9 +85,7 @@ class JSON extends ArraySerializer
                         }
                     }
 
-                    if (isset($translation)) {
-                        $row['translation'] = $translation->translation;
-                    }
+                    $row['translation'] = $translation?->translation;
 
                     /*if (count($row) == 2 && isset($row['translation']) && $row['original'] == $string->fullyQualifiedID()) {
                         $row = $row['translation'];

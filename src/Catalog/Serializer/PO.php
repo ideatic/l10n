@@ -56,7 +56,7 @@ class PO extends Serializer
         // Escribir cadenas
         foreach ($domains as $domain) {
             foreach ($domain->strings as $strings) {
-                $string = reset($strings);
+                $string = array_first($strings);
                 $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false) : null;
 
                 $isICU = false;
