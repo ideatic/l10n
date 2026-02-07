@@ -9,7 +9,7 @@ use ideatic\l10n\Catalog\Translation;
 use ideatic\l10n\LString;
 use InvalidArgumentException;
 
-class JSON extends ArrayLoader
+class JSON extends Loader
 {
     /** @inheritDoc */
     public function load(string $content, string $locale): Catalog

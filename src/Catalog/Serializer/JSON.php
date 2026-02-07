@@ -8,7 +8,7 @@ use ideatic\l10n\LString;
 use ideatic\l10n\Project;
 use stdClass;
 
-class JSON extends ArraySerializer
+class JSON extends Serializer
 {
     public function __construct()
     {
@@ -73,7 +73,19 @@ class JSON extends ArraySerializer
                         $row['locations'] = array_map(fn(LString $str) => "{$str->file}:{$str->line}", $strings);
                     }
 
-                    foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
+                    $referenceLocales = $this->referenceTranslation ?? [];
+                    foreach ($referenceLocales as $k => $referenceLocale) {
+                        if (str_starts_with($referenceLocale, 'pending:')) {
+                            unset($referenceLocales[$k]);
+                            foreach (explode(',', substr($referenceLocale, strlen('pending:'))) as $localeToCheck) {
+                                if ($domain->translator->getTranslation($string, $localeToCheck, false) === null) {
+                                    $referenceLocales[] = $localeToCheck;
+                                }
+                            }
+                        }
+                    }
+
+                    foreach ($referenceLocales as $referenceLocale) {
                         if ($referenceLocale != $this->locale) {
                             $referenceTranslation = $domain->translator->getTranslation($string, $referenceLocale, false);
                             if ($this->locale) {

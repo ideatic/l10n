@@ -213,11 +213,16 @@ class Importer
         }
 
         // Procesar archivo recibido
-        $loader = Loader::factory($source->format ?? 'po');
-        $catalog = $loader->load($content, $locale);
-        $catalog->removeComments(); // Eliminar comentarios de las traducciones para que no se incluyan al serializar
+        try {
+            $loader = Loader::factory($source->format ?? 'po');
+            $catalog = $loader->load($content, $locale);
+            $catalog->removeComments(); // Eliminar comentarios de las traducciones para que no se incluyan al serializar
+        } catch (\Exception $e) {
+            echo "\033[31m\n\t\tError loading translations for domain '{$domain->name}' locale {$locale}: {$e->getMessage()}\033[0m\n";
+            throw $e;
+        }
 
-        echo " {$catalog->entryCount()} entries\n";
+        echo " {$catalog->entryCount()} translations\n";
 
         return $catalog;
     }

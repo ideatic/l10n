@@ -144,11 +144,13 @@ class Extractor
             if ($referenceLocale === 'all') {
                 $referenceTranslation = array_merge(
                     $referenceTranslation,
-                    array_map(
-                        fn(string|\stdClass $info): string => is_object($info) ? $info->code : $info,
-                        $environment->config->targetLocales,
-                    ),
+                    array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->code : $info, $environment->config->targetLocales),
                 );
+            } elseif ($referenceLocale === 'pending') {
+                $referenceTranslation[] = 'pending:' . implode(
+                        ',',
+                        array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->code : $info, $environment->config->targetLocales)
+                    );
             } elseif ($referenceLocale && $referenceLocale[0] == '-') { // Eliminar idioma de referencia
                 $referenceTranslation = array_diff($referenceTranslation, [substr($referenceLocale, 1)]);
             } elseif ($referenceLocale) {
@@ -167,6 +169,17 @@ class Extractor
     {
         $filtered = array_filter($domain->strings, function (/** @param list<LString> $strings */ array $strings) use ($destinyConfig, $domain, $serializer) {
             $valid = true;
+
+
+            $referenceLocales = $serializer->referenceTranslation ?? [];
+            foreach ($referenceLocales as $k => $referenceLocale) {
+                if (str_starts_with($referenceLocale, 'pending:')) {
+                    unset($referenceLocales[$k]);
+                    foreach (explode(',', substr($referenceLocale, strlen('pending:'))) as $localeToCheck) {
+                        $referenceLocales[] = $localeToCheck;
+                    }
+                }
+            }
 
             // Incluir si tiene un comentario específico
             if ($destinyConfig->filter->hasComment ?? false) {
@@ -195,14 +208,12 @@ class Extractor
                         return true;
                     }
                 }
-                if(!empty($serializer->referenceTranslation)) {
-                    foreach ($serializer->referenceTranslation as $locale) {
+                    foreach ($referenceLocales as $locale) {
                         $translation = $domain->translator->getTranslation(array_first($strings), $locale, false);
                         if ($translation?->metadata && $hasSpecificComment($translation->metadata)) {
                             return true;
                         }
                     }
-                }
 
                 return false;
             }
@@ -214,7 +225,7 @@ class Extractor
                     }
                 } else { // Incluir si al menos un idioma de referencia no tiene traducción
                     $allTranslated = true;
-                    foreach ($serializer->referenceTranslation as $locale) {
+                    foreach ($referenceLocales as $locale) {
                         if ($domain->translator->getTranslation(array_first($strings), $locale, false) === null) {
                             $allTranslated = false;
                         }
