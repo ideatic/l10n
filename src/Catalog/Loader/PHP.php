@@ -4,110 +4,279 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\Catalog\Loader;
 
+use Exception;
 use ideatic\l10n\Catalog\Catalog;
 use ideatic\l10n\Catalog\Translation;
 use ideatic\l10n\LString;
+use PhpToken;
 
+/**
+ * Carga catálogos de traducción desde archivos PHP que retornan un diccionario.
+ * Analiza los tokens nativos de PHP para evitar el uso de eval() y mejorar la seguridad.
+ */
 class PHP extends Loader
 {
-    /** @inheritDoc */
+    /**
+     * @inheritDoc
+     * @throws Exception Si el archivo PHP no tiene un formato válido o seguro.
+     */
     public function load(string $content, string $locale): Catalog
     {
-        if (preg_match('/^<\?php\s+declare\s*\(\s*strict_types\s*=\s*1\)\s*;/i', $content, $match)) {
-            $content = '<?php ' . substr($content, strlen($match[0]));
+        // Tokenizar el contenido completo
+        $tokens = PhpToken::tokenize($content);
+        $count = count($tokens);
+        $pos = 0;
+
+        // 1. Encontrar la sentencia 'return'
+        $this->_seekToken($tokens, $pos, [T_RETURN]);
+        $pos++; // Consumir 'return'
+
+        // 2. Verificar inicio de array ('[' o 'array(')
+        $token = $this->_getNextSignificantToken($tokens, $pos);
+
+        if ($token === null) {
+            throw new Exception('Invalid PHP translation file: unexpected end of file after return.');
         }
 
-        $tokens = \PhpToken::tokenize($content);
-        $pos = 1; // Ignorar el <?php inicial
-        $this->_ignoreEmptyTokens($tokens, $pos);
+        $isArrayShort = $token->text === '[';
+        $isArrayLong = $token->id === T_ARRAY;
 
-        // Buscar el primer return
-        if ($tokens[$pos]->id != T_RETURN) {
-            throw new \Exception('Invalid PHP translation file: an array return was expected');
+        if (!$isArrayShort && !$isArrayLong) {
+            throw new Exception(
+                sprintf(
+                    'Invalid PHP translation file: an array was expected, "%s" found at line %d.',
+                    $token->text,
+                    $token->line
+                )
+            );
         }
 
-        $pos++;
-        $this->_ignoreEmptyTokens($tokens, $pos);
-
-        // Buscar comienzo del array
-        if ($tokens[$pos]->text != '[' && $tokens[$pos]->id != T_ARRAY) {
-            throw new \Exception('Invalid PHP translation file: an array return was expected');
+        if ($isArrayLong) {
+            $pos++; // Consumir 'array'
+            $token = $this->_getNextSignificantToken($tokens, $pos);
+            if ($token?->text !== '(') {
+                throw new Exception('Invalid PHP translation file: "(" expected after "array".');
+            }
         }
-        $pos++;
-        $this->_ignoreEmptyTokens($tokens, $pos);
 
-        // Leer array
+        $pos++; // Consumir '[' o '('
+
+        // 3. Parsear el contenido del array
+        $strings = $this->_parseArrayContent($tokens, $pos, $isArrayShort ? ']' : ')');
+
+        return new Catalog($locale, $strings);
+    }
+
+    /**
+     * Parsea el contenido interno del array de traducciones.
+     *
+     * @param list<PhpToken> $tokens
+     * @param int $pos Referencia a la posición actual.
+     * @param string $closingChar Carácter de cierre esperado (']' o ')').
+     *
+     * @return array<string, Translation>
+     * @throws Exception
+     */
+    private function _parseArrayContent(array $tokens, int &$pos, string $closingChar): array
+    {
         $strings = [];
+        $count = count($tokens);
 
-        for (; $pos < count($tokens);) {
-            $entryStart = $pos;
-            $token = $this->_ignoreEmptyTokens($tokens, $pos);
+        while ($pos < $count) {
+            // Capturar comentarios previos a la clave
+            $comments = '';
+            $token = $this->_getNextSignificantToken($tokens, $pos, $comments);
 
-            if ($token->text == ']' || $token->text == ')') { // Fin del array
+            if ($token === null) {
+                throw new Exception('Invalid PHP translation file: unexpected end of file inside array.');
+            }
+
+            // Verificar fin de array
+            if ($token->text === $closingChar) {
+                $pos++;
                 break;
             }
 
-            if ($token->id == T_CONSTANT_ENCAPSED_STRING) {
-                // Leer clave
-                $key =str_replace("\\'", "'", substr($token->text, 1, -1));
-                $pos++;
-                $token = $this->_ignoreEmptyTokens($tokens, $pos);
-                if ($token->id != T_DOUBLE_ARROW) {
-                    throw new \Exception("Invalid PHP translation file: \"=>\" was expected for key {$key}, {$token->text} found at {$token->line}:{$token->pos}");
-                }
-                $pos++;
-                $token = $this->_ignoreEmptyTokens($tokens, $pos);
-
-                // Leer valor
-                if ($token->id == T_CONSTANT_ENCAPSED_STRING) {
-                    $value = str_replace("\\'", "'", substr($token->text, 1, -1));
-                } else {
-                    throw new \Exception("Invalid PHP translation file: a string was expected as value, {$token->text} found at {$token->line}:{$token->pos}");
-                }
-
-                $pos++;
-                $token = $this->_ignoreEmptyTokens($tokens, $pos);
-
-                // Leer todos los comentarios hasta la posición actual
-                $metadata = new LString();
-                $metadata->id = $key;
-                $metadata->line = $token->line;
-                $metadata->offset = $token->pos;
-                for ($i = $entryStart; $i <= $pos; $i++) {
-                    if ($tokens[$i]->id == T_COMMENT) {
-                        $content = trim(substr($tokens[$i]->text, 2, -2));
-                        $metadata->comments = trim(($metadata->comments ?? '') . PHP_EOL . $content);
-                    }
-                }
-
-                $strings[$key] = new Translation($value, $metadata);
-
-                if ($token->text == ',') { // Separador de elementos
+            // --- 1. Leer Clave ---
+            if ($token->id !== T_CONSTANT_ENCAPSED_STRING) {
+                // Permitir coma final (trailing comma)
+                if ($token->text === ',') {
                     $pos++;
+                    continue;
                 }
-            } else {
-                throw new \Exception("Invalid PHP translation file: a string key was expected, {$token->text} found at {$token->line}:{$token->pos}");
+                throw new Exception(
+                    sprintf(
+                        'Invalid PHP translation file: string key expected, "%s" found at line %d.',
+                        $token->text,
+                        $token->line
+                    )
+                );
+            }
+
+            $keyRaw = $token->text;
+            $keyLine = $token->line;
+            $keyOffset = $token->pos;
+
+            // Decodificar clave
+            $key = $this->_decodeString($keyRaw);
+            $pos++;
+
+            // --- 2. Leer Flecha (=>) ---
+            $token = $this->_getNextSignificantToken($tokens, $pos);
+            if ($token?->id !== T_DOUBLE_ARROW) {
+                throw new Exception(
+                    sprintf(
+                        'Invalid PHP translation file: "=>" expected after key "%s" at line %d.',
+                        $key,
+                        $keyLine
+                    )
+                );
+            }
+            $pos++;
+
+            // --- 3. Leer Valor ---
+            $token = $this->_getNextSignificantToken($tokens, $pos);
+            if ($token?->id !== T_CONSTANT_ENCAPSED_STRING) {
+                throw new Exception(
+                    sprintf(
+                        'Invalid PHP translation file: string value expected for key "%s" at line %d.',
+                        $key,
+                        $keyLine
+                    )
+                );
+            }
+
+            $value = $this->_decodeString($token->text);
+            $pos++;
+
+            // --- 4. Construir Objeto ---
+            $metadata = new LString();
+            $metadata->id = $key;
+            $metadata->line = $keyLine;
+            $metadata->offset = $keyOffset;
+
+            if ($comments !== '') {
+                $metadata->comments = $comments;
+            }
+
+            $strings[$key] = new Translation($value, $metadata);
+
+            // --- 5. Verificar coma o cierre ---
+            $token = $this->_getNextSignificantToken($tokens, $pos);
+            if ($token?->text === ',') {
+                $pos++; // Consumir coma y continuar bucle
+            } elseif ($token?->text !== $closingChar) {
+                throw new Exception(
+                    sprintf(
+                        'Invalid PHP translation file: "," or "%s" expected at line %d.',
+                        $closingChar,
+                        $token->line ?? -1
+                    )
+                );
             }
         }
 
-        return new Catalog($locale, $strings);
-
-        // Opción alternativa: eval
-        /*  if (preg_match('/^<\?php\s+declare\s*\(\s*strict_types\s*=\s*1\)\s*;/i', $content, $match)) {
-            $content = substr($content, strlen($match[0]));
-            return $this->_parse(eval($content), $locale);
-          } else {
-            return $this->_parse(eval("?> {$content}"), $locale);
-          }*/
+        return $strings;
     }
 
-    private function _ignoreEmptyTokens(array $tokens, int &$pos): \PhpToken|null
+    /**
+     * Avanza el puntero ignorando espacios y, opcionalmente, capturando comentarios.
+     *
+     * @param list<PhpToken> $tokens
+     * @param int $pos Referencia al puntero actual.
+     * @param string|null $capturedComments Referencia para almacenar comentarios encontrados (opcional).
+     *
+     * @return PhpToken|null El siguiente token significativo o null si fin de archivo.
+     */
+    private function _getNextSignificantToken(array $tokens, int &$pos, ?string &$capturedComments = null): ?PhpToken
     {
-        while ($pos < count($tokens) && in_array($tokens[$pos]->id, [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT])) {
+        $count = count($tokens);
+
+        while ($pos < $count) {
+            $token = $tokens[$pos];
+
+            if ($token->is(T_WHITESPACE)) {
+                $pos++;
+                continue;
+            }
+
+            if ($token->is([T_COMMENT, T_DOC_COMMENT])) {
+                if ($capturedComments !== null) {
+                    // Limpiar el comentario (//, #, /* */)
+                    $cleanComment = $this->_cleanComment($token->text);
+                    $capturedComments = $capturedComments === ''
+                        ? $cleanComment
+                        : $capturedComments . PHP_EOL . $cleanComment;
+                }
+                $pos++;
+                continue;
+            }
+
+            return $token;
+        }
+
+        return null;
+    }
+
+    /**
+     * Busca hacia adelante hasta encontrar uno de los tipos de token solicitados.
+     *
+     * @param list<PhpToken> $tokens
+     * @param int $pos
+     * @param int[] $tokenTypes
+     * @throws Exception Si no se encuentra el token.
+     */
+    private function _seekToken(array $tokens, int &$pos, array $tokenTypes): void
+    {
+        $count = count($tokens);
+        while ($pos < $count) {
+            if ($tokens[$pos]->is($tokenTypes)) {
+                return;
+            }
             $pos++;
         }
 
-        return $tokens[$pos] ?? null;
+        throw new Exception('Invalid PHP translation file: required token not found.');
+    }
+
+    /**
+     * Decodifica un string PHP (con comillas simples o dobles) a su valor real
+     * sin usar eval().
+     */
+    private function _decodeString(string $raw): string
+    {
+        $quote = $raw[0];
+        $content = substr($raw, 1, -1);
+
+        if ($quote === "'") {
+            // Estándar PHP comillas simples: solo escapa \' y \\
+            return str_replace(['\\\'', '\\\\'], ["'", '\\'], $content);
+        }
+
+        if ($quote === '"') {
+            // Estándar PHP comillas dobles: stripcslashes maneja la mayoría (\n, \t, \", \\, etc.)
+            // Nota: No soportamos interpolación de variables {$var} por seguridad.
+            return stripcslashes($content);
+        }
+
+        return $raw;
+    }
+
+    /**
+     * Limpia los delimitadores de comentarios PHP.
+     */
+    private function _cleanComment(string $text): string
+    {
+        if (str_starts_with($text, '//')) {
+            return trim(substr($text, 2));
+        }
+        if (str_starts_with($text, '#')) {
+            return trim(substr($text, 1));
+        }
+        if (str_starts_with($text, '/*')) {
+            // Remover /* y */
+            return trim(substr($text, 2, -2));
+        }
+        return trim($text);
     }
 }
-

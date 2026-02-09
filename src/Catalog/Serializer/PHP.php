@@ -8,7 +8,7 @@ use ideatic\l10n\LString;
 use ideatic\l10n\Project;
 use stdClass;
 
-class PHP extends ArraySerializer
+class PHP extends Serializer
 {
     /** @inheritDoc */
     public function generate(array $domains, stdClass|Project|null $config = null): string
