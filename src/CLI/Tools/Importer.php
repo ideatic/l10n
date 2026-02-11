@@ -159,10 +159,7 @@ class Importer
         }
 
         // Configurar el traductor del dominio para que utilice las traducciones cargadas, dando prioridad a las fuentes más recientes
-        $domain->translator ??= new \ideatic\l10n\Translation\Provider\Fallback();
-        if (!($domain->translator instanceof \ideatic\l10n\Translation\Provider\Fallback)) {
-            throw new \Exception("Domain '{$domain->name}' already has a translator assigned, but it's not a Fallback provider, can't merge translations!");
-        }
+        $domain->translator = new \ideatic\l10n\Translation\Provider\Fallback();
 
         foreach (array_reverse($loadedCatalogs) as $catalog) {
             $domain->translator->prependTranslator(new \ideatic\l10n\Translation\Provider\Catalog($catalog));
