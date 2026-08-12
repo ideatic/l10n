@@ -7,13 +7,17 @@ namespace ideatic\l10n\Catalog;
 use ideatic\l10n\LString;
 
 /**
- * Representa una traducción de un catálogo
+ * Represents a translation held in a catalog
  */
 class Translation
 {
-    /** Catálogo de traducciones al que pertenece esta traducción */
+    /** Catalog this translation belongs to */
     public Catalog $catalog;
 
+    /**
+     * @param string  $translation The translated text
+     * @param LString $metadata    What the catalog knows about the source string: its id, context and comments
+     */
     public function __construct(
         public readonly string $translation,
         public readonly LString $metadata = new LString()

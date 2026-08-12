@@ -7,12 +7,12 @@ namespace ideatic\l10n\String;
 use ideatic\l10n\LString;
 
 /**
- * Proveedor de cadenas traducibles
+ * Provider of translatable strings
  */
 abstract class Provider
 {
   /**
-   * Obtiene las cadenas traducibles encontradas por este proveedor
+   * Gets the translatable strings found by this provider
    * @return LString[]
    */
   public abstract function getStrings(): array;

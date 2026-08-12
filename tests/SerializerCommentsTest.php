@@ -11,9 +11,9 @@ use PHPUnit\Framework\TestCase;
 require_once 'AnalysisFixtures.php';
 
 /**
- * Los comentarios de una cadena se combinan en cada exportación con los que ya venían del catálogo. Si esa
- * combinación compara bloques enteros en lugar de líneas, el bloque anterior nunca coincide con las líneas sueltas
- * que lo forman y el comentario crece una copia por exportación.
+ * The comments of a string are merged on every export with those already coming from the catalog. If that merge
+ * compares whole blocks instead of lines, the previous block never matches the individual lines composing it and
+ * the comment grows by one copy per export.
  */
 class SerializerCommentsTest extends TestCase
 {
@@ -32,7 +32,7 @@ class SerializerCommentsTest extends TestCase
 
     public function testTheCatalogBlockIsComparedLineByLine(): void
     {
-        // Lo que devuelve el catálogo es el resultado de combinaciones anteriores
+        // What the catalog returns is the result of previous merges
         $previous = "Pendiente de respuesta\nIndica que una invitación está sin contestar";
 
         $merged = CommentMerger::merge(['Pendiente de respuesta', $previous]);
@@ -54,7 +54,7 @@ class SerializerCommentsTest extends TestCase
         $this->assertSame("Una nota\nOtra nota", $merged);
     }
 
-    /** Diez apariciones de la misma cadena con el mismo comentario no son diez comentarios */
+    /** Ten occurrences of the same string with the same comment are not ten comments */
     public function testExportingTwiceDoesNotGrowTheComment(): void
     {
         $comment = 'Pendiente de respuesta';
@@ -63,14 +63,14 @@ class SerializerCommentsTest extends TestCase
 
         $this->assertSame($comment, $rows[0]['comments']);
 
-        // Segunda exportación: lo que se escribió antes vuelve a entrar a través del catálogo
+        // Second export: what was written before comes back in through the catalog
         $again = $this->_export($comment, $rows[0]['comments']);
 
         $this->assertSame($comment, $again[0]['comments']);
     }
 
     /**
-     * Exporta tres apariciones de la misma cadena, simulando que el catálogo anterior ya llevaba un comentario
+     * Exports three occurrences of the same string, pretending the previous catalog already carried a comment
      *
      * @return list<array<string, mixed>>
      */
@@ -106,7 +106,7 @@ class SerializerCommentsTest extends TestCase
 }
 
 /**
- * Da acceso al método protegido de combinación, que es donde vive la regla
+ * Exposes the protected merge method, which is where the rule lives
  */
 class CommentMerger extends Serializer
 {

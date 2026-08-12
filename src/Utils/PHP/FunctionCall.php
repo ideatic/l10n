@@ -8,50 +8,49 @@ use Exception;
 use Throwable;
 
 /**
- * Representa una llamada a una función de PHP
+ * Represents a call to a PHP function
  */
 class FunctionCall
 {
 
     /**
-     * Nombre de la función o método invocado
+     * Name of the invoked function or method
      */
     public string $method;
 
     /**
-     * Código completo de llamada al método, incluido el objeto o clase al que pertenece
+     * Full code of the method call, including the object or class it belongs to
      */
     public string $fullMethod;
 
     /**
-     * Código PHP de la llamada al método completa, incluido objeto, clase y argumentos
+     * PHP code of the complete method call, including object, class and arguments
      */
     public string $code;
 
     /**
-     * Array con el código PHP de los argumentos de la llamada
+     * Array with the PHP code of the call arguments
      * @var string[]
      */
     public array $arguments;
 
     /**
-     * Posición en el código fuente original de la llamada al método
+     * Position in the original source code of the method call
      */
     public int $offset;
 
     /**
-     * Posición en el código fuente original de la llamada al método completo
+     * Position in the original source code of the complete method call
      */
     public int $fullMethodOffset;
 
     /**
-     * Línea en el código fuente original de la llamada al método
+     * Line in the original source code of the method call
      */
     public int $line;
 
     /**
-     * Obtiene un método que indica si la llamada es a una función normal (TRUE) o
-     * a un método de clase (FALSE)
+     * Tells whether the call targets a plain function (TRUE) or a class method (FALSE)
      */
     public function isFunction(): bool
     {
@@ -59,8 +58,7 @@ class FunctionCall
     }
 
     /**
-     * Obtiene el código fuente de la llamada completa, incluyendo los objetos
-     * que contienen el método invocado
+     * Gets the source code of the complete call, including the objects holding the invoked method
      */
     public function fullMethodName(): string
     {
@@ -68,7 +66,7 @@ class FunctionCall
     }
 
     /**
-     * Obtiene el número de argumentos que tiene esta llamada a función
+     * Gets how many arguments this function call has
      */
     public function argumentCount(): int
     {
@@ -76,7 +74,7 @@ class FunctionCall
     }
 
     /**
-     * Obtiene el valor procesado de todos los parámetros de esta llamada
+     * Gets the parsed value of every parameter of this call
      */
     public function parseArguments(): array
     {
@@ -88,9 +86,9 @@ class FunctionCall
     }
 
     /**
-     * Obtiene el valor procesado del parámetro con el índice indicado
+     * Gets the parsed value of the parameter at the given index
      *
-     * @param boolean $protectVarStrings Valor que indica si se evitará un error de variable no definida al intentar procesar cadenas con variables. P.ej.: "Hola $name"
+     * @param boolean $protectVarStrings Whether to avoid an undefined variable error when parsing strings holding variables. E.g.: "Hola $name"
      *
      * @return mixed
      */
@@ -126,7 +124,7 @@ class FunctionCall
     }
 
     /**
-     * Obtiene los tokens PHP que forman el argumento indicado
+     * Gets the PHP tokens making up the given argument
      */
     private function _getArgumentTokens(int $index): array
     {
@@ -138,7 +136,7 @@ class FunctionCall
 
         $tokens = token_get_all($code);
 
-        // Eliminar tokens de comienzo y final de código PHP
+        // Remove the PHP open and close tokens
         $lastKey = count($tokens) - 1;
 
         if ($tokens[0][0] == T_OPEN_TAG) {
@@ -152,10 +150,10 @@ class FunctionCall
     }
 
     /**
-     * Obtiene un valor que indica si el parámetro con el índice indicado es una cadena de texto constante.
+     * Tells whether the parameter at the given index is a constant text string.
      *
-     * Se admite la concatenación de literales ('a' . 'b'), imprescindible para poder repartir en varias líneas los
-     * patrones ICU largos: PHP la resuelve en tiempo de compilación, así que el valor sigue siendo constante.
+     * Concatenation of literals ('a' . 'b') is accepted, which is essential to spread long ICU patterns over
+     * several lines: PHP resolves it at compile time, so the value is still constant.
      */
     public function isConstantString(int $index): bool
     {
@@ -163,10 +161,10 @@ class FunctionCall
     }
 
     /**
-     * Obtiene un valor que indica si el parámetro con el índice indicado incluye algún literal de texto.
+     * Tells whether the parameter at the given index holds any text literal.
      *
-     * Sirve para distinguir una indirección deliberada (__($mensaje), que no hay nada que extraer) de un texto
-     * escrito en el propio código que el extractor no puede procesar (__('Hola ' . $nombre)).
+     * Useful to tell a deliberate indirection (__($message), where there is nothing to extract) apart from text
+     * written in the code itself that the extractor cannot process (__('Hola ' . $name)).
      */
     public function containsStringLiteral(int $index): bool
     {
@@ -181,7 +179,7 @@ class FunctionCall
     }
 
     /**
-     * Obtiene un valor que indica si todos los parámetros son valores escalares
+     * Tells whether every parameter is a scalar value
      */
     public function allScalar(): bool
     {
@@ -194,8 +192,7 @@ class FunctionCall
     }
 
     /**
-     * Obtiene un valor que indica si el parámetro con el índice indicado es un
-     * escalar (cadena, número, boolean, etc.)
+     * Tells whether the parameter at the given index is a scalar (string, number, boolean, etc.)
      * @see http://php.net/manual/en/function.is-scalar.php
      */
     public function isScalar(int $index): bool
@@ -213,7 +210,7 @@ class FunctionCall
                 T_STRING_VARNAME,
                 T_NUM_STRING, //Strings
                 T_DNUMBER,
-                T_LNUMBER, //Números
+                T_LNUMBER, // Numbers
                 T_STRING, //Booleans
                 T_COMMENT,//Comentarios
                 T_DOC_COMMENT,
@@ -222,14 +219,13 @@ class FunctionCall
     }
 
     /**
-     * Obtiene un valor que indica si el parámetro con el índice indicado es
-     * un array
+     * Tells whether the parameter at the given index is an array
      */
     public function isArray(int $index): bool
     {
         $tokens = $this->_getArgumentTokens($index);
 
-        // Ignorar espacios en blanco y comentarios antes del array
+        // Skip the whitespace and comments preceding the array
         $allowed = [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT];
 
         $pos = 0;
@@ -239,12 +235,12 @@ class FunctionCall
             }
         }
 
-        // Comprobar si el array comienza inmediatamente después
+        // Check whether the array starts immediately afterwards
         return isset($tokens[$pos]) && ($tokens[$pos][0] == T_ARRAY || $tokens[$pos] == '[');
     }
 
     /**
-     * Obtiene los comentarios incluidos en el argumento de índice indicado
+     * Gets the comments held in the argument at the given index
      *
      * @return string[]
      */
@@ -257,7 +253,7 @@ class FunctionCall
             if ($token[0] == T_COMMENT || $token[0] == T_DOC_COMMENT) {
                 $comment = $token[1];
 
-                // Limpiar comentario
+                // Clean the comment up
                 if (str_starts_with($comment, '/*')) {
                     $comment = substr($comment, 2, -2);
                 } elseif (str_starts_with($comment, '//')) {

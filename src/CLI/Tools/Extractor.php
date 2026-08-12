@@ -14,7 +14,7 @@ use ideatic\l10n\Utils\Locale;
 use ideatic\l10n\Utils\Utils;
 
 /**
- * Herramienta para extraer las cadenas localizables del código fuente y generar archivos de traducción
+ * Tool to extract the localizable strings from the source code and generate translation files
  */
 class Extractor
 {
@@ -35,7 +35,7 @@ class Extractor
                 ? array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->code : $info, $environment->config->targetLocales)
                 : [$locale];
 
-            // Definir dominios a incluir en los archivos generados
+            // Define the domains to include in the generated files
             $domainNames = $environment->params['domains'] ?? $environment->params['domain'] ?? '';
             if ($domainNames == 'all') {
                 $domainNames = array_column($domains, 'name');
@@ -48,7 +48,7 @@ class Extractor
             }
             $domainNames = array_unique($domainNames);
 
-            // Generar archivos
+            // Generate the files
             foreach ($domains as $domain) {
                 if (!in_array($domain->name, $domainNames)) {
                     continue;
@@ -60,7 +60,7 @@ class Extractor
                 $lastGeneratedDomain = $domain->name;
 
                 foreach ($locales as $localeInfo) {
-                    // Usar como fuente para las traducciones los ficheros de traducción de los distintos proyectos
+                    // Use the translation files of the various projects as the source for the translations
                     $domain->translator = new \ideatic\l10n\Translation\Provider\Projects($environment->config);
 
                     $locale = is_object($localeInfo) ? $localeInfo->code : $localeInfo;
@@ -87,7 +87,7 @@ class Extractor
                         $domain->strings = self::_filterStrings($domain, $extractorConfig, $serializer);
                     }
 
-                    // Crear fichero
+                    // Create the file
                     $placeholders = [];
                     foreach ($environment->config->projects as $project) {
                         $placeholders["{{$project->name}}"] = $project->path;
@@ -130,7 +130,7 @@ class Extractor
     }
 
     /**
-     * Obtiene los idiomas de referencia que se van a incluir en los archivos generados
+     * Gets the reference locales to be included in the generated files
      * @return list<string>
      */
     public static function _getReferenceTranslations(ExtractionDestiny|\stdClass $extractorConfig, Environment $environment): array
@@ -181,7 +181,7 @@ class Extractor
                 }
             }
 
-            // Incluir si tiene un comentario específico
+            // Include it when it carries a specific comment
             if ($destinyConfig->filter->hasComment ?? false) {
                 $hasSpecificComment = function (LString $string) use ($destinyConfig): bool {
                     if ($destinyConfig->filter->hasComment === true) {
@@ -200,7 +200,7 @@ class Extractor
                 }
 
 
-                // Comprobar también los comentarios de las traducciones
+                // Check the comments of the translations too
                 if ($serializer->locale) {
                     $translation = $domain->translator->getTranslation(array_first($strings), $serializer->locale, false);
 
@@ -223,7 +223,7 @@ class Extractor
                     if ($domain->translator->getTranslation(array_first($strings), $serializer->locale, false) !== null) {
                         $valid = $destinyConfig->filter->status == 'pending' ? false : true;
                     }
-                } else { // Incluir si al menos un idioma de referencia no tiene traducción
+                } else { // Include it when at least one reference locale has no translation
                     $allTranslated = true;
                     foreach ($referenceLocales as $locale) {
                         if ($domain->translator->getTranslation(array_first($strings), $locale, false) === null) {
@@ -256,13 +256,13 @@ class Extractor
 
         $extractor->projects = $environment->config->projects;
 
-        // Obtener dominios disponibles
+        // Get the available domains
         $start = microtime(true);
         echo "\nScanning localizable strings... ";
 
         $domains = $extractor->getDomains();
 
-        // Mostrar resumen
+        // Show the summary
         $count = number_format(count($domains));
         $stringCount = 0;
         foreach ($domains as $domain) {

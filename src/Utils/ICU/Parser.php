@@ -6,6 +6,12 @@ namespace ideatic\l10n\Utils\ICU;
 
 use Exception;
 
+/**
+ * Turns the text of an ICU message into the node tree of a Pattern.
+ *
+ * Angular interpolations ({{ expr }}) are deliberately left alone as plain text: they are not ICU arguments, and
+ * touching them would break the template.
+ */
 class Parser
 {
   private int $_position;
@@ -22,8 +28,8 @@ class Parser
     while ($this->_position < $this->_length) {
       $char = $icuPattern[$this->_position];
 
-      if ($char == '{') { // Comienzo de expresión
-        if (($icuPattern[$this->_position + 1] ?? '') == '{') { // Comienzo de expresión Angular {{
+      if ($char == '{') { // Start of an expression
+        if (($icuPattern[$this->_position + 1] ?? '') == '{') { // Start of an Angular expression {{
           $currentTextNode .= $this->_readUntil($icuPattern, '}}') . '}}';
           $this->_position += 2;
         } else {
@@ -70,7 +76,7 @@ class Parser
 
   private function _parseExpression(string $patternStr, Pattern $pattern): Placeholder
   {
-    // Saltar el { actual
+    // Skip the current {
     $this->_position++;
 
     $placeholder = new Placeholder();
@@ -111,7 +117,7 @@ class Parser
       }
     }
 
-    // Saltar el } actual
+    // Skip the current }
     $this->_position++;
 
     return $placeholder;

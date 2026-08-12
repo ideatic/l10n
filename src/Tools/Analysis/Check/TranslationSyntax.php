@@ -136,7 +136,7 @@ class TranslationSyntax extends DomainCheck
     }
 
     /**
-     * Compara la estructura de dos patrones ICU equivalentes
+     * Compares the structure of two equivalent ICU patterns
      *
      * @return list<string>
      */
@@ -148,7 +148,7 @@ class TranslationSyntax extends DomainCheck
         $translatedTypes = self::_types($translated);
 
         foreach ($sourceTypes as $name => $type) {
-            if (!isset($translatedTypes[$name])) { // Lo informa placeholder-mismatch
+            if (!isset($translatedTypes[$name])) { // placeholder-mismatch reports it
                 continue;
             }
 

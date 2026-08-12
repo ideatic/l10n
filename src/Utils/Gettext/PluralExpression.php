@@ -5,6 +5,9 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\Utils\Gettext;
 
+/**
+ * The gettext "Plural-Forms" expressions of the most relevant locales, needed to write the header of a PO file.
+ */
 class PluralExpression
 {
   /**

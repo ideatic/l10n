@@ -13,21 +13,21 @@ use ResourceBundle;
 use const U_ZERO_ERROR;
 
 /**
- * Utilidades para trabajar con las categorías plurales CLDR de un idioma.
+ * Utilities to work with the CLDR plural categories of a language.
  *
- * PHP no expone directamente las reglas plurales de CLDR, por lo que se utiliza MessageFormatter como oráculo:
- * se le pregunta por la categoría de una serie de números y se recopilan las categorías realmente utilizadas.
+ * PHP does not expose the CLDR plural rules directly, so MessageFormatter is used as an oracle: it is asked for
+ * the category of a series of numbers and the categories actually used are collected.
  */
 abstract class Plural
 {
-    /** Orden canónico de las categorías plurales definido por CLDR */
+    /** Canonical order of the plural categories defined by CLDR */
     public const array CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other'];
 
     /**
-     * Números adicionales utilizados para descubrir las categorías plurales de un idioma.
+     * Extra numbers used to discover the plural categories of a language.
      *
-     * Se incluyen valores grandes y decimales porque categorías como 'many' en francés, italiano o portugués
-     * solo aparecen a partir del millón, y nunca se observarían probando únicamente enteros del 0 al 100.
+     * Large and fractional values are included because categories such as 'many' in French, Italian or Portuguese
+     * only show up from a million onwards, and would never be observed by probing integers from 0 to 100 alone.
      *
      * @var list<int|float>
      */
@@ -57,9 +57,9 @@ abstract class Plural
     private static array $_knownLocalesCache = [];
 
     /**
-     * Obtiene las categorías plurales CLDR aplicables al idioma indicado, en orden canónico
+     * Gets the CLDR plural categories that apply to the given locale, in canonical order
      *
-     * @param bool $ordinal Obtener las categorías ordinales (selectordinal) en lugar de las cardinales (plural)
+     * @param bool $ordinal Get the ordinal categories (selectordinal) instead of the cardinal ones (plural)
      *
      * @return list<string>
      */
@@ -69,12 +69,12 @@ abstract class Plural
     }
 
     /**
-     * Obtiene, para cada categoría plural aplicable al idioma, los valores de muestra que la seleccionan.
+     * Gets, for each plural category applying to the locale, the sample values that select it.
      *
-     * Permite distinguir las categorías que una aplicación puede llegar a mostrar de las que solo se alcanzan con
-     * cantidades enormes o con decimales, y saber si un valor concreto está ya cubierto por una clave explícita =N.
+     * It tells apart the categories an application can actually display from those only reachable with huge amounts
+     * or fractions, and whether a given value is already covered by an explicit =N key.
      *
-     * @return array<string, list<int|float>> Categorías en orden canónico
+     * @return array<string, list<int|float>> Categories in canonical order
      */
     public static function getCategoryValues(string $locale, bool $ordinal = false): array
     {
@@ -107,7 +107,7 @@ abstract class Plural
         }
 
         $values = [];
-        foreach (self::CATEGORIES as $category) { // Orden canónico
+        foreach (self::CATEGORIES as $category) { // Canonical order
             if (isset($found[$category])) {
                 $values[$category] = $found[$category];
             }
@@ -117,11 +117,11 @@ abstract class Plural
     }
 
     /**
-     * Obtiene la menor cantidad entera que selecciona la categoría indicada, o null si el idioma no la utiliza o
-     * solo la selecciona con decimales.
+     * Gets the smallest integer amount selecting the given category, or null when the locale does not use it or
+     * only selects it with fractions.
      *
-     * Se ignoran los decimales a propósito: en hebreo, por ejemplo, 'one' se selecciona con 0,5 pero también con 1,
-     * y lo que interesa saber es si una aplicación que solo cuenta unidades puede llegar a mostrarla.
+     * Fractions are ignored on purpose: in Hebrew, for instance, 'one' is selected by 0.5 but also by 1, and what
+     * matters is whether an application that only counts whole units can ever display it.
      */
     public static function getSmallestCount(string $locale, string $category, bool $ordinal = false): ?int
     {
@@ -131,10 +131,10 @@ abstract class Plural
     }
 
     /**
-     * Comprueba que ICU reconoce realmente el idioma indicado.
+     * Checks that ICU really recognises the given locale.
      *
-     * MessageFormatter acepta cualquier código de idioma y recurre silenciosamente a la configuración raíz,
-     * devolviendo categorías plurales similares a las del inglés para idiomas inexistentes.
+     * MessageFormatter accepts any language code and silently falls back to the root configuration, returning
+     * English-like plural categories for locales that do not exist.
      */
     public static function isKnownLocale(string $locale): bool
     {
@@ -142,7 +142,7 @@ abstract class Plural
             return self::$_knownLocalesCache[$locale];
         }
 
-        if (mb_trim($locale) === '') { // Locale::getPrimaryLanguage() devolvería el idioma predeterminado del sistema
+        if (mb_trim($locale) === '') { // Locale::getPrimaryLanguage() would return the default locale of the system
             return self::$_knownLocalesCache[$locale] = false;
         }
 

@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\Utils\ICU;
 
+/**
+ * A single ICU argument inside a Pattern, such as "{name}" or "{count, plural, one {...} other {...}}".
+ *
+ * When the placeholder holds a nested message its content is the set of branches, keyed by category, and each branch
+ * is a Pattern of its own.
+ */
 class Placeholder
 {
   public string $name = '';

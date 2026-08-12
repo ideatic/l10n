@@ -6,6 +6,10 @@ namespace ideatic\l10n\CLI;
 
 use ideatic\l10n\Config;
 
+/**
+ * Everything a command line tool needs in order to run: the project configuration, the parsed arguments and the
+ * exit code it wants the process to return.
+ */
 class Environment
 {
   public Config $config;
@@ -15,7 +19,7 @@ class Environment
   public array $params;
   public string $directory;
 
-  /** Código de salida devuelto por el proceso (0 = correcto) */
+  /** Exit code returned by the process (0 = success) */
   public int $exitCode = 0;
 
   public function __construct()

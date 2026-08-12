@@ -13,7 +13,7 @@ use ideatic\l10n\Utils\IO;
 use JsonException;
 
 /**
- * Proveedor de cadenas traducibles encontradas en código Javascript / TypeScript
+ * Provider of translatable strings found in Javascript / TypeScript code
  */
 class Angular extends Format
 {
@@ -25,15 +25,15 @@ class Angular extends Format
 
     public function __construct()
     {
-        // Los proyectos Angular tienen varias ubicaciones para las cadenas traducibles:
+        // Angular projects hold translatable strings in several places:
 
-        // Atributos HTML
+        // HTML attributes
         $this->_i18nHTML = new Angular_HTML();
         $this->_i18nHTML->autoDetectIcuPatterns = true;
         $this->_i18nHTML->supportAngularExpressions = true;
 
-        // Llamadas a __(), $localize, etc. en código TypeScript
-        // Llamadas a __(), $localize, etc. en código expresiones HTML
+        // Calls to __(), $localize, etc. in TypeScript code
+        // Calls to __(), $localize, etc. in HTML expressions
         $this->_i18nMethods = new Angular_Methods();
         $this->_i18nMethods->defaultDomain = $this->defaultDomain;
         $this->_i18nMethods->optimizePlaceholderReplacement = true;
@@ -63,7 +63,7 @@ class Angular extends Format
         $extension = IO::getExtension($file);
         $foundStrings = [];
 
-        // Buscar atributos i18n en el HTML
+        // Look for i18n attributes in the HTML
         if ($extension == 'html') {
             foreach ($this->_i18nHTML->getStrings($content, $file) as $string) {
                 $foundStrings[] = $string;
@@ -106,7 +106,7 @@ class Angular extends Format
 
 
     /**
-     * Obtiene las plantillas Angular de los componentes existentes en el código TypeScript indicado
+     * Gets the Angular templates of the components present in the given TypeScript code
      */
     private static function _getInlineTemplates(string $tsSource, bool $getFullDeclaration = false): array
     {
@@ -169,7 +169,7 @@ class Angular extends Format
      */
     public static function prepareString(LString $string, ?string $path = null): void
     {
-        // Reemplazar expresiones
+        // Replace the expressions
         $parsed = preg_replace_callback(
             '/{{([^{].+?)}}/us',
             function ($match) use ($string, $path) {
@@ -201,12 +201,12 @@ class Angular extends Format
             $string->text = $parsed;
         }
 
-        // Normalizar ID (en angular, el nombre del placeholder ICU es su valor interpolado, usar 'count' en su lugar)
+        // Normalise the id (in Angular the name of the ICU placeholder is its interpolated value, use 'count' instead)
         if ($string->isICU && $string->id == $string->text) {
             $pattern = new Pattern($string->text);
             $placeholders = array_filter($pattern->nodes, fn($node) => $node instanceof Placeholder);
 
-            // Procesar pipes i18n para nombrar los placeholders correctamente
+            // Process the i18n pipes so the placeholders get proper names
             $changed = false;
             if (count($placeholders) == 1 && array_first($placeholders)->type == 'plural' && !preg_match('/\|\s+i18n\:/', array_first($placeholders)->name)) {
                 array_first($placeholders)->name = 'count';
@@ -237,20 +237,20 @@ class Angular extends Format
             $pattern = new Pattern($string->text);
 
             if ($pattern->nodes[0] instanceof Placeholder && $pattern->nodes[0]->type == 'plural') {
-                // Desnormalizar ID
+                // Denormalise the id
                 $translation = str_replace('{count,', "{{$pattern->nodes[0]->name},", $translation);
 
-                // Reemplazar # por una expresión angular que formatee la cantidad
+                // Replace # with an Angular expression that formats the amount
                 if ($fixHashPluralSupport && str_contains($string->fullyQualifiedID(), '#')) {
                     $translation = str_replace('#', "{{ {$pattern->nodes[0]->name} | number }}", $translation);
                 }
 
-                // Eliminar pipe i18n
+                // Remove the i18n pipe
                 $translation = preg_replace('/\|\s+i18n\s*:\s*[\'"]\w+[\'"]\s*/', '', $translation);
             }
         }
 
-        if ($context == 'template') { // El carácter @ es especial en templates
+        if ($context == 'template') { // The @ character is special in templates
             $translation = str_replace("@", '&#64;', $translation);
         }
 
@@ -308,7 +308,7 @@ class Angular_Methods extends CStyle
     {
         $strings = parent::getStrings($code, $path);
 
-        // Eliminar comentarios de código
+        // Strip the code comments
         $code = preg_replace('/\/\/.*|\/\*[\s\S]*?\*\//', '', $code);
 
         // Incluir llamadas a $localize``

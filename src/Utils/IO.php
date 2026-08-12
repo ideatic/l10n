@@ -7,11 +7,14 @@ namespace ideatic\l10n\Utils;
 use Exception;
 use Generator;
 
+/**
+ * Filesystem helpers: path handling and directory walking with support for exclusion patterns.
+ */
 abstract class IO
 {
 
     /**
-     * Obtiene la extensión del archivo o directorio representado por la ruta indicada
+     * Gets the extension of the file or directory the given path points to
      */
     public static function getExtension(string $path): string
     {
@@ -19,7 +22,7 @@ abstract class IO
     }
 
     /**
-     * Combina dos o más rutas en una sola:
+     * Joins two or more paths into a single one:
      *
      * a, b    -> a/b
      * a/, /b  -> a/b
@@ -58,11 +61,11 @@ abstract class IO
     }
 
     /**
-     * Obtiene archivos y directorios del sistema de archivos
+     * Gets files and directories from the filesystem
      */
     public static function getFiles(string $path, int $depth, array $excludePaths): Generator
     {
-        // Recorrer directorio
+        // Walk the directory
         $dirh = opendir($path);
         if ($dirh === false) {
             throw new Exception("Unable to opendir '{$path}'");
@@ -80,8 +83,8 @@ abstract class IO
             $isIgnored = in_array($fullPath, $excludePaths)
                 || array_find($excludePaths, static fn(string $excludedPattern) => self::isGlobMatch($fullPath, $excludedPattern));
 
-            if (is_dir($fullPath)) {  // Escanear directorio
-                if ($depth != 0 && !$isIgnored) { // Recorrer los directorios hijos
+            if (is_dir($fullPath)) {  // Scan the directory
+                if ($depth != 0 && !$isIgnored) { // Walk the child directories
                     foreach (self::getFiles($fullPath, $depth > 0 ? $depth - 1 : -1, $excludePaths) as $child) {
                         yield $child;
                     }

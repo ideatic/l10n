@@ -28,8 +28,8 @@ class AnalysisPluralTest extends TestCase
     }
 
     /**
-     * 'many' solo aparece en francés a partir del millón, por lo que probar únicamente enteros del 0 al 100
-     * no lo detectaría
+     * French 'many' only shows up from a million onwards, so probing integers from 0 to 100 alone
+     * would not find it
      */
     public function testFrenchIncludesTheManyCategory(): void
     {

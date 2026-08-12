@@ -8,8 +8,8 @@ use ideatic\l10n\Catalog\Catalog;
 use ideatic\l10n\Domain;
 
 /**
- * Interfaz para los proveedores de traducciones capaces de entregar un catálogo completo, y no solo la traducción
- * de una cadena concreta
+ * Interface for the translation providers able to hand over a whole catalog, and not just the translation of one
+ * specific string
  */
 interface CatalogProvider
 {

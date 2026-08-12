@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ideatic\l10n\String;
 
 /**
- * Proveedor encargado de buscar cadenas traducibles como combinación de otros proveedores
+ * Provider that looks for translatable strings by combining other providers
  */
 class MultiProvider extends Provider
 {

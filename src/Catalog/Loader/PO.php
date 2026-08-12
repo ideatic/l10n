@@ -13,6 +13,12 @@ use Sepia\PoParser\Catalog\Catalog;
 use Sepia\PoParser\Parser;
 use Sepia\PoParser\SourceHandler\StringSource;
 
+/**
+ * Reads catalogs from gettext PO files.
+ *
+ * Gettext has no ICU: a plural is stored as msgid/msgid_plural with one msgstr per form, so the original pattern is
+ * written as a comment when exporting and recovered from it here.
+ */
 class PO extends Loader
 {
     /** @inheritDoc */
@@ -31,12 +37,12 @@ class PO extends Loader
             $string->comments = implode(" ", $entry->getTranslatorComments()) . implode(" ", $entry->getDeveloperComments());
 
             if ($entry->isPlural()) {
-                // Obtener expresión ICU original
+                // Get the original ICU expression
                 if (!preg_match('/' . preg_quote(\ideatic\l10n\Catalog\Serializer\PO::ICU_PREFIX, '/') . '(.+)/', $string->comments, $match)) {
                     throw new Exception("Unable to recover source ICU pattern for '{$string->id}'");
                 }
 
-                $string->fullID = $match[1]; // Usar patrón ICU original como identificador de la cadena
+                $string->fullID = $match[1]; // Use the original ICU pattern as the identifier of the string
                 $icuPattern = new Pattern($match[1]);
 
                 if (!\ideatic\l10n\Catalog\Serializer\PO::isSuitableIcuPattern($icuPattern)) {

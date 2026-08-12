@@ -9,9 +9,15 @@ use ideatic\l10n\Utils\IO;
 use ideatic\l10n\Utils\Utils;
 use stdClass;
 
+/**
+ * Project configuration, read from the l10n.json file.
+ *
+ * It describes where the source strings live ("projects"), where they are sent to be translated ("exports"), where
+ * the finished translations come back from ("sources") and which locales the application offers.
+ */
 class Config
 {
-    /** Ruta del archivo de configuración cargado */
+    /** Path of the configuration file that was loaded */
     public string $path;
 
     public string $name;
@@ -24,29 +30,29 @@ class Config
     public array $targetLocales;
 
     /**
-     * Destino(s) de las cadenas encontradas en el código fuente
+     * Destination(s) of the strings found in the source code
      * @var ExtractionDestiny|stdClass|list<ExtractionDestiny|stdClass>
      */
     public ExtractionDestiny|stdClass|array $exports;
 
     /**
-     * Fuentes de las traducciones. Un array asociativo donde la clave es el nombre del dominio y el valor sus fuentes de traducción.
+     * Translation sources. An associative array whose key is the domain name and whose value is its translation sources.
      * @var stdClass|array<string, ImportSource | list<ImportSource>>
      */
     public object|array $sources;
 
     /**
-     * Opciones de la herramienta de análisis
+     * Options of the analysis tool
      * @var Analysis|stdClass|null
      */
     public Analysis|stdClass|null $analyze = null;
 
     /**
-     * Lee la configuración
+     * Reads the configuration
      */
     public function load(string $configPath): void
     {
-        // Leer configuración
+        // Read the configuration
         if (!file_exists($configPath)) {
             $this->_createDefaultConfig($configPath);
         }
@@ -61,17 +67,17 @@ class Config
             throw new Exception("Unable to parse l10n config: " . json_last_error_msg());
         }
 
-        // Validar configuración
+        // Validate the configuration
         foreach ($config->projects as $projectName => $project) {
             $project->name = $projectName;
             $project->path = realpath(is_dir($project->path) ? $project->path : IO::combinePaths(dirname($configPath), $project->path));
 
-            // Comprobar y ajustar rutas
+            // Check and adjust the paths
             if (!$project->path) {
                 throw new Exception("Invalid path for project {$projectName}");
             }
 
-            // Establecer valores por defecto
+            // Apply the default values
             if (isset($project->translations)) {
                 $project->translations = Utils::wrapArray($project->translations);
                 /** @var ProjectTranslations|\stdClass $translations */
@@ -109,7 +115,7 @@ class Config
 
         $defaultConfig->projects = [$defaultConfig->name => $defaultProject];
 
-        // Las opciones sin valor no se incluyen, para no ensuciar la configuración generada
+        // Options without a value are left out, so the generated configuration stays clean
         $values = array_filter(get_object_vars($defaultConfig), static fn(mixed $value): bool => $value !== null);
 
         $result = file_put_contents($path, json_encode($values, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
@@ -127,7 +133,7 @@ class Config
  * @property string $name
  * @property string $path
  * @property string $defaultDomain
- * @property ProjectTranslations|\stdClass|array<ProjectTranslations|\stdClass> $translations Ubicación de los recursos de traducción de este proyecto
+ * @property ProjectTranslations|\stdClass|array<ProjectTranslations|\stdClass> $translations Location of the translation resources of this project
  * @property string[] $translatorMethods
  * @property string[] $exclude
  */
@@ -165,12 +171,12 @@ interface ExtractionDestiny {}
 interface ImportSource {}
 
 /**
- * @property float|null $threshold Porcentaje mínimo de similitud entre cadenas
- * @property string|list<string>|null $skip Comprobaciones o grupos omitidos por defecto
- * @property string|null $commentLanguage Idioma esperado en los comentarios para traductores
- * @property list<string>|null $countPlaceholders Nombres de marcador que representan una cantidad
- * @property list<string>|null $ambiguousWords Expresiones regulares de palabras que siempre necesitan comentario
- * @property object{allowSurroundingText: bool, maxParameters: int, allowedTypes: list<string>, allowNesting: bool}|null $icuRuntime Limitaciones del motor ICU del cliente
+ * @property float|null $threshold Minimum similarity percentage between strings
+ * @property string|list<string>|null $skip Checks or groups skipped by default
+ * @property string|null $commentLanguage Language expected in the translator comments
+ * @property list<string>|null $countPlaceholders Placeholder names standing for a quantity
+ * @property list<string>|null $ambiguousWords Regular expressions of words that always need a comment
+ * @property object{allowSurroundingText: bool, maxParameters: int, allowedTypes: list<string>, allowNesting: bool}|null $icuRuntime Limitations of the client ICU engine
  */
 interface Analysis {}
 

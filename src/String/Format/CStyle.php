@@ -10,7 +10,7 @@ use ideatic\l10n\Utils\IO;
 use InvalidArgumentException;
 
 /**
- * Proveedor de cadenas traducibles encontradas en código estilo C (Javascript, C, PHP, C#, etc.)
+ * Provider of translatable strings found in C-style code (Javascript, C, PHP, C#, etc.)
  */
 class CStyle extends Format
 {
@@ -64,7 +64,7 @@ class CStyle extends Format
 
             $method = $match[1][0];
 
-            // Comprobar si estamos en un comentario
+            // Check whether we are inside a comment
             $lineBegin = strrpos(substr($code, 0, $match[0][1]), "\n");
             if ($lineBegin !== false) {
                 $commentStart = strpos($code, '//', $lineBegin);
@@ -73,13 +73,13 @@ class CStyle extends Format
                 }
             }
 
-            // Parsear parámetros usando JSON
+            // Parse the parameters using JSON
             $methodEnd = 0;
             $params = $this->_parseFnArgs($code, $match[0][1] + strlen($match[0][0]) - 1, $methodEnd, $comments);
 
             if (count($params) < 1 || !$this->_isString($params[0])) {
-                // Avisar cuando hay texto escrito en el propio código que no se va a poder traducir. Una
-                // indirección sin literales, como __(message), es deliberada y no se informa.
+                // Warn when there is text written in the code itself that will not be translatable. An
+                // indirection without literals, such as __(message), is deliberate and is not reported.
                 if (isset($params[0]) && preg_match('/' . self::LITERAL . '/su', $params[0])) {
                     $line = substr_count($code, "\n", 0, $match[0][1]) + 1;
                     echo "\033[31mWarning! Localizable string ignored, its first argument is not a constant string: {$params[0]} @ {$path}:{$line}\033[0m\n";
@@ -108,7 +108,7 @@ class CStyle extends Format
             $string->requestedLocale = isset($params[$domainIndex + 1]) ? $this->_parseString($params[$domainIndex + 1]) : null;
             $string->comments = $comments;
 
-            // Autodetectar plurales
+            // Auto-detect plurals
             if ($method == '_icu') {
                 $string->isICU = true;
             }
@@ -137,7 +137,7 @@ class CStyle extends Format
             if ($inComment) {
                 if ($char == '/' && $source[$pos - 1] == '*' && $inComment == '*') { // Comentarios hasta encontrar */
                     $inComment = false;
-                } elseif ($char == "\n" && $inComment == '/') { // Comentarios hasta final de línea
+                } elseif ($char == "\n" && $inComment == '/') { // Comments running to the end of the line
                     $inComment = false;
                 }
 
@@ -147,7 +147,7 @@ class CStyle extends Format
                 }
             } elseif ($char == '"' || $char == "'" || $char == '`') {
                 if ($inString && $source[$pos - 1] == '\\') {
-                    // Carácter escapado
+                    // Escaped character
                 } else {
                     $inString = !$inString;
                 }
@@ -192,17 +192,17 @@ class CStyle extends Format
     {
         $expression = mb_trim($string);
 
-        // Sin esta comprobación, una expresión como '"a" + variable' se aceptaba y acababa extrayéndose con el
-        // operador de concatenación incrustado en el texto
+        // Without this check an expression such as '"a" + variable' was accepted and ended up extracted with the
+        // concatenation operator embedded in the text
         return self::_concatenatedLiterals($expression) !== null || preg_match('/^' . self::LITERAL . '$/su', $expression) === 1;
     }
 
-    /** Literal de texto: comillas simples, dobles o invertidas, admitiendo escapes */
+    /** Text literal: single, double or back quotes, allowing escapes */
     private const string LITERAL = '(?:"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|`(?:[^`\\\\]|\\\\.)*`)';
 
     /**
-     * Descompone una concatenación de literales ("a" + "b") en sus partes, o devuelve null si la expresión incluye
-     * algo más que literales
+     * Breaks a concatenation of literals ("a" + "b") into its parts, or returns null when the expression holds
+     * anything other than literals
      *
      * @return list<string>|null
      */
@@ -221,7 +221,7 @@ class CStyle extends Format
 
     private function _parseString(string $string): string
     {
-        // Concatenación de literales: se resuelve en tiempo de compilación, así que el valor sigue siendo constante
+        // Concatenation of literals: resolved at compile time, so the value is still constant
         $literals = self::_concatenatedLiterals($string);
 
         if ($literals !== null) {
@@ -255,7 +255,7 @@ class CStyle extends Format
 
                     if (count($args) != 2) {
                         break;
-                    } elseif (!$this->_isString($args[0])) { // No es una cadena
+                    } elseif (!$this->_isString($args[0])) { // Not a string
                         break;
                     } else {
                         $args[1] = trim($args[1]);
@@ -267,7 +267,7 @@ class CStyle extends Format
                             echo "\033[31mWarning! Unable to find placeholder '{$search}' in string {$translation} @ {$i18nString->file}\033[0m\n";
                         }
 
-                        // Incluir llamada a .replace() en la cadena a reemplazar, y reajustar posición del fin de la traducción para comprobar si hay más llamadas a replace()
+                        // Include the .replace() call in the string to replace, and move the end of the translation so that further replace() calls are checked
                         $rawCall = substr($source, $i18nStringPos, $argsFinish - $i18nStringPos + 1);
                         $translationEnd = $argsFinish + 1;
                     }
@@ -279,7 +279,7 @@ class CStyle extends Format
                     throw new Exception("Unable to find string '{$rawCall}', offset {$offset} for translation {$currentTranslation}");
                 }
 
-                // Seguir buscando coincidencias de la cadena
+                // Keep looking for matches of the string
                 $offset = $i18nStringPos + 1;
             }
         } while ($i18nStringPos !== false);

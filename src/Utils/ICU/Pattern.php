@@ -9,6 +9,12 @@ use MessageFormatter;
 
 use const U_ZERO_ERROR;
 
+/**
+ * An ICU MessageFormat message, parsed into a list of nodes: plain text fragments and Placeholder instances.
+ *
+ * Working on the tree instead of on the raw text is what lets the library compare, render and rewrite the message
+ * without having to get the escaping rules right every time.
+ */
 class Pattern
 {
   /** @var array<string|Placeholder> */
@@ -65,11 +71,11 @@ class Pattern
   }
 
   /**
-   * Representa el mensaje omitiendo el nombre de sus argumentos.
+   * Renders the message leaving out the names of its arguments.
    *
-   * Sirve para comparar dos patrones que solo se diferencian en ese nombre: en las plantillas de Angular el nombre
-   * es la expresión que produce el valor ({user.points}, {league.user.points}...) y el extractor lo normaliza, pero
-   * el mensaje que recibe el traductor es exactamente el mismo.
+   * Useful to compare two patterns differing only in that name: in Angular templates the name is the expression
+   * producing the value ({user.points}, {league.user.points}...) and the extractor normalises it, but
+   * the message the translator receives is exactly the same.
    */
   public function signature(): string
   {

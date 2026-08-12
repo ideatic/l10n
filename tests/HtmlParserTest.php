@@ -136,7 +136,7 @@ class HtmlParserTest extends TestCase
     $this->assertEquals($input, $dom->render());
   }
 
-  // Tests adicionales para edge cases
+  // Extra tests for edge cases
 
   public function testSelfClosingTags()
   {
@@ -483,7 +483,7 @@ Line 3">content</div>';
     $this->assertEquals($input, $dom->render());
   }
 
-  // Tests para preserveWhitespace flag
+  // Tests for the preserveWhitespace flag
 
   public function testPreserveWhitespaceDefaultTrue()
   {

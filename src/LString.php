@@ -8,20 +8,20 @@ use ideatic\l10n\Utils\ICU\Pattern;
 use Throwable;
 
 /**
- * Representa una cadena de localización
+ * Represents a localization string
  */
 class LString
 {
-    /** Identificador de esta cadena */
+    /** Identifier of this string */
     public string $id;
 
-    /** Texto traducible */
+    /** Translatable text */
     public string $text;
 
-    /**  Identificador completo de la cadena, incluyendo su contexto */
+    /**  Full identifier of the string, including its context */
     public string $fullID;
 
-    /** Nombre del dominio al que pertenece esta cadena */
+    /** Name of the domain this string belongs to */
     public string $domainName = 'app';
     public Domain $domain;
     public ?string $context = null;
@@ -30,26 +30,26 @@ class LString
     public int $line;
     public int $offset;
 
-    /** Comentario asociado a la cadena de texto */
+    /** Comment attached to the text string */
     public ?string $comments = null;
 
     /**
-     * Marcadores de posición incluidos en la cadena de traducción
+     * Placeholders present in the translation string
      * @var array<string, string>
      */
     public array $placeholders;
 
     public ?string $requestedLocale;
 
-    /** @var mixed Elemento donde se encontró esta cadena (llamada a función PHP, elemento HTML, etc.) */
+    /** @var mixed Element where this string was found (PHP function call, HTML element, etc.) */
     public mixed $raw;
 
     /**
-     * Obtiene el texto que realmente se envía a traducir, y contra el que hay que comparar las traducciones.
+     * Gets the text that is actually sent out to be translated, and the one translations must be compared against.
      *
-     * No debe utilizarse $text para esto: en Angular conserva la sintaxis original de la plantilla
-     * ({user.points, plural, ...}, {{ expr | i18n:'%x%' }}), mientras que $id ya está normalizado a lo que ve el
-     * traductor ({count, plural, ...}, %x%) y es además la clave con la que se guarda la traducción.
+     * $text must not be used for this: in Angular it keeps the original template syntax
+     * ({user.points, plural, ...}, {{ expr | i18n:'%x%' }}), while $id is already normalised to what the translator
+     * sees ({count, plural, ...}, %x%) and is also the key the translation is stored under.
      */
     public function translatableText(): string
     {
@@ -60,9 +60,9 @@ class LString
             return $text !== '' ? $text : $id;
         }
 
-        // Angular normaliza el nombre del argumento ICU al generar la ID, así que salvo por ese nombre la ID y el
-        // texto son el mismo mensaje y lo que se traduce es la ID. Si no lo son, la ID es un identificador explícito
-        // (i18n="@@miId") que no significa nada para el traductor, y entonces manda el texto.
+        // Angular normalises the name of the ICU argument when generating the id, so apart from that name the id
+        // and the text are the same message and what gets translated is the id. When they are not, the id is an
+        // explicit identifier (i18n="@@myId") that means nothing to the translator, and then the text wins.
         if ($this->isICU) {
             $idPattern = self::_tryParse($id);
             $textPattern = self::_tryParse($text);
@@ -85,7 +85,7 @@ class LString
     }
 
     /**
-     * Genera la ID completa utilizada por defecto
+     * Builds the full id used by default
      */
     public function fullyQualifiedID(): string
     {

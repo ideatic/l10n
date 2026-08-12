@@ -9,7 +9,7 @@ use ideatic\l10n\LString;
 use ideatic\l10n\Translation\Provider;
 
 /**
- * Implementa un proveedor de traducciones que utiliza otros proveedores como fuente, devolviendo la primera traducción encontrada
+ * A translation provider that uses other providers as its source, returning the first translation found
  */
 class Fallback implements Provider
 {

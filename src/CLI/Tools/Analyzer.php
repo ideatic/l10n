@@ -18,7 +18,7 @@ use ideatic\l10n\Translation\Provider\Projects;
 use stdClass;
 
 /**
- * Herramienta para analizar la calidad de las cadenas localizables de un proyecto y de sus traducciones
+ * Tool to analyze the quality of the localizable strings of a project and of their translations
  */
 class Analyzer
 {
@@ -27,7 +27,7 @@ class Analyzer
         $options = Options::create($environment->config->analyze ?? null, $environment->params);
         $json = $options->format === 'json';
 
-        // En modo JSON la salida estándar queda reservada para el informe
+        // In JSON mode standard output is reserved for the report
         $output = new Output($json ? false : $options->colors, $json ? STDERR : STDOUT);
 
         if ($options->listChecks) {
@@ -75,7 +75,7 @@ class Analyzer
     }
 
     /**
-     * Escanea las cadenas del proyecto, redirigiendo el resumen del escaneo al flujo de salida adecuado
+     * Scans the strings of the project, sending the scan summary to the appropriate output stream
      *
      * @return list<Domain>
      */
@@ -104,7 +104,7 @@ class Analyzer
     }
 
     /**
-     * Obtiene los idiomas de destino contra los que comprobar las traducciones
+     * Gets the target locales the translations are checked against
      *
      * @return list<string>
      */
@@ -139,13 +139,13 @@ class Analyzer
     }
 
     /**
-     * Aplica el límite de problemas mostrados por comprobación y dominio, conservando los más prioritarios.
+     * Applies the limit of issues shown per check and domain, keeping the highest priority ones.
      *
-     * Los problemas ocultos no se representan como un problema más: se anotan aparte en $truncated para que no
-     * alteren el filtro por gravedad, el resumen ni la salida JSON.
+     * The hidden issues are not represented as one more issue: they are recorded separately in $truncated so they
+     * do not affect the severity filter, the summary or the JSON output.
      *
      * @param list<Issue>        $issues
-     * @param array<string, int> $truncated Nº de problemas ocultos, indexado por "comprobación|dominio"
+     * @param array<string, int> $truncated Number of hidden issues, indexed by "check|domain"
      *
      * @return list<Issue>
      */
@@ -205,7 +205,7 @@ class Analyzer
             $checkOrder[$check->name()] = $position;
         }
 
-        // Agrupar por dominio, dejando en primer lugar los problemas que no pertenecen a ninguno
+        // Group by domain, putting the issues that belong to none of them first
         $byDomain = ['' => []];
         foreach (array_column($domains, 'name') as $name) {
             $byDomain[$name] = [];
@@ -345,10 +345,10 @@ class Analyzer
     }
 
     /**
-     * Agrupa por comprobación los problemas ocultos por el límite, para que un consumidor del JSON sepa qué parte
-     * del informe le falta y no confunda el recuento con el total real
+     * Groups by check the issues hidden by the limit, so that a JSON consumer knows which part of the report is
+     * missing and does not mistake the count for the real total
      *
-     * @param array<string, int> $truncated Indexado por "comprobación|dominio"
+     * @param array<string, int> $truncated Indexed by "check|domain"
      *
      * @return array<string, int>
      */

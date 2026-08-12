@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\Utils;
 
+/**
+ * Small general purpose helpers that do not belong anywhere more specific.
+ */
 abstract class Utils
 {
   public static function set(object $object, array $array): object

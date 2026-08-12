@@ -9,26 +9,32 @@ use ideatic\l10n\Project;
 use InvalidArgumentException;
 use stdClass;
 
+/**
+ * Writes the strings of one or more domains as a translation document.
+ *
+ * It is the counterpart of Loader: each subclass produces one format, and the same set of domains can be exported to
+ * every one of them without the caller knowing the details.
+ */
 abstract class Serializer
 {
     /**
-     * Locale principal del documento. Si no se indica, se generará un documento con las cadenas originales
+     * Main locale of the document. When not given, a document with the source strings is generated
      */
     public string|null $locale;
 
     /**
-     * Comentarios asociados a este documento
+     * Comments attached to this document
      */
     public string $comments = '';
 
     /**
-     * Locale utilizado como referencia para la traducción
+     * Locale used as a reference for the translation
      * @param string|list<string>|null $referenceTranslation
      */
     public string|array|null $referenceTranslation;
 
     /**
-     * Incluir ubicaciones de las cadenas en el código fuente de la aplicación en el documento de traducción
+     * Include the source code locations of the strings in the translation document
      */
     public bool $includeLocations = true;
 
@@ -54,18 +60,18 @@ abstract class Serializer
     }
 
     /**
-     * Genera un archivo de localización para los grupos indicados
+     * Generates a localization file for the given groups
      *
      * @param list<Domain> $domains
      */
     public abstract function generate(array $domains, stdClass|Project|null $config = null): string;
 
     /**
-     * Combina los comentarios de las distintas apariciones de una cadena y los del catálogo anterior.
+     * Merges the comments of the different occurrences of a string with those of the previous catalog.
      *
-     * La comparación es línea a línea y no por bloques: el comentario que llega del catálogo ya es el resultado de
-     * combinaciones anteriores, así que compararlo entero nunca coincidiría con las líneas sueltas que lo componen
-     * y el comentario crecería una copia en cada exportación.
+     * The comparison is line by line and not block by block: the comment coming from the catalog is itself the
+     * result of previous merges, so comparing it whole would never match the individual lines composing it and the
+     * comment would grow by one copy on every export.
      *
      * @param list<string|null> $comments
      */

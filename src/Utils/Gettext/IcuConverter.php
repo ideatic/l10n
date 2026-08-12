@@ -195,7 +195,7 @@ class IcuConverter
 
             $keys = array_keys($counts);
             if (count($keys) > 1 && $counts[$keys[0]] === $counts[$keys[1]]) {
-                sort($keys); // Preferir índice numérico más bajo (0) en caso de empate de frecuencia
+                sort($keys); // Prefer the lowest numeric index (0) when the frequency ties
                 $dominantIndex = $keys[0];
             } else {
                 $dominantIndex = array_key_first($counts);

@@ -108,7 +108,7 @@ class AnalysisPipelineChecksTest extends TestCase
             [$this->_string('Hello', ['domain' => 'app']), $this->_string('Bye', ['domain' => 'admin'])],
             configuration: [
                 'sources' => (object)['all' => (object)['format' => 'po']],
-                'exports' => (object)['format' => 'po'], // Sin filtro de dominios
+                'exports' => (object)['format' => 'po'], // No domain filter
             ]
         );
 
@@ -178,8 +178,8 @@ class AnalysisPipelineChecksTest extends TestCase
     }
 
     /**
-     * Cuando un dominio no tiene catálogo en ningún idioma el problema es de configuración del dominio,
-     * y lo informa unconfigured-domain
+     * When a domain has no catalog in any locale the problem is one of domain configuration,
+     * and unconfigured-domain reports it
      */
     public function testDomainWithoutAnyCatalogIsLeftToTheOtherCheck(): void
     {

@@ -7,6 +7,12 @@ namespace ideatic\l10n\Catalog\Loader;
 use ideatic\l10n\Catalog\Catalog;
 use InvalidArgumentException;
 
+/**
+ * Reads a translation catalog from the contents of a file.
+ *
+ * Each subclass understands one on-disk format, and every one of them produces the same Catalog, so the rest of the
+ * library never needs to know which format a project happens to use.
+ */
 abstract class Loader
 {
   public static function factory(string $name): self
@@ -23,7 +29,7 @@ abstract class Loader
   }
 
   /**
-   * Obtiene un catálogo de cadenas traducibles desde un archivo
+   * Reads a catalog of translatable strings from a file
    */
   public abstract function load(string $content, string $locale): Catalog;
 }

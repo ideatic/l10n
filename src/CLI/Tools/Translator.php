@@ -9,7 +9,7 @@ use ideatic\l10n\Tools\ProjectTranslator;
 use ideatic\l10n\Utils\Locale;
 
 /**
- * Reemplaza las cadenas encontradas en los archivos de un directorio por sus versiones traducidas
+ * Replaces the strings found in the files of a directory with their translated versions
  */
 class Translator
 {
@@ -34,13 +34,13 @@ It's recommended to apply this tool in a different folder than the one that host
     $localeName = Locale::getName($locale);
     echo "Translating {$projectName}@{$directory} to {$localeName} ({$locale})\n";
 
-    // Traducir cadenas
+    // Translate the strings
     $start = microtime(true);
 
     $translator = new ProjectTranslator();
     $translatedFiles = $translator->translateDir($environment->config, $projectName, $locale, $directory);
 
-    // Mostrar resumen
+    // Show the summary
     if ($verbose) {
       echo "\nUpdated files\n\n";
       foreach ($translatedFiles as $file) {

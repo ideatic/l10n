@@ -7,11 +7,11 @@ use ideatic\l10n\String\Format\PHP;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Un patrón ICU largo no cabe en una línea razonable, así que es natural repartirlo concatenando literales. El
- * lenguaje resuelve esa concatenación en tiempo de compilación, de modo que la cadena sigue siendo constante y debe
- * extraerse igual que si estuviera escrita de una vez.
+ * A long ICU pattern does not fit on a reasonable line, so splitting it by concatenating literals is natural.
+ * The language resolves that concatenation at compile time, so the string is still constant and must be
+ * extracted just as if it had been written in one piece.
  *
- * Cuando la expresión no es constante (incluye una variable) no hay nada que extraer, pero el aviso es obligatorio:
+ * When the expression is not constant (it holds a variable) there is nothing to extract, but the warning is
  * el caso contrario es que el desarrollador marque un texto, no se extraiga, y nadie se entere nunca.
  */
 class FormatConcatenatedStringTest extends TestCase
@@ -73,7 +73,7 @@ class FormatConcatenatedStringTest extends TestCase
     }
 
     /**
-     * __($mensaje) es una indirección deliberada: no hay ningún texto escrito en el código que se esté perdiendo
+     * __($message) is a deliberate indirection: no text written in the code is being lost
      */
     public function testPhpStaysQuietForADeliberateIndirection(): void
     {
@@ -109,7 +109,7 @@ class FormatConcatenatedStringTest extends TestCase
     }
 
     /**
-     * Antes no se descartaba: se extraía una cadena con el operador y las comillas incrustados en el texto
+     * It used not to be discarded: a string with the operator and the quotes embedded in the text was extracted
      */
     public function testCStyleDoesNotExtractACorruptedStringFromANonConstantExpression(): void
     {

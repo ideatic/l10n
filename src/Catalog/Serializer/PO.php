@@ -13,6 +13,12 @@ use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\Locale;
 use stdClass;
 
+/**
+ * Writes catalogs as gettext PO files, the format most translation tools accept.
+ *
+ * Since gettext knows nothing about ICU, a plural pattern is converted into msgid/msgid_plural and the original
+ * pattern is kept in a comment so that the PO loader can rebuild it.
+ */
 class PO extends Serializer
 {
     public const string ICU_PREFIX = 'ICU: ';
@@ -24,7 +30,7 @@ class PO extends Serializer
     {
         $po = [];
 
-        // Cabeceras
+        // Headers
         if (!empty($this->comments)) {
             $po[] = "# {$this->comments}";
         }
@@ -53,7 +59,7 @@ class PO extends Serializer
         $po[] = '"MIME-Version: 1.0\n"';
         $po[] = '';
 
-        // Escribir cadenas
+        // Write the strings
         foreach ($domains as $domain) {
             foreach ($domain->strings as $strings) {
                 $string = array_first($strings);
@@ -66,7 +72,7 @@ class PO extends Serializer
                     }
                 }
 
-                // Comentarios, combinando los del código con los que ya traía el catálogo
+                // Comments, merging the ones from the code with those the catalog already carried
                 $comments = array_map(fn(LString $s) => $s->comments, $strings);
                 $comments[] = $translation?->metadata->comments ?? null;
 
@@ -84,7 +90,7 @@ class PO extends Serializer
                     }
                 }
 
-                // Incluir expresión ICU original
+                // Include the original ICU expression
                 if ($isICU) {
                     if ($this->transformICU) {
                         $po[] = '#. ' . self::ICU_PREFIX . str_replace(["\r\n", "\n"], "\n#. ", $string->id);
@@ -93,20 +99,20 @@ class PO extends Serializer
                     }
                 }
 
-                // Ubicaciones
+                // Locations
                 if ($this->includeLocations) {
                     foreach ($strings as $str) {
                         $po[] = "#: {$str->file}:{$str->line}";
                     }
                 }
 
-                // Contexto
+                // Context
                 if ($string->context) {
                     $po[] = 'msgctxt ' . $this->_escape($string->context);
                 }
 
-                // Traducción
-                if ($isICU && $this->transformICU && self::isSuitableIcuPattern(new Pattern($string->text))) { // Intentar transformar al formato de plurales gettext
+                // Translation
+                if ($isICU && $this->transformICU && self::isSuitableIcuPattern(new Pattern($string->text))) { // Try to transform it into the gettext plural format
                     $originalICU = new Pattern($string->text);
 
                     $originalPlaceholders = array_values($originalICU->nodes[0]->content);
@@ -156,7 +162,7 @@ class PO extends Serializer
 
     public static function isSuitableIcuPattern(Pattern $pattern): bool
     {
-        // Solo se aceptan expresiones ICU que sean de selección directa de plurales: {stats.goals, plural, =1 {Gol} other {Goles}}
+        // Only ICU expressions doing a direct plural selection are accepted: {stats.goals, plural, =1 {Gol} other {Goles}}
         if (count($pattern->nodes) == 1 && $pattern->nodes[0] instanceof Placeholder) {
             $placeholder = $pattern->nodes[0];
 

@@ -10,7 +10,7 @@ use ideatic\l10n\Utils\PHP\Code;
 use ideatic\l10n\Utils\PHP\FunctionCall;
 
 /**
- * Proveedor de cadenas traducibles encontradas en código PHP
+ * Provider of translatable strings found in PHP code
  */
 class PHP extends Format
 {
@@ -25,7 +25,7 @@ class PHP extends Format
     {
         $offsetCorrection = 0;
         foreach ($this->getStrings($content, $context) as $string) {
-            if (!empty($string->requestedLocale)) { // Se espera la cadena en un locale especificado
+            if (!empty($string->requestedLocale)) { // The string is expected in a specific locale
                 continue;
             }
 
@@ -36,7 +36,7 @@ class PHP extends Format
 
             $translation = $this->_getTranslationCode($string, $translatedString);
 
-            // Reemplazar la versión optimizada en el código
+            // Replace the optimised version in the code
             /** @var FunctionCall $rawCall */
             $rawCall = $string->raw;
             $content = substr_replace($content, $translation, $rawCall->offset - $offsetCorrection, strlen($rawCall->code));
@@ -49,17 +49,17 @@ class PHP extends Format
     /** @inheritDoc */
     public function getStrings(string $phpCode, mixed $path = null): array
     {
-        // Analizar el código y buscar llamadas a métodos de traducción
+        // Parse the code and look for calls to the translation methods
         $analyzer = new Code($phpCode);
         $calls = $analyzer->getFunctionCalls(array_keys($this->_functions));
 
         $found = [];
         foreach ($calls as $call) {
             if (isset($this->_functions[$call->method]) && $call->isFunction()) {
-                // Solo se pueden editar llamadas a funciones con una id constante
+                // Only function calls with a constant id can be edited
                 if ($call->argumentCount() == 0 || !$call->isConstantString(0)) {
-                    // Avisar cuando hay texto escrito en el propio código que no se va a poder traducir. Una
-                    // indirección sin literales, como __($mensaje), es deliberada y no se informa.
+                    // Warn when there is text written in the code itself that will not be translatable. An
+                    // indirection without literals, such as __($message), is deliberate and is not reported.
                     if ($call->argumentCount() > 0 && $call->containsStringLiteral(0)) {
                         echo "\033[31mWarning! Localizable string ignored, its first argument is not a constant string: {$call->code} @ {$path}:{$call->line}\033[0m\n";
                     }
@@ -69,7 +69,7 @@ class PHP extends Format
 
                 $string = new LString();
 
-                // Obtener parámetros de la traducción (id, locales y sección)
+                // Get the translation parameters (id, locales and section)
                 $domainIndex = $this->_functions[$call->method];
                 $string->id = $string->text = $call->parseArgument(0);
                 $string->comments = trim(implode("\n", $call->getComments(0)));
@@ -105,7 +105,7 @@ class PHP extends Format
 
     private function _getTranslationCode(LString $string, string $translatedString): string
     {
-        // Obtener cadena traducida
+        // Get the translated string
         $translatedString = var_export($translatedString, true);
 
         /** @var FunctionCall $phpCall */
@@ -119,7 +119,7 @@ class PHP extends Format
             case '_f':
             case '_e':
             case 'translate_format':
-                if (!empty($phpCall->arguments[1])) { // Si es una llamada sin parámetros, entonces el texto es estático y no se necesita llamar a strtr
+                if (!empty($phpCall->arguments[1])) { // When the call has no parameters the text is static and there is no need to call strtr
                     $replacements = $phpCall->arguments[1];
                     if (!$phpCall->isArray(1)) {
                         $replacements = "is_array({$phpCall->arguments[1]}) ? {$phpCall->arguments[1]} : array('%'=>{$phpCall->arguments[1]})";

@@ -15,12 +15,12 @@ use ideatic\l10n\Translation\CatalogProvider;
 use ideatic\l10n\Translation\Provider;
 
 /**
- * Proveedor de traducciones en memoria utilizado por las pruebas del analizador
+ * In-memory translation provider used by the analyzer tests
  */
 class FixtureTranslator implements Provider, CatalogProvider
 {
     /**
-     * @param array<string, Catalog> $catalogs Catálogos indexados por "dominio@idioma"
+     * @param array<string, Catalog> $catalogs Catalogs indexed by "domain@locale"
      */
     public function __construct(private readonly array $catalogs = []) {}
 
@@ -40,7 +40,7 @@ class FixtureTranslator implements Provider, CatalogProvider
 }
 
 /**
- * Utilidades para construir dominios, catálogos y contextos de análisis en memoria
+ * Helpers to build domains, catalogs and analysis contexts in memory
  */
 trait AnalysisFixtures
 {
@@ -86,7 +86,7 @@ trait AnalysisFixtures
     }
 
     /**
-     * @param array<string, string> $translations Traducción indexada por el ID completo de la cadena
+     * @param array<string, string> $translations Translation indexed by the full id of the string
      */
     protected function _catalog(string $locale, array $translations): Catalog
     {
@@ -105,8 +105,8 @@ trait AnalysisFixtures
     /**
      * @param list<LString>          $strings
      * @param list<string>           $locales
-     * @param array<string, Catalog> $catalogs   Catálogos indexados por "dominio@idioma"
-     * @param array<string, mixed>   $configuration Propiedades adicionales de la configuración del proyecto
+     * @param array<string, Catalog> $catalogs      Catalogs indexed by "domain@locale"
+     * @param array<string, mixed>   $configuration Extra properties of the project configuration
      */
     protected function _context(
         array $strings,
@@ -122,7 +122,7 @@ trait AnalysisFixtures
         $config->projects = [];
 
         foreach ($configuration as $property => $value) {
-            if ($value === null) { // Permite comprobar el comportamiento cuando falta una opción
+            if ($value === null) { // Lets a test check the behaviour when an option is missing
                 unset($config->{$property});
             } else {
                 $config->{$property} = $value;
@@ -140,7 +140,7 @@ trait AnalysisFixtures
     }
 
     /**
-     * Ejecuta una comprobación y devuelve sus mensajes
+     * Runs a check and returns its messages
      *
      * @param list<Issue> $issues
      *
@@ -152,7 +152,7 @@ trait AnalysisFixtures
     }
 
     /**
-     * Comprueba si alguno de los problemas encontrados contiene el texto indicado
+     * Tells whether any of the issues found holds the given text
      *
      * @param list<Issue> $issues
      */

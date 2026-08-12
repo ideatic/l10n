@@ -19,7 +19,7 @@ use ideatic\l10n\Utils\Locale;
 use stdClass;
 
 /**
- * Implementa un proveedor de traducciones que utiliza los proyectos definidos en la configuración como fuente
+ * A translation provider that uses the projects defined in the configuration as its source
  */
 class Projects implements Provider, \ideatic\l10n\Translation\CatalogProvider
 {
@@ -53,8 +53,8 @@ class Projects implements Provider, \ideatic\l10n\Translation\CatalogProvider
                 return new Translation($string->text);
             }
 
-            // Buscar en las traducciones disponibles
-            if (!array_key_exists($catalogKey, $this->_loadedCatalogs)) { // Intentar traducciones de este dominio
+            // Look it up among the available translations
+            if (!array_key_exists($catalogKey, $this->_loadedCatalogs)) { // Try the translations of this domain
                 $this->_loadedCatalogs[$catalogKey] = $this->loadCatalog($string->domain ?? $string->domainName, $locale);
             }
 
@@ -68,11 +68,11 @@ class Projects implements Provider, \ideatic\l10n\Translation\CatalogProvider
     }
 
     /**
-     * Carga las traducciones para el locale indicado en las cadenas del grupo recibido.
+     * Loads the translations for the given locale into the strings of the received group.
      */
     public function loadCatalog(Domain|string $domain, string $locale): ?Catalog
     {
-        // Cargar traducciones desde algún proyecto
+        // Load translations from some project
         foreach ($this->config->projects as $projectConfig) {
             /** @var ProjectTranslations|stdClass $translations */
             foreach ($projectConfig->translations ?? [] as $translations) {

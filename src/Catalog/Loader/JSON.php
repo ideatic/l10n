@@ -9,6 +9,10 @@ use ideatic\l10n\Catalog\Translation;
 use ideatic\l10n\LString;
 use InvalidArgumentException;
 
+/**
+ * Reads catalogs from JSON files, in both the plain form (id => translation) and the extended one, where each entry
+ * is an object holding the source text, the context, the comments and the translations of several locales.
+ */
 class JSON extends Loader
 {
     /** @inheritDoc */

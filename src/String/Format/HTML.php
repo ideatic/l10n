@@ -15,7 +15,7 @@ use ideatic\l10n\Plural\ICU;
 use ideatic\l10n\Utils\ICU\Pattern;
 
 /**
- * Proveedor de cadenas traducibles encontradas en código Javascript / TypeScript
+ * Provider of translatable strings found in HTML markup
  */
 class HTML extends Format
 {
@@ -51,7 +51,7 @@ class HTML extends Format
             }
         }
 
-        // Eliminar atributos noI18n
+        // Remove the noI18n attributes
         if ($getTranslation) {
             $dom->walk(
                 function ($node) {
@@ -67,7 +67,7 @@ class HTML extends Format
 
     private function _processNode(HTML_Parser_Element $element, string $source, ?string $path, ?callable $getTranslation = null): void
     {
-        // Traducción de atributos
+        // Attribute translation
         $attrPrefix = 'i18n-';
         foreach ($element->attributes as $i18nAttribute) {
             if (!str_starts_with(strtolower($i18nAttribute->name), $attrPrefix)) {
@@ -92,10 +92,10 @@ class HTML extends Format
             }
         }
 
-        // El contenido del elemento es traducible
+        // The content of the element is translatable
         $i18nAttribute = $element->hasAttribute('i18n');
         if ($i18nAttribute) {
-            // Procesar nodos hijo
+            // Process the child nodes
             $element->walk(
                 function ($child) use ($source, $path, $getTranslation) {
                     if ($child instanceof HTML_Parser_Comment) { // Eliminar comentarios
@@ -106,10 +106,10 @@ class HTML extends Format
                 }
             );
 
-            // Procesar atributos i18nPlaceholder de los elementos hijo
+            // Process the i18nPlaceholder attributes of the child elements
             $placeholders = $this->_processChildPlaceholders($element);
 
-            // Normalizar espacios en blanco
+            // Normalise the whitespace
             /** @phpstan-ignore nullsafe.neverNull */
             switch ($element->hasAttribute('i18nWhitespaces')?->value ?? ($this->normalizeWhitespaces ? 'normalize' : 'keep')) {
                 case 'keep':
@@ -125,7 +125,7 @@ class HTML extends Format
                     break;
 
                 case 'unindent':
-                    // Encontrar y eliminar la indentación común
+                    // Find and strip the common indentation
                     $content = $element->innerHTML();
                     preg_match_all('/^[ \t]*(?=\S)/m', $content, $matches);
                     $minIndent = empty(array_filter($matches[0])) ? 0 : min(array_map(mb_strlen(...), array_filter($matches[0])));
@@ -145,11 +145,11 @@ class HTML extends Format
                 $translation = call_user_func($getTranslation, $string);
 
                 if ($translation !== null) {
-                    // Eliminar atributo i18n
+                    // Remove the i18n attribute
                     $i18nAttribute->remove();
                     $element->hasAttribute('i18nWhitespaces')?->remove();
 
-                    // Reemplazar antiguo contenido con el nuevo
+                    // Replace the old content with the new one
                     try {
                         $newContent = HTML_Parser::parse($translation, true)->children;
                     } catch (Exception $err) {
@@ -157,7 +157,7 @@ class HTML extends Format
                     }
 
                     if (strtolower($element->tag) == 'ng-container' && empty($element->attributes)) { // Eliminar ng-container utilizados solo para i18n
-                        // Eliminar espacios en blanco antes y después
+                        // Strip the whitespace before and after
                         while ($element->nextSibling() instanceof HTML_Parser_Text && !mb_trim($element->nextSibling()->render())) {
                             $element->nextSibling()->remove();
                         }
@@ -171,13 +171,13 @@ class HTML extends Format
                     }
                 }
             }
-        } elseif (!$getTranslation) { // Comprobar si el nodo solo tiene texto y no está marcado como traducible
+        } elseif (!$getTranslation) { // Check whether the node only holds text and is not marked as translatable
             if ($this->_checkIfMissingI18nAttribute($element)) {
                 echo "Suspicious missing i18n attribute at {$path}: {$element->render()}\n";
             }
         }
 
-        // Comprobar que no se use un atributo i18n donde no pertenezca
+        // Check that an i18n attribute is not used where it does not belong
         if ($element->hasAttribute('i18nPlaceholder') || $element->hasAttribute('i18nContent')) {
             $parent = $element->parent;
 
@@ -196,7 +196,7 @@ class HTML extends Format
             }
         }
 
-        // Procesar hijos
+        // Process the children
         foreach ($element->children as $child) {
             if ($child instanceof HTML_Parser_Element) {
                 self::_processNode($child, $source, $path, $getTranslation);
@@ -261,14 +261,14 @@ class HTML extends Format
 
             $placeholders += $this->_processChildPlaceholders($child);
 
-            if ($i18nPlaceholderAttr) { // Reemplazar elemento completo por su placeholder
+            if ($i18nPlaceholderAttr) { // Replace the whole element with its placeholder
                 $i18nPlaceholderAttr->remove();
 
                 if ($i18nContentAttr) {
                     $i18nContentAttr->remove();
                     $i18nContentIgnoreAttr?->remove();
 
-                    // Solo incluir el comienzo del elemento padre
+                    // Only include the start of the parent element
                     $copy = clone $child;
                     $copy->children = [];
                     $copy->autoClosed = true;
@@ -280,7 +280,7 @@ class HTML extends Format
                         $placeholders["</{$child->tag}>"] = "</{$realTag}>";
                     }
 
-                    // Ignorar ciertos elementos de los hijos e incluirlos en el placeholder
+                    // Ignore certain child elements and fold them into the placeholder
                     foreach ($child->children as $subChild) {
                         if ($subChild instanceof HTML_Parser_Element && $subChild->hasAttribute('i18nIgnore')) {
                             $subChild->removeAttribute('i18nIgnore');
@@ -289,7 +289,7 @@ class HTML extends Format
                         }
                     }
 
-                    // Eliminar el resto de atributos para no procesarlos
+                    // Drop the remaining attributes so they are not processed
                     foreach ($child->attributes as $attr) {
                         $attr->remove();
                     }
@@ -342,7 +342,7 @@ class HTML extends Format
                 || str_starts_with($innerText, '@if')
                 || str_starts_with($innerText, '@switch')
                 || str_starts_with($innerText, '@for')
-                || str_starts_with($innerText, '${')) { // Expresión angular
+                || str_starts_with($innerText, '${')) { // Angular expression
                 $suspicious = false;
             } elseif (!preg_match('/[a-zA-Z]/', $innerText)) { // Sin texto
                 $suspicious = false;

@@ -8,6 +8,10 @@ use ideatic\l10n\LString;
 use ideatic\l10n\Project;
 use stdClass;
 
+/**
+ * Writes catalogs as a PHP file returning an array, so the application can load its translations with a plain
+ * require and no parsing at runtime.
+ */
 class PHP extends Serializer
 {
     /** @inheritDoc */

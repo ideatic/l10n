@@ -8,7 +8,7 @@ use Exception;
 use ideatic\l10n\Translation\Provider;
 
 /**
- * Representa una agrupación de cadenas traducibles
+ * Represents a group of translatable strings
  */
 class Domain
 {
@@ -18,7 +18,7 @@ class Domain
     public Provider $translator;
 
     /**
-     * Agrupa las cadenas recibidas en sus correspondientes dominios
+     * Groups the received strings into their matching domains
      *
      * @param LString[] $strings
      *
@@ -36,7 +36,7 @@ class Domain
                 throw new Exception("String '{$string->id}' already belongs to a domain!");
             }
 
-            // Asignar grupo
+            // Assign the group
             if (isset($domains[$string->domainName])) {
                 $domain = $domains[$string->domainName];
             } else {
@@ -47,11 +47,11 @@ class Domain
                 $domains[$string->domainName] = $domain;
             }
 
-            // Agrupar cadenas similares
+            // Group similar strings
             $stringID = $string->fullyQualifiedID();
             $domain->strings[$stringID] ??= [];
 
-            // Comprobar que para la misma ID, tiene el mismo contenido
+            // Check that the same id holds the same content
             foreach ($domain->strings[$stringID] as $otherString) {
                 if ($otherString->text !== $string->text && !$otherString->isICU && !$string->isICU) {
                     throw new Exception("String '{$stringID}' already exists in domain '{$domain->name}' with different content! @ {$string->file}");
@@ -63,7 +63,7 @@ class Domain
             $string->domain = $domain;
         }
 
-        // Ordenar cadenas de cada dominio según su frecuencia de uso
+        // Sort the strings of each domain by how often they are used
         foreach ($domains as $domain) {
             uasort(
                 $domain->strings,

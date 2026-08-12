@@ -11,6 +11,10 @@ use ideatic\l10n\CLI\Tools\Importer;
 use ideatic\l10n\CLI\Tools\Translator;
 use ideatic\l10n\Utils\IO;
 
+/**
+ * Entry point of the command line tool: it parses the arguments, loads the project configuration and hands control
+ * over to the requested tool (extract, import, translate or analyze).
+ */
 class CLI
 {
     public static function main(bool $exit = true): void
@@ -32,8 +36,8 @@ class CLI
 
 ";
 
-        // Con salida legible por máquinas, la salida estándar queda reservada para el informe. Solo aplica a
-        // analyze: en el resto de herramientas --format elige el formato de los catálogos generados.
+        // With machine-readable output, standard output is reserved for the report. This only applies to
+        // analyze: in the other tools --format picks the format of the generated catalogs.
         if ($environment->method === 'analyze' && ($environment->params['format'] ?? null) === 'json') {
             fwrite(STDERR, $banner);
         } else {

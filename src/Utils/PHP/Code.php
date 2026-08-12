@@ -7,8 +7,8 @@ namespace ideatic\l10n\Utils\PHP;
 use InvalidArgumentException;
 
 /**
- * Representa un fragmento de código PHP que se puede analizar, inspeccionar y
- * modificar en tiempo de ejecución
+ * Represents a fragment of PHP code that can be parsed, inspected and modified
+ * at runtime
  */
 class Code
 {
@@ -29,7 +29,7 @@ class Code
     }
 
     /**
-     * Obtiene el código PHP representado por esta instancia
+     * Gets the PHP code this instance represents
      */
     public function getCode(): string
     {
@@ -59,7 +59,7 @@ class Code
     }
 
     /**
-     * Analiza todas las llamadas a funciones que se producen en el fragmento de código PHP analizado
+     * Parses every function call happening in the analysed PHP code fragment
      *
      * @param array<string>|null $fnNames
      *
@@ -67,7 +67,7 @@ class Code
      */
     public function getFunctionCalls(?array $fnNames = null): array
     {
-        // Comprobación rápida de que hay llamadas a las funciones indicadas usando regex
+        // Quick regex check that there are calls to the given functions at all
         if (!empty($fnNames)) {
             $pattern = '#(' . implode('|', array_map(fn($name) => preg_quote($name, '#'), $fnNames)) . ')\s*\(#S';
             if (!preg_match($pattern, $this->_source)) {
@@ -75,7 +75,7 @@ class Code
             }
         }
 
-        // Buscar llamadas a funciones mediante el análisis de los tokens PHP
+        // Look for function calls by walking the PHP tokens
         $calls = [];
 
         $tokens = $this->tokens();
@@ -94,8 +94,8 @@ class Code
                         if (empty($fnNames) || in_array($tokens[$lastNoWhitespaceToken][1], $fnNames)) {
                             $startToken = $tokens[$lastNoWhitespaceToken];
                             $call = new FunctionCall();
-                            $startPos = $i; // Comenzamos desde el primer ( que inicia la lista de argumentos
-                            // Obtener nombre del método y llamada completa
+                            $startPos = $i; // Start from the first ( opening the argument list
+                            // Get the method name and the full call
                             $call->method = $startToken[1];
                             $call->offset = $lastNoWhitespaceOffset;
                             $call->line = $startToken[2] ?? substr_count($this->_source, "\n", 0, $call->offset) + 1;
@@ -120,13 +120,13 @@ class Code
                                     )); // No contar espacios en blanco
                             $call->fullMethod = ltrim($call->fullMethod);
 
-                            // Leer argumentos y generar código de la llamada completa
+                            // Read the arguments and build the code of the full call
                             $call->arguments = $this->_readFunctionArgs($tokens, $i);
                             $call->code = ltrim(trim($this->_tokensToString($tokens, $lastNoWhitespaceToken, $i)), '()');
 
                             $calls[] = $call;
 
-                            // Ajustar offset
+                            // Adjust the offset
                             $offset += strlen($this->_tokensToString($tokens, $startPos, $i)) - strlen($token);
                         }
                     }
@@ -144,7 +144,7 @@ class Code
     }
 
     /**
-     * Obtiene o establece los tokens PHP representados por esta instancia
+     * Gets or sets the PHP tokens this instance represents
      */
     public function tokens(?array $tokens = null): array
     {
@@ -209,7 +209,7 @@ class Code
                 case ']':
                     if ($level <= 0) {
                         if ($argumentStart != $i) {
-                            // Comprobar si hay un argumento pendiente y no son todos los tokens T_WHITESPACE
+                            // Check whether an argument is pending and not every token is T_WHITESPACE
                             $hasCode = false;
                             for ($j = $argumentStart; $j < $i; $j++) {
                                 if ($tokens[$j][0] != T_WHITESPACE) {
@@ -239,7 +239,7 @@ class Code
                     break;
 
                 case '}':
-                    if ($i + 1 < $l && $tokens[$i + 1][0] != T_ENCAPSED_AND_WHITESPACE) { // Solo aceptar como válidas llaves para cerrar y abrir bloques
+                    if ($i + 1 < $l && $tokens[$i + 1][0] != T_ENCAPSED_AND_WHITESPACE) { // Only accept braces that open and close blocks as valid
                         $level--;
                     }
                     break;

@@ -7,7 +7,7 @@ namespace ideatic\l10n\String\Format;
 use Exception;
 
 /**
- * Por ahora no se utiliza el método XLIFF
+ * The XLIFF method is not used for now
  * @deprecated
  */
 class XLIFF
@@ -40,7 +40,7 @@ class XLIFF
 
         echo Time::formatUInterval(microtime(true) - $start, 1, 'en') . "\n";
 
-        // Parsear documento
+        // Parse the document
         echo "Parsing... ";
         $start = microtime(true);
 
@@ -48,7 +48,7 @@ class XLIFF
 
         echo Time::formatUInterval(microtime(true) - $start, 1, 'en') . "\n";
 
-        // Generar archivos para cada idioma
+        // Generate the files for each locale
         foreach ($locales as $locale) {
             $start = microtime(true);
             echo "Generating " . i18n::formatLanguage($locale) . "...";
@@ -67,7 +67,7 @@ class XLIFF
             return IO::read($xliffFile);
         }
 
-        // Generar fichero
+        // Generate the file
         $previousWD = getcwd();
         chdir($basePath);
 
@@ -85,7 +85,7 @@ class XLIFF
         echo "{$command}\n";
         passthru($command);
 
-        // Leer contenido
+        // Read the content
         $content = IO::exists($xliffFile) ? IO::read($xliffFile) : null;
 
         if (!$content) {
@@ -104,14 +104,14 @@ class XLIFF
 
     private function _generateLocale(string $locale, HTML_Parser_Document $xliff, string $file)
     {
-        // Definir locales utilizados ordenados por prioridad
+        // Define the locales used, ordered by priority
         $locales = i18n_Manager::localeVariants($locale);
         if (i18n_Languages::fallbackLocale($locale)) {
             $locales[] = i18n_Languages::fallbackLocale($locale);
         }
         $locales[] = 'en';
 
-        // Procesar archivo de entrada
+        // Process the input file
         $localized = clone $xliff;
 
         $localized->walk(
@@ -124,19 +124,19 @@ class XLIFF
 
                 $string = $this->_parseString($element);
 
-                // Traducir cadena
+                // Translate the string
                 $translation = $originalTranslation = $string->getTranslation($locales);
 
                 // Restaurar placeholders a su estado original
                 $translation = strtr($translation, $string->placeholders);
 
-                // Incluir traducción en el archivo XLIFF
+                // Include the translation in the XLIFF file
                 $translationElement = new HTML_Parser_Element();
                 $translationElement->tag = 'target';
                 $translationElement->children = [new HTML_Parser_Text($translation)];
                 $element->appendSibling([new HTML_Parser_Text(PHP_EOL), $translationElement]);
 
-                // Comprobar traducción
+                // Check the translation
                 if (app::$i18n->translator->lastTranslationLocale() != $locale) {
                     if ($locale == 'en') {
                         echo "Translation not found: '{$string->id}'\n";
@@ -155,13 +155,13 @@ class XLIFF
         $string = new i18n_LocalizableText_String();
         $string->section = $this->defaultDomain;
 
-        // Restaurar placeholders a su valor original
+        // Restore the placeholders to their original value
         $string->id = $this->_convertPlaceholders($element, $placeholders);
 
-        // Normalizar espacios
+        // Normalise the whitespace
         $string->id = preg_replace('/\s+/', ' ', mb_trim($string->id));
 
-        // Obtener contexto y comentarios
+        // Get the context and the comments
         foreach ($element->parent->findAll('note') as $note) {
             $fromAttr = $note->hasAttribute('from');
             if ($fromAttr && $fromAttr->value == 'meaning') {

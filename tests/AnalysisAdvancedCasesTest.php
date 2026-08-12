@@ -26,14 +26,14 @@ use PHPUnit\Framework\TestCase;
 require_once 'AnalysisFixtures.php';
 
 /**
- * Casos límite y combinaciones que no cubren las pruebas básicas de cada comprobación
+ * Edge cases and combinations the basic tests of each check do not cover
  */
 class AnalysisAdvancedCasesTest extends TestCase
 {
     use AnalysisFixtures;
 
     // -----------------------------------------------------------------------------------------------------------
-    // Marcadores de posición
+    // Placeholders
     // -----------------------------------------------------------------------------------------------------------
 
     public function testMixedPlaceholderSyntaxesInASingleString(): void
@@ -44,8 +44,8 @@ class AnalysisAdvancedCasesTest extends TestCase
     }
 
     /**
-     * "%d%" es ambiguo: puede leerse como el marcador con nombre "%d%" o como el printf "%d" seguido de un "%".
-     * Se resuelve como marcador con nombre, que es la convención del proyecto.
+     * "%d%" is ambiguous: it reads either as the named placeholder "%d%" or as the printf "%d" followed by a "%".
+     * It resolves to the named placeholder, which is the convention of the project.
      */
     public function testNamedPlaceholdersTakePrecedenceOverPrintf(): void
     {
@@ -65,7 +65,7 @@ class AnalysisAdvancedCasesTest extends TestCase
     }
 
     /**
-     * El símbolo # se refiere siempre al plural que lo contiene, incluso desde dentro de un 'select' anidado
+     * The # symbol always refers to the enclosing plural, even from inside a nested 'select'
      */
     public function testHashInsideANestedSelectBelongsToTheEnclosingPlural(): void
     {
@@ -78,8 +78,8 @@ class AnalysisAdvancedCasesTest extends TestCase
     }
 
     /**
-     * El nº de ramas plurales depende del idioma, así que el # se cuenta por marcador y no por aparición: de lo
-     * contrario toda traducción a un idioma con más formas plurales parecería tener marcadores de más
+     * The number of plural branches depends on the locale, so # is counted per placeholder and not per occurrence:
+     * otherwise every translation into a locale with more plural forms would look like it had extra placeholders
      */
     public function testHashIsCountedOncePerPluralRegardlessOfBranchCount(): void
     {
@@ -172,7 +172,7 @@ class AnalysisAdvancedCasesTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Formas plurales
+    // Plural forms
     // -----------------------------------------------------------------------------------------------------------
 
     public function testExplicitPluralKeysDoNotCountAsCategories(): void
@@ -221,7 +221,7 @@ class AnalysisAdvancedCasesTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Traducciones
+    // Translations
     // -----------------------------------------------------------------------------------------------------------
 
     public function testDetectsIcuTranslationsOfNonIcuSources(): void
@@ -348,12 +348,12 @@ class AnalysisAdvancedCasesTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Cadenas de origen y metadatos
+    // Source strings and metadata
     // -----------------------------------------------------------------------------------------------------------
 
     public function testSimilarStringsHonoursTheConfiguredThreshold(): void
     {
-        // Domain::generate() marca cada cadena con su dominio, por lo que no pueden reutilizarse entre contextos
+        // Domain::generate() stamps each string with its domain, so they cannot be reused across contexts
         $strings = fn(): array => [$this->_string('The market closes soon'), $this->_string('The market closed soon')];
 
         $strict = new Options();

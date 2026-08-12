@@ -15,9 +15,9 @@ use PHPUnit\Framework\TestCase;
 require_once 'AnalysisFixtures.php';
 
 /**
- * El número de ramas de un plural lo decide el idioma: el japonés tiene una, el español dos y el árabe seis. Todo
- * lo que se cuente sumando las ramas hace que una traducción correcta parezca distinta del original en cuanto el
- * idioma de destino no tiene exactamente las mismas formas que el de origen.
+ * The number of branches of a plural is decided by the locale: Japanese has one, Spanish two and Arabic six.
+ * Anything counted by adding the branches up makes a correct translation look different from the source as soon
+ * as the target locale does not have exactly the same forms as the source one.
  */
 class AnalysisPluralBranchTest extends TestCase
 {
@@ -26,12 +26,12 @@ class AnalysisPluralBranchTest extends TestCase
     private const string SOURCE = '{count, plural, one {1 foto} other {# fotos}}';
 
     // -----------------------------------------------------------------------------------------------------------
-    // El símbolo # declarado además como marcador conocido
+    // The # symbol also declared as a known placeholder
     // -----------------------------------------------------------------------------------------------------------
 
     /**
-     * Las plantillas de Angular pueden nombrar '#' a una interpolación, con lo que queda registrado en
-     * LString::$placeholders y antes se contaba dos veces: una por el recorrido ICU y otra por el nombre conocido
+     * Angular templates may name an interpolation '#', which registers it in LString::$placeholders; it used to be
+     * counted twice: once by the ICU walk and once by the known name
      */
     public function testHashDeclaredAsAKnownPlaceholderIsNotCountedTwice(): void
     {
@@ -60,7 +60,7 @@ class AnalysisPluralBranchTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Marcado HTML dentro de las ramas
+    // HTML markup inside the branches
     // -----------------------------------------------------------------------------------------------------------
 
     public function testMarkupIsNotSummedAcrossBranches(): void
@@ -103,7 +103,7 @@ class AnalysisPluralBranchTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Marcadores con nombre dentro de las ramas
+    // Named placeholders inside the branches
     // -----------------------------------------------------------------------------------------------------------
 
     public function testNamedPlaceholderIsCountedOncePerPluralRegardlessOfBranchCount(): void
@@ -138,12 +138,12 @@ class AnalysisPluralBranchTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Categorías plurales inalcanzables
+    // Unreachable plural categories
     // -----------------------------------------------------------------------------------------------------------
 
     /**
-     * 'many' en francés solo se selecciona a partir del millón, y en checo solo con decimales: falta, pero el
-     * usuario no llegará a verlo
+     * French 'many' is only selected from a million onwards, and Czech 'many' only by fractions: it is missing, but
+     * the user will never get to see it
      */
     public function testUnreachableCategoriesAreWarningsInsteadOfErrors(): void
     {
@@ -166,7 +166,7 @@ class AnalysisPluralBranchTest extends TestCase
     }
 
     /**
-     * En hebreo 'one' se selecciona con 0,5 pero también con 1: lo que importa es la menor cantidad entera
+     * In Hebrew 'one' is selected by 0.5 but also by 1: what matters is the smallest whole amount
      */
     public function testFractionalSamplesDoNotMakeACategoryLookUnreachable(): void
     {
@@ -179,17 +179,17 @@ class AnalysisPluralBranchTest extends TestCase
     public function testPluralRangeIsConfigurable(): void
     {
         $options = new Options();
-        $options->pluralRange = 10_000_000; // Una aplicación que sí muestra millones
+        $options->pluralRange = 10_000_000; // An application that does display millions
 
         $this->assertSame(Severity::Error, $this->_missingForms('fr', $options)['many']);
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Claves explícitas =N
+    // Explicit =N keys
     // -----------------------------------------------------------------------------------------------------------
 
     /**
-     * En árabe 'zero' solo corresponde a n=0, e ICU resuelve antes las claves exactas, así que "=0 {...}" la cubre
+     * In Arabic 'zero' only covers n=0, and ICU resolves the exact keys first, so "=0 {...}" covers it
      */
     public function testExplicitKeyCoversTheCategoryItReplaces(): void
     {
@@ -207,7 +207,7 @@ class AnalysisPluralBranchTest extends TestCase
 
     public function testAnExplicitKeyDoesNotCoverACategoryWithManyValues(): void
     {
-        // '=2' no cubre 'few' en ruso, que también se selecciona con 3, 4, 22...
+        // '=2' does not cover Russian 'few', which is also selected by 3, 4, 22...
         $russian = '{count, plural, =2 {dos} one {#} many {#} other {#}}';
 
         $issues = $this->_run(
@@ -222,7 +222,7 @@ class AnalysisPluralBranchTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Límites de palabra fuera del alfabeto latino
+    // Word boundaries outside the Latin alphabet
     // -----------------------------------------------------------------------------------------------------------
 
     public function testPlaceholderFollowedByHangulOrKanaIsFound(): void
@@ -234,7 +234,7 @@ class AnalysisPluralBranchTest extends TestCase
     }
 
     /**
-     * Un sufijo latino sí es una modificación real del marcador y debe seguir informándose
+     * A Latin suffix is a real modification of the placeholder and must still be reported
      */
     public function testPlaceholderWithALatinSuffixIsStillReportedAsMissing(): void
     {
@@ -245,7 +245,7 @@ class AnalysisPluralBranchTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Traducciones idénticas sin contenido traducible
+    // Identical translations with nothing translatable in them
     // -----------------------------------------------------------------------------------------------------------
 
     public function testStringsMadeOnlyOfPlaceholdersAreNotReportedAsIdentical(): void
@@ -277,7 +277,7 @@ class AnalysisPluralBranchTest extends TestCase
     }
 
     /**
-     * Ejecuta icu-plural-forms con una traducción de solo dos formas y devuelve categoría => gravedad
+     * Runs icu-plural-forms with a two-form translation and returns category => severity
      *
      * @return array<string, Severity>
      */

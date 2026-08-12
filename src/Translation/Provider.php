@@ -8,7 +8,7 @@ use ideatic\l10n\Catalog\Translation;
 use ideatic\l10n\LString;
 
 /**
- * Interfaz para proveedores de traducciones
+ * Interface for the translation providers
  */
 interface Provider
 {

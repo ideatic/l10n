@@ -60,8 +60,8 @@ class AnalysisIcuChecksTest extends TestCase
     }
 
     /**
-     * Domain::generate() solo lanza una excepción cuando ninguna de las dos cadenas es ICU, por lo que este es el
-     * único aviso de que se está perdiendo contenido
+     * Domain::generate() only throws when neither of the two strings is ICU, so this is the only warning that
+     * content is being lost
      */
     public function testDetectsIcuIdCollisions(): void
     {

@@ -28,7 +28,7 @@ class AnalysisOptionsTest extends TestCase
     }
 
     /**
-     * El parámetro corto --t existía antes de esta herramienta y debe seguir funcionando
+     * The short --t parameter predates this tool and must keep working
      */
     public function testAcceptsBothThresholdParameters(): void
     {

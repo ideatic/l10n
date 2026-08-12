@@ -16,6 +16,9 @@ use ideatic\l10n\Utils\ICU\Placeholder;
 use ideatic\l10n\Utils\IO;
 use stdClass;
 
+/**
+ * Writes catalogs as XLIFF, the format Angular uses for its own localization tooling.
+ */
 class XLIFF extends Serializer
 {
   /** @inheritDoc */
@@ -32,7 +35,7 @@ class XLIFF extends Serializer
         $string = array_first($strings);
         $stringID = $string->id;
 
-        // Convertir traducciones ICU al formato esperado por angular
+        // Convert the ICU translations into the format Angular expects
         $pattern = new Pattern($stringID);
         $replacePlural = false;
         if (count($pattern->nodes) == 1 && $pattern->nodes[0] instanceof Placeholder) {
@@ -46,7 +49,7 @@ class XLIFF extends Serializer
 
         $transUnit = $sourceStrings[$stringID] ?? throw new Exception("Unable to find XLIFF trans-unit element for string '{$string->id}'");
 
-        // Incluir traducción
+        // Include the translation
         $translation = $this->locale ? $domain->translator->getTranslation($string, $this->locale, false)?->translation : '';
         if ($translation) {
           if ($replacePlural) {
@@ -61,14 +64,14 @@ class XLIFF extends Serializer
             }
           }
 
-          // Convertir placeholder, por ejemplo: %code% -> <x id="INTERPOLATION" equiv-text="{{ 404 | number }}"/>
+          // Convert the placeholder, for example: %code% -> <x id="INTERPOLATION" equiv-text="{{ 404 | number }}"/>
           $translation = $this->_restoreTranslationPlaceholders($transUnit, $translation);
           $this->_setTranslation($transUnit, $translation);
         }
       }
     }
 
-    // Corregir final del documento
+    // Fix the end of the document
     $output = $source->render();
     if (str_ends_with($output, '</?xml>')) {
       $output = substr($output, 0, -7);
@@ -103,7 +106,7 @@ class XLIFF extends Serializer
 
   private function _getStringID(HTML_Parser_Element $sourceTag): string
   {
-    // Convertir los <x equiv-text>
+    // Convert the <x equiv-text> elements
     $innerHTML = [];
     $hasPlaceholders = false;
     foreach ($sourceTag->children as $child) {
@@ -121,7 +124,7 @@ class XLIFF extends Serializer
     }
     $innerHTML = implode('', $innerHTML);
 
-    // Procesar como una cadena HTML estándar
+    // Process it as a standard HTML string
     if ($hasPlaceholders) {
       $htmlFormat = new Angular_HTML();
       $foundStrings = $htmlFormat->getStrings("<div i18n>{$innerHTML}</div>");
@@ -178,7 +181,7 @@ class XLIFF extends Serializer
             throw new Exception("Missing closing tag for XLIFF placeholder '{$placeholderName}' @ '{$sourceTag->render()}");
           }
         }
-      } else { // Probar si es ICU
+      } else { // Try whether it is ICU
         $pattern = new Pattern($placeholderName);
         if ($pattern->hasPlaceholders()) {
           $replacement = $placeholderName;

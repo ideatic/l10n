@@ -162,7 +162,7 @@ class AnalysisChecksTest extends TestCase
     public function testReportsOnlyAmbiguousStringsWithoutComment(): void
     {
         $options = new Options();
-        // Participios españoles sueltos (-ado/-ada/-ido/-ida): su género es invisible en otros idiomas
+        // Standalone Spanish participles (-ado/-ada/-ido/-ida): their gender is invisible in other languages
         $options->ambiguousWords = ['/^\p{L}+[ai]d[oa]s?$/ui'];
 
         $issues = $this->_run(

@@ -34,11 +34,11 @@ class AnalysisSimilarStringsTest extends TestCase
         $issues = $this->_run(
             new SimilarStrings(),
             [
-                // Diferencia solo de mayúsculas, pero cadenas cortas
+                // Case-only difference, but short strings
                 $this->_string('Save'),
                 $this->_string('save'),
 
-                // Diferencia real, pero cadenas mucho más largas
+                // A real difference, but much longer strings
                 $this->_string('The championship standings are updated every hour'),
                 $this->_string('The championship standings are updated every hours'),
             ]
@@ -137,8 +137,8 @@ class AnalysisSimilarStringsTest extends TestCase
     }
 
     /**
-     * El filtro por longitud es una optimización: debe producir exactamente los mismos grupos que comparar todos
-     * los pares sin descartar ninguno
+     * The length filter is an optimisation: it must produce exactly the same groups as comparing every pair without
+     * discarding any of them
      */
     public function testLengthFilterDoesNotHideAnyMatch(): void
     {
@@ -158,7 +158,7 @@ class AnalysisSimilarStringsTest extends TestCase
             $this->_run(new SimilarStrings(), $strings, options: $options)
         );
 
-        // Todo par que supere el umbral comparándolo directamente debe acabar en un mismo grupo
+        // Every pair beating the threshold when compared directly must end up in the same group
         for ($i = 0; $i < count($strings); $i++) {
             for ($j = $i + 1; $j < count($strings); $j++) {
                 $percent = 0.0;

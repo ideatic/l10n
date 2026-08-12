@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace ideatic\l10n\Utils;
 
+/**
+ * Helpers to work with locale codes: their display name, and the variants a locale can fall back to when it has no
+ * translations of its own ('es-AR' -> 'es').
+ */
 abstract class Locale
 {
 
@@ -61,7 +65,7 @@ abstract class Locale
   /**
    * Parses the RFC code of a culture and returns an array with every valid variant of it,
    * ordered from the most specific to the most neutral.
-   * P.ej.:
+   * E.g.:
    *  locale_variants('es_es') returns: ['es-ES', 'es')]
    *
    * locale_variants('az-Cyrl-AZ') returns: ['az_Cyrl_AZ', 'az_AZ', 'az']
@@ -75,11 +79,11 @@ abstract class Locale
     if (empty($locale)) {
       return ['default'];
     } else {
-      if (str_contains($locale, '_')) { // Aceptar referencias con _ y - como separador
+      if (str_contains($locale, '_')) { // Accept references using either _ or - as the separator
         $locale = str_replace('_', '-', $locale);
       }
 
-      if (!str_contains($locale, '-')) { // La referencia cultura solo incluye el idioma
+      if (!str_contains($locale, '-')) { // The culture reference only holds the language
         return [strtolower($locale)];
       }
 

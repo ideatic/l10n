@@ -9,6 +9,10 @@ use ideatic\l10n\LString;
 use ideatic\l10n\Project;
 use stdClass;
 
+/**
+ * Writes catalogs as JSON. In its plain form it produces a simple id => translation dictionary; with $extended it
+ * writes one object per string, carrying the source text, context, comments, locations and reference translations.
+ */
 class JSON extends Serializer
 {
     public function __construct()

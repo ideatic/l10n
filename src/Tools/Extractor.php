@@ -14,6 +14,10 @@ use ideatic\l10n\String\MultiProvider;
 use ideatic\l10n\Utils\IO;
 use stdClass;
 
+/**
+ * Walks the source code of the configured projects looking for translatable strings, and groups what it finds into
+ * domains.
+ */
 class Extractor
 {
   /** @var Project[] */
@@ -32,12 +36,12 @@ class Extractor
       $i18nProvider->add($projectProvider);
     }
 
-    // Agrupar cadenas en dominios
+    // Group the strings into domains
     return Domain::generate($i18nProvider->getStrings());
   }
 
   /**
-   * Configura el proveedor de cadenas localizables para el proyecto indicado
+   * Sets up the localizable string provider for the given project
    */
   public static function getProjectProvider(Project|stdClass $project): DirectoryProvider
   {

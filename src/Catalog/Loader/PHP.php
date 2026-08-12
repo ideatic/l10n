@@ -11,27 +11,27 @@ use ideatic\l10n\LString;
 use PhpToken;
 
 /**
- * Carga catálogos de traducción desde archivos PHP que retornan un diccionario.
- * Analiza los tokens nativos de PHP para evitar el uso de eval() y mejorar la seguridad.
+ * Loads translation catalogs from PHP files returning a dictionary.
+ * It walks the native PHP tokens to avoid using eval() and improve safety.
  */
 class PHP extends Loader
 {
     /**
      * @inheritDoc
-     * @throws Exception Si el archivo PHP no tiene un formato válido o seguro.
+     * @throws Exception When the PHP file does not have a valid, safe format.
      */
     public function load(string $content, string $locale): Catalog
     {
-        // Tokenizar el contenido completo
+        // Tokenise the whole content
         $tokens = PhpToken::tokenize($content);
         $count = count($tokens);
         $pos = 0;
 
-        // 1. Encontrar la sentencia 'return'
+        // 1. Find the 'return' statement
         $this->_seekToken($tokens, $pos, [T_RETURN]);
-        $pos++; // Consumir 'return'
+        $pos++; // Consume 'return'
 
-        // 2. Verificar inicio de array ('[' o 'array(')
+        // 2. Verify the start of the array ('[' or 'array(')
         $token = $this->_getNextSignificantToken($tokens, $pos);
 
         if ($token === null) {
@@ -52,27 +52,27 @@ class PHP extends Loader
         }
 
         if ($isArrayLong) {
-            $pos++; // Consumir 'array'
+            $pos++; // Consume 'array'
             $token = $this->_getNextSignificantToken($tokens, $pos);
             if ($token?->text !== '(') {
                 throw new Exception('Invalid PHP translation file: "(" expected after "array".');
             }
         }
 
-        $pos++; // Consumir '[' o '('
+        $pos++; // Consume '[' or '('
 
-        // 3. Parsear el contenido del array
+        // 3. Parse the content of the array
         $strings = $this->_parseArrayContent($tokens, $pos, $isArrayShort ? ']' : ')');
 
         return new Catalog($locale, $strings);
     }
 
     /**
-     * Parsea el contenido interno del array de traducciones.
+     * Parses the inner content of the translations array.
      *
      * @param list<PhpToken> $tokens
-     * @param int $pos Referencia a la posición actual.
-     * @param string $closingChar Carácter de cierre esperado (']' o ')').
+     * @param int $pos Reference to the current position.
+     * @param string $closingChar Expected closing character (']' or ')').
      *
      * @return array<string, Translation>
      * @throws Exception
@@ -83,7 +83,7 @@ class PHP extends Loader
         $count = count($tokens);
 
         while ($pos < $count) {
-            // Capturar comentarios previos a la clave
+            // Capture the comments preceding the key
             $comments = '';
             $token = $this->_getNextSignificantToken($tokens, $pos, $comments);
 
@@ -91,15 +91,15 @@ class PHP extends Loader
                 throw new Exception('Invalid PHP translation file: unexpected end of file inside array.');
             }
 
-            // Verificar fin de array
+            // Verify the end of the array
             if ($token->text === $closingChar) {
                 $pos++;
                 break;
             }
 
-            // --- 1. Leer Clave ---
+            // --- 1. Read the key ---
             if ($token->id !== T_CONSTANT_ENCAPSED_STRING) {
-                // Permitir coma final (trailing comma)
+                // Allow a trailing comma
                 if ($token->text === ',') {
                     $pos++;
                     continue;
@@ -117,11 +117,11 @@ class PHP extends Loader
             $keyLine = $token->line;
             $keyOffset = $token->pos;
 
-            // Decodificar clave
+            // Decode the key
             $key = $this->_decodeString($keyRaw);
             $pos++;
 
-            // --- 2. Leer Flecha (=>) ---
+            // --- 2. Read the arrow (=>) ---
             $token = $this->_getNextSignificantToken($tokens, $pos);
             if ($token?->id !== T_DOUBLE_ARROW) {
                 throw new Exception(
@@ -134,7 +134,7 @@ class PHP extends Loader
             }
             $pos++;
 
-            // --- 3. Leer Valor ---
+            // --- 3. Read the value ---
             $token = $this->_getNextSignificantToken($tokens, $pos);
             if ($token?->id !== T_CONSTANT_ENCAPSED_STRING) {
                 throw new Exception(
@@ -149,7 +149,7 @@ class PHP extends Loader
             $value = $this->_decodeString($token->text);
             $pos++;
 
-            // --- 4. Construir Objeto ---
+            // --- 4. Build the object ---
             $metadata = new LString();
             $metadata->id = $key;
             $metadata->line = $keyLine;
@@ -161,10 +161,10 @@ class PHP extends Loader
 
             $strings[$key] = new Translation($value, $metadata);
 
-            // --- 5. Verificar coma o cierre ---
+            // --- 5. Verify a comma or a closing character ---
             $token = $this->_getNextSignificantToken($tokens, $pos);
             if ($token?->text === ',') {
-                $pos++; // Consumir coma y continuar bucle
+                $pos++; // Consume the comma and keep looping
             } elseif ($token?->text !== $closingChar) {
                 throw new Exception(
                     sprintf(
@@ -180,13 +180,13 @@ class PHP extends Loader
     }
 
     /**
-     * Avanza el puntero ignorando espacios y, opcionalmente, capturando comentarios.
+     * Advances the pointer skipping whitespace and, optionally, capturing comments.
      *
      * @param list<PhpToken> $tokens
-     * @param int $pos Referencia al puntero actual.
-     * @param string|null $capturedComments Referencia para almacenar comentarios encontrados (opcional).
+     * @param int $pos Reference to the current pointer.
+     * @param string|null $capturedComments Reference to store the comments found (optional).
      *
-     * @return PhpToken|null El siguiente token significativo o null si fin de archivo.
+     * @return PhpToken|null The next significant token, or null at the end of the file.
      */
     private function _getNextSignificantToken(array $tokens, int &$pos, ?string &$capturedComments = null): ?PhpToken
     {
@@ -202,7 +202,7 @@ class PHP extends Loader
 
             if ($token->is([T_COMMENT, T_DOC_COMMENT])) {
                 if ($capturedComments !== null) {
-                    // Limpiar el comentario (//, #, /* */)
+                    // Clean the comment up (//, #, /* */)
                     $cleanComment = $this->_cleanComment($token->text);
                     $capturedComments = $capturedComments === ''
                         ? $cleanComment
@@ -219,12 +219,12 @@ class PHP extends Loader
     }
 
     /**
-     * Busca hacia adelante hasta encontrar uno de los tipos de token solicitados.
+     * Scans forward until one of the requested token types is found.
      *
      * @param list<PhpToken> $tokens
      * @param int $pos
      * @param int[] $tokenTypes
-     * @throws Exception Si no se encuentra el token.
+     * @throws Exception When the token is not found.
      */
     private function _seekToken(array $tokens, int &$pos, array $tokenTypes): void
     {
@@ -240,8 +240,8 @@ class PHP extends Loader
     }
 
     /**
-     * Decodifica un string PHP (con comillas simples o dobles) a su valor real
-     * sin usar eval().
+     * Decodes a PHP string (single or double quoted) into its real value
+     * without using eval().
      */
     private function _decodeString(string $raw): string
     {
@@ -249,13 +249,13 @@ class PHP extends Loader
         $content = substr($raw, 1, -1);
 
         if ($quote === "'") {
-            // Estándar PHP comillas simples: solo escapa \' y \\
+            // PHP single-quote rules: only \' and \\ are escaped
             return str_replace(['\\\'', '\\\\'], ["'", '\\'], $content);
         }
 
         if ($quote === '"') {
-            // Estándar PHP comillas dobles: stripcslashes maneja la mayoría (\n, \t, \", \\, etc.)
-            // Nota: No soportamos interpolación de variables {$var} por seguridad.
+            // PHP double-quote rules: stripcslashes handles most of them (\n, \t, \", \\, etc.)
+            // Note: variable interpolation {$var} is not supported, for safety.
             return stripcslashes($content);
         }
 
@@ -263,7 +263,7 @@ class PHP extends Loader
     }
 
     /**
-     * Limpia los delimitadores de comentarios PHP.
+     * Strips the PHP comment delimiters.
      */
     private function _cleanComment(string $text): string
     {
@@ -274,7 +274,7 @@ class PHP extends Loader
             return trim(substr($text, 1));
         }
         if (str_starts_with($text, '/*')) {
-            // Remover /* y */
+            // Remove /* and */
             return trim(substr($text, 2, -2));
         }
         return trim($text);

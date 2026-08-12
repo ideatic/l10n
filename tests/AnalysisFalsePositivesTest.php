@@ -18,8 +18,8 @@ use PHPUnit\Framework\TestCase;
 require_once 'AnalysisFixtures.php';
 
 /**
- * Un informe que informa de lo que está bien no se puede vaciar, y el ruido acaba tapando lo que sí hay que
- * arreglar. Cada caso de este archivo es una situación correcta que el analizador informaba como problema.
+ * A report that flags what is already correct can never be driven to zero, and the noise ends up burying what
+ * does need fixing. Every case in this file is a correct situation the analyzer used to report as a problem.
  */
 class AnalysisFalsePositivesTest extends TestCase
 {
@@ -28,7 +28,7 @@ class AnalysisFalsePositivesTest extends TestCase
     private const string ICU_POINTS = '{count, plural, one {# punto} other {# puntos}}';
 
     // -----------------------------------------------------------------------------------------------------------
-    // icu-superseded: una etiqueta sin cantidad no la sustituye ningún plural
+    // icu-superseded: a label without a quantity is superseded by no plural at all
     // -----------------------------------------------------------------------------------------------------------
 
     public function testALabelWithoutAQuantityDoesNotSupersedeAPluralBranch(): void
@@ -57,12 +57,12 @@ class AnalysisFalsePositivesTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // non-localizable: el contexto y el comentario demuestran que ya se ha pensado en la cadena
+    // non-localizable: a context or a comment proves the string was already thought about
     // -----------------------------------------------------------------------------------------------------------
 
     public function testAnnotatedStringsAreNotReportedAsNonLocalizable(): void
     {
-        // 'C' de capitán: es 'К' en ruso y 'A' en griego, así que sí se traduce
+        // 'C' for captain: it is 'K' in Russian and 'A' in Greek, so it does get translated
         $annotated = [
             'a context' => $this->_string('C', ['context' => 'acronym']),
             'a comment' => $this->_string('C', ['comments' => 'Abbreviation for "captain"']),
@@ -89,22 +89,22 @@ class AnalysisFalsePositivesTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // identical-translation: la distancia con el idioma de origen cambia lo que significa una coincidencia
+    // identical-translation: the distance from the source locale changes what a match means
     // -----------------------------------------------------------------------------------------------------------
 
     public function testIdenticalTranslationsWeighTheWritingSystem(): void
     {
         $text = 'Total points';
 
-        // 'gl' y 'ca' comparten alfabeto y léxico con 'es': coincidir es normal.
-        // Que coincida un idioma en cirílico, griego, hebreo o árabe significa que nadie lo ha traducido
+        // 'gl' and 'ca' share the alphabet and much vocabulary with 'es': matching is normal.
+        // A match in Cyrillic, Greek, Hebrew or Arabic means nobody has translated it
         $expected = ['gl' => Severity::Info, 'ca' => Severity::Info, 'pt' => Severity::Info, 'it' => Severity::Info,
                      'ru' => Severity::Warning, 'el' => Severity::Warning, 'he' => Severity::Warning, 'ar' => Severity::Warning];
 
         foreach ($expected as $locale => $severity) {
             $issues = $this->_run(
                 new IdenticalTranslation(),
-                [$this->_string($text)], // Domain::generate marca la cadena, así que no se puede reutilizar
+                [$this->_string($text)], // Domain::generate stamps the string, so it cannot be reused
                 [$locale],
                 ["app@{$locale}" => $this->_catalog($locale, [$text => $text])],
                 configuration: ['sourceLocale' => 'es']
@@ -154,7 +154,7 @@ class AnalysisFalsePositivesTest extends TestCase
         $this->assertSame('ru', $issues[0]->locale);
     }
 
-    /** Sin idioma de origen no hay distancia que medir, y la comprobación debe seguir funcionando */
+    /** Without a source locale there is no distance to measure, and the check must keep working */
     public function testAMissingSourceLocaleFallsBackToInfo(): void
     {
         $text = 'Total points';
@@ -172,7 +172,7 @@ class AnalysisFalsePositivesTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // Dominios fuera de la canalización: unconfigured-domain lo dice una vez, y con eso basta
+    // Domains outside the pipeline: unconfigured-domain says it once, and that is enough
     // -----------------------------------------------------------------------------------------------------------
 
     /** @return array<string, mixed> */
@@ -206,7 +206,7 @@ class AnalysisFalsePositivesTest extends TestCase
 
         $issues = $this->_run(new EmptyCatalog(), $strings, $locales, $catalogs, configuration: $this->_onlyAppIsConfigured());
 
-        // Solo los idiomas que faltan en 'app': 'shop' no aporta uno por idioma
+        // Only the locales missing from 'app': 'shop' does not contribute one per locale
         $this->assertSame(['de', 'it'], array_map(static fn($issue): ?string => $issue->locale, $issues));
     }
 
@@ -253,8 +253,8 @@ class AnalysisFalsePositivesTest extends TestCase
     }
 
     /**
-     * Un proyecto que no describe su canalización en l10n.json no es un proyecto en el que todos los dominios
-     * estén olvidados: sin nada con lo que comparar, se comprueban todos
+     * A project that does not describe its pipeline in l10n.json is not a project where every domain has been
+     * forgotten: with nothing to compare against, they are all checked
      */
     public function testWithoutAnyPipelineConfigurationEveryDomainIsChecked(): void
     {
@@ -266,10 +266,10 @@ class AnalysisFalsePositivesTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // duplicated-text: dos homónimos separados a propósito no son trabajo duplicado
+    // duplicated-text: two homonyms split on purpose are not duplicated work
     // -----------------------------------------------------------------------------------------------------------
 
-    /** "Plano" es 'Flat' o 'Floor plan' según de qué se hable: los catálogos ya lo demuestran */
+    /** "Plano" is 'Flat' or 'Floor plan' depending on what is meant: the catalogs already prove it */
     public function testHomonymsAlreadyTranslatedDifferentlyAreNotReported(): void
     {
         $issues = $this->_run(
@@ -282,7 +282,7 @@ class AnalysisFalsePositivesTest extends TestCase
         $this->assertSame([], $issues, 'Merging them would break every locale');
     }
 
-    /** Una traducción que falta no demuestra nada: hacen falta dos para poder compararlas */
+    /** A missing translation proves nothing: two are needed before they can be compared */
     public function testASingleTranslationIsNotEvidenceOfDivergence(): void
     {
         $issues = $this->_run(
@@ -309,7 +309,7 @@ class AnalysisFalsePositivesTest extends TestCase
         $this->assertStringContainsString('each with a different context', $issues[0]->message);
     }
 
-    /** El problema de verdad: el traductor recibe una sola entrada para dos significados */
+    /** The real problem: the translator receives a single entry for two meanings */
     public function testAnEntryWithoutContextIsStillAWarning(): void
     {
         $issues = $this->_run(
@@ -323,7 +323,7 @@ class AnalysisFalsePositivesTest extends TestCase
         $this->assertSame(Severity::Warning, $issues[0]->severity);
     }
 
-    /** Sin catálogos no hay pruebas que consultar, pero la comprobación tiene que seguir ejecutándose */
+    /** Without catalogs there is no evidence to consult, but the check still has to run */
     public function testDuplicatesAreStillDetectedWithoutAnyCatalog(): void
     {
         $issues = $this->_run(
@@ -336,7 +336,7 @@ class AnalysisFalsePositivesTest extends TestCase
     }
 
     // -----------------------------------------------------------------------------------------------------------
-    // plural-candidate: una cantidad solo necesita ICU cuando hay una palabra que concuerde con ella
+    // plural-candidate: a quantity only needs ICU when there is a word that has to agree with it
     // -----------------------------------------------------------------------------------------------------------
 
     public function testAmountsWithoutACountedNounAreNotPluralCandidates(): void
@@ -358,7 +358,7 @@ class AnalysisFalsePositivesTest extends TestCase
         }
     }
 
-    /** La pista se sacaba de cualquier marcador, así que señalaba al verbo que seguía a otro distinto */
+    /** The hint was taken from any placeholder, so it pointed at the verb following a different one */
     public function testTheHintOnlyLooksAtTheCountPlaceholder(): void
     {
         $issues = $this->_run(new PluralCandidate(), [$this->_string('%user% ofrece %count% puntos')]);

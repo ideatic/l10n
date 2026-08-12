@@ -18,11 +18,15 @@ use ideatic\l10n\Utils\Locale;
 use ideatic\l10n\Utils\Utils;
 use stdClass;
 
+/**
+ * Tool that reads the finished translations from the configured sources and writes them into the translation files
+ * of each project.
+ */
 class Importer
 {
     public static function run(Environment $environment): void
     {
-        // Obtener dominios disponibles
+        // Get the available domains
         $domains = Extractor::scanDomains($environment);
 
         if (isset($environment->params['domain'])) {
@@ -57,10 +61,10 @@ class Importer
 
                 echo "\n\t## " . Locale::getName($locale) . " ({$locale})\n";
 
-                // Importar las traducciones (solo del idioma actual) actualizadas desde todas las fuentes
+                // Import the translations (of the current locale only) updated from every source
                 $domain->translator = self::_prepareTranslator($domainConfig, $domain, $locale, $environment);
 
-                // Mostrar resumen
+                // Show the summary
                 $notFound = array_filter(
                     $domain->strings,
                     fn(array $stringLocations) => $domain->translator->getTranslation($stringLocations[0], $locale) === null,
@@ -83,7 +87,7 @@ class Importer
                         ) . "\n";
                 }
 
-                // Escribir traducciones en los proyectos
+                // Write the translations into the projects
                 /** @var Project|\stdClass $project */
                 foreach ($environment->config->projects as $project) {
                     /** @var ProjectTranslations|\stdClass $translationsStore */
@@ -134,13 +138,13 @@ class Importer
             if ($translationsCatalog) {
                 $loadedCatalogs[] = $translationsCatalog;
 
-                if ($source->addComment ?? null) { // Añadir comentario si el proveedor de la traducción es el actual
+                if ($source->addComment ?? null) { // Add a comment when the translation provider is the current one
                     foreach ($domain->strings as $string) {
                         foreach ($loadedCatalogs as $catalog) {
                             $translation = $catalog->getTranslation($string[0]);
-                            if (isset($translation)) { // Si la cadena está en el catálogo
+                            if (isset($translation)) { // When the string is in the catalog
                                 if ($catalog === $translationsCatalog) {
-                                    // Comprobar si ya existe el comentario en alguna línea
+                                    // Check whether the comment already exists on some line
                                     if (!in_array($source->addComment, explode("\n", $translation->metadata->comments ?? ''))) {
                                         $translation->metadata->comments ??= '';
                                         $translation->metadata->comments = mb_trim("{$translation->metadata->comments}\n{$source->addComment}");
@@ -158,14 +162,14 @@ class Importer
             }
         }
 
-        // Configurar el traductor del dominio para que utilice las traducciones cargadas, dando prioridad a las fuentes más recientes
+        // Set up the domain translator to use the loaded translations, giving priority to the most recent sources
         $domain->translator = new \ideatic\l10n\Translation\Provider\Fallback();
 
         foreach (array_reverse($loadedCatalogs) as $catalog) {
             $domain->translator->prependTranslator(new \ideatic\l10n\Translation\Provider\Catalog($catalog));
         }
 
-        // Añadir como último recurso las traducciones ya existentes en los archivos de traducción de los proyectos
+        // Add, as a last resort, the translations already present in the translation files of the projects
         $domain->translator->addTranslator(new \ideatic\l10n\Translation\Provider\Projects($environment->config));
 
         return $domain->translator;
@@ -209,11 +213,11 @@ class Importer
             return null;
         }
 
-        // Procesar archivo recibido
+        // Process the received file
         try {
             $loader = Loader::factory($source->format ?? 'po');
             $catalog = $loader->load($content, $locale);
-            $catalog->removeComments(); // Eliminar comentarios de las traducciones para que no se incluyan al serializar
+            $catalog->removeComments(); // Drop the comments of the translations so they are not included when serialising
         } catch (\Exception $e) {
             echo "\033[31m\n\t\tError loading translations for domain '{$domain->name}' locale {$locale}: {$e->getMessage()}\033[0m\n";
             throw $e;
@@ -225,7 +229,7 @@ class Importer
     }
 
     /**
-     * Guarda las cadenas traducidas del proyecto indicado en la ubicación especificada
+     * Saves the translated strings of the given project at the specified location
      */
     public static function _saveProjectTranslations(stdClass|Project $project, ProjectTranslations|\stdClass $translationsStore, Domain $domain, string $locale): void
     {

@@ -7,7 +7,7 @@ namespace ideatic\l10n\CLI;
 use ideatic\l10n\Tools\Analysis\Severity;
 
 /**
- * Escritura con formato en la consola
+ * Formatted writing to the console
  */
 class Output
 {
@@ -27,7 +27,7 @@ class Output
     private mixed $_stream;
 
     /**
-     * @param bool|null $colors Forzar o desactivar los colores (null = detección automática)
+     * @param bool|null $colors Force or disable colours (null = auto-detect)
      * @param resource|null $stream
      */
     public function __construct(?bool $colors = null, mixed $stream = null)
@@ -68,11 +68,11 @@ class Output
     }
 
     /**
-     * Escribe una tabla de texto con columnas alineadas
+     * Writes a text table with aligned columns
      *
      * @param list<string>       $headers
      * @param list<list<string>> $rows
-     * @param list<int>          $rightAlign Índices de las columnas alineadas a la derecha
+     * @param list<int>          $rightAlign Indexes of the right-aligned columns
      */
     public function table(array $headers, array $rows, array $rightAlign = [], string $indent = '  '): void
     {

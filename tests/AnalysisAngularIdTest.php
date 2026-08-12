@@ -20,20 +20,20 @@ use PHPUnit\Framework\TestCase;
 require_once 'AnalysisFixtures.php';
 
 /**
- * En las plantillas de Angular, LString::$text conserva la sintaxis original de la plantilla mientras que $id ya está
- * normalizado a lo que ve el traductor y es la clave con la que se guarda la traducción (Angular.php:198 y :226).
+ * In Angular templates LString::$text keeps the original template syntax while $id is already normalised to what
+ * the translator sees, and is the key the translation is stored under (Angular.php:198 and :226).
  *
- * Las comprobaciones que razonan sobre el contenido traducible deben usar siempre translatableText(): si leen $text,
- * toda cadena ICU de plantilla aparece rota en todos los idiomas a la vez.
+ * The checks reasoning about the translatable content must always use translatableText(): reading $text instead
+ * makes every ICU template string look broken in every locale at once.
  */
 class AnalysisAngularIdTest extends TestCase
 {
     use AnalysisFixtures;
 
-    /** Sintaxis original de la plantilla: el selector es la expresión que produce el valor */
+    /** Original template syntax: the selector is the expression producing the value */
     private const string TEMPLATE = '{user.points, plural, one {1 pt.} other {# pts.}}';
 
-    /** ID normalizada por el extractor, que es la clave del catálogo y lo que traduce el traductor */
+    /** Id normalised by the extractor, which is the catalog key and what the translator translates */
     private const string NORMALISED = '{count, plural, one {1 pt.} other {# pts.}}';
 
     public function testTranslatableTextPrefersTheNormalisedId(): void
@@ -47,8 +47,8 @@ class AnalysisAngularIdTest extends TestCase
     }
 
     /**
-     * Con i18n="@@miId" la ID es un identificador arbitrario que no significa nada para el traductor: ahí el
-     * contenido traducible sigue siendo el texto
+     * With i18n="@@myId" the id is an arbitrary identifier that means nothing to the translator: there the
+     * translatable content is still the text
      */
     public function testTranslatableTextIgnoresAnExplicitIdentifier(): void
     {
@@ -67,7 +67,7 @@ class AnalysisAngularIdTest extends TestCase
     }
 
     /**
-     * Una ID normalizada solo cuenta como tal si es el mismo mensaje: distinto contenido significa identificador
+     * A normalised id only counts as such when it is the same message: different content means an explicit
      */
     public function testTranslatableTextRejectsAnIdWithDifferentContent(): void
     {
@@ -92,8 +92,8 @@ class AnalysisAngularIdTest extends TestCase
     }
 
     /**
-     * El caso del informe: la traducción es idéntica byte a byte a la ID y aun así se reportaban dos incidencias
-     * contradictorias por cada idioma
+     * The case from the report: the translation is byte for byte identical to the id and two issues were still raised
+     * contradicting each other, per locale
      */
     public function testTranslationIdenticalToTheIdReportsNoPlaceholderMismatch(): void
     {
@@ -112,7 +112,7 @@ class AnalysisAngularIdTest extends TestCase
     }
 
     /**
-     * ICU4C rechaza "user.points" como nombre de argumento porque el punto no es válido
+     * ICU4C rejects "user.points" as an argument name because the dot is not valid
      */
     public function testAngularSelectorIsNotReportedAsInvalidIcu(): void
     {
@@ -157,7 +157,7 @@ class AnalysisAngularIdTest extends TestCase
 
     public function testIcuConsistencyReadsTheNormalisedVariableName(): void
     {
-        // Las tres usan 'count' una vez normalizadas: no hay convención minoritaria que reportar
+        // All three use 'count' once normalised: there is no minority convention to report
         $issues = $this->_run(new IcuConsistency(), [
             $this->_angularPlural(),
             $this->_string('{team.goals, plural, one {1 gol} other {# goles}}', ['id' => '{count, plural, one {1 gol} other {# goles}}', 'isICU' => true]),
@@ -169,7 +169,7 @@ class AnalysisAngularIdTest extends TestCase
 
     public function testPluralCandidateLooksAtTheNormalisedText(): void
     {
-        // %count% solo aparece en la ID: leyendo $text no se detectaría
+        // %count% only appears in the id: reading $text would not detect it
         $issues = $this->_run(new PluralCandidate(), [
             $this->_string('{{ players.length | i18n:\'%count%\' }} jugadores', ['id' => '%count% jugadores']),
         ]);
@@ -200,7 +200,7 @@ class AnalysisAngularIdTest extends TestCase
     }
 
     /**
-     * Antes se comparaba con $text, así que una traducción igual a la ID no se detectaba
+     * It used to be compared against $text, so a translation equal to the id went undetected
      */
     public function testIdenticalTranslationComparesAgainstTheId(): void
     {
@@ -215,8 +215,8 @@ class AnalysisAngularIdTest extends TestCase
     }
 
     /**
-     * Varias expresiones Angular que normalizan a la misma ID son el comportamiento buscado del extractor: da igual
-     * cuál se conserve, porque todas producen exactamente la misma traducción
+     * Several Angular expressions normalising to the same id are the intended behaviour of the extractor: it
+     * does not matter which one is kept, because they all produce exactly the same translation
      */
     public function testDifferentSelectorsWithTheSameBranchesAreNotACollision(): void
     {
@@ -230,7 +230,7 @@ class AnalysisAngularIdTest extends TestCase
     }
 
     /**
-     * El caso peligroso que Domain::generate() sí acepta en silencio: mismo ID, contenido distinto
+     * The dangerous case Domain::generate() does accept silently: same id, different content
      */
     public function testDifferentBranchesUnderTheSameIdAreStillAnError(): void
     {
@@ -254,7 +254,7 @@ class AnalysisAngularIdTest extends TestCase
     }
 
     /**
-     * La señal útil no debe perderse: una traducción obsoleta que inventa un marcador sigue siendo un error
+     * The useful signal must not be lost: a stale translation inventing a placeholder is still an error
      */
     public function testStaleTranslationsAreStillDetected(): void
     {

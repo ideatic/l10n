@@ -8,7 +8,7 @@ use ideatic\l10n\String\Format\Format;
 use ideatic\l10n\Utils\IO;
 
 /**
- * Proveedor encargado de buscar cadenas traducibles en un directorio
+ * Provider that looks for translatable strings inside a directory
  */
 class DirectoryProvider extends Provider
 {

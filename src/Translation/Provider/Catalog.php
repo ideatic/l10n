@@ -9,7 +9,7 @@ use ideatic\l10n\LString;
 use ideatic\l10n\Translation\Provider;
 
 /**
- * Implementa un proveedor de traducciones que utiliza un catálogo (o varios) como fuente
+ * A translation provider that uses one or more catalogs as its source
  */
 class Catalog implements Provider
 {
