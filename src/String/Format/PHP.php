@@ -58,6 +58,12 @@ class PHP extends Format
             if (isset($this->_functions[$call->method]) && $call->isFunction()) {
                 // Solo se pueden editar llamadas a funciones con una id constante
                 if ($call->argumentCount() == 0 || !$call->isConstantString(0)) {
+                    // Avisar cuando hay texto escrito en el propio código que no se va a poder traducir. Una
+                    // indirección sin literales, como __($mensaje), es deliberada y no se informa.
+                    if ($call->argumentCount() > 0 && $call->containsStringLiteral(0)) {
+                        echo "\033[31mWarning! Localizable string ignored, its first argument is not a constant string: {$call->code} @ {$path}:{$call->line}\033[0m\n";
+                    }
+
                     continue;
                 }
 

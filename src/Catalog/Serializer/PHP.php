@@ -28,13 +28,11 @@ class PHP extends Serializer
                     }
                 }
 
-                $comments = array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => strlen(trim($s->comments ?? '')) > 0));
-                if (!empty($translation?->metadata->comments)) {
-                    $comments[] = $translation->metadata->comments;
-                }
+                $comments = array_map(fn(LString $s) => $s->comments, $strings);
+                $comments[] = $translation?->metadata->comments ?? null;
 
-                if (!empty(array_unique($comments))) {
-                    $comments = implode(PHP_EOL, array_unique($comments));
+                $comments = self::mergeComments(array_values($comments));
+                if ($comments !== '') {
                     $phpArray[] = '  ' . var_export($string->fullyQualifiedID(), true) . ' /* ' . $comments . ' */ => ' . var_export($translation->translation, true)
                         . ($key == $lastKey ? '' : ',');
                 } else {

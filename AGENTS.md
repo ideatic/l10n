@@ -6,7 +6,7 @@ When writing PHP code, follow this best practices:
 
 - **Adhere to PSR-1 and PSR-12:** All code must strictly follow the PSR-1 (Basic Coding Standard) and PSR-12 (Extended Coding Style) guidelines.
 - **Leverage Modern PHP Features:** Actively use features from PHP 7, 8 and newer, including but not limited to, type declarations, the null coalescing operator (`??`), and arrow functions for concise callbacks.
-- **Use Spanish for Documentation:** All comments and documentation must be written in clear and concise Spanish to ensure code maintainability and clarity for the team. The localization functions `__()` and `_f()` are to be used for all user-facing strings.
+- **Use English for Documentation:** All comments and documentation must be written in clear and concise English to ensure code maintainability and clarity. 
 - **Use short echo syntax in templates:** Use the short echo syntax (`<?=`) in HTML templates.
 - **Prefer First-class callable syntax:** For callables, prefer using First-class callable (`CallableExpr(...)`) that is more accessible to static analysis.
 - **Prefer interpolation:** When embedding variables in strings, prefer interpolation (e.g., `"Hello, {$name}"`) over concatenation (e.g., `"Hello, " . $name`). Always use curly braces for variable interpolation to avoid ambiguity.

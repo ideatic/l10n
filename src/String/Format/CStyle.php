@@ -8,7 +8,6 @@ use Exception;
 use ideatic\l10n\LString;
 use ideatic\l10n\Utils\IO;
 use InvalidArgumentException;
-use Throwable;
 
 /**
  * Proveedor de cadenas traducibles encontradas en código estilo C (Javascript, C, PHP, C#, etc.)
@@ -79,6 +78,13 @@ class CStyle extends Format
             $params = $this->_parseFnArgs($code, $match[0][1] + strlen($match[0][0]) - 1, $methodEnd, $comments);
 
             if (count($params) < 1 || !$this->_isString($params[0])) {
+                // Avisar cuando hay texto escrito en el propio código que no se va a poder traducir. Una
+                // indirección sin literales, como __(message), es deliberada y no se informa.
+                if (isset($params[0]) && preg_match('/' . self::LITERAL . '/su', $params[0])) {
+                    $line = substr_count($code, "\n", 0, $match[0][1]) + 1;
+                    echo "\033[31mWarning! Localizable string ignored, its first argument is not a constant string: {$params[0]} @ {$path}:{$line}\033[0m\n";
+                }
+
                 continue;
             }
             $string->id = $string->text = $this->_parseString($params[0]);
@@ -184,16 +190,44 @@ class CStyle extends Format
 
     private function _isString(string $string): bool
     {
-        try {
-            $str = $this->_parseString($string);
-            return $str != $string;
-        } catch (Throwable $err) {
-            return false;
+        $expression = mb_trim($string);
+
+        // Sin esta comprobación, una expresión como '"a" + variable' se aceptaba y acababa extrayéndose con el
+        // operador de concatenación incrustado en el texto
+        return self::_concatenatedLiterals($expression) !== null || preg_match('/^' . self::LITERAL . '$/su', $expression) === 1;
+    }
+
+    /** Literal de texto: comillas simples, dobles o invertidas, admitiendo escapes */
+    private const string LITERAL = '(?:"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|`(?:[^`\\\\]|\\\\.)*`)';
+
+    /**
+     * Descompone una concatenación de literales ("a" + "b") en sus partes, o devuelve null si la expresión incluye
+     * algo más que literales
+     *
+     * @return list<string>|null
+     */
+    private static function _concatenatedLiterals(string $expression): ?array
+    {
+        $expression = mb_trim($expression);
+
+        if (!preg_match('/^' . self::LITERAL . '(?:\s*\+\s*' . self::LITERAL . ')+$/su', $expression)) {
+            return null;
         }
+
+        preg_match_all('/' . self::LITERAL . '/su', $expression, $matches);
+
+        return $matches[0];
     }
 
     private function _parseString(string $string): string
     {
+        // Concatenación de literales: se resuelve en tiempo de compilación, así que el valor sigue siendo constante
+        $literals = self::_concatenatedLiterals($string);
+
+        if ($literals !== null) {
+            return implode('', array_map($this->_parseString(...), $literals));
+        }
+
         $str = json_decode('"' . addcslashes(trim(trim($string), '\'"`'), '"') . '"');
         if (json_last_error() != JSON_ERROR_NONE) {
             throw new Exception("Unable to parse CStyle string {$string}: " . json_last_error_msg());

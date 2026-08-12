@@ -59,5 +59,31 @@ abstract class Serializer
      * @param list<Domain> $domains
      */
     public abstract function generate(array $domains, stdClass|Project|null $config = null): string;
+
+    /**
+     * Combina los comentarios de las distintas apariciones de una cadena y los del catálogo anterior.
+     *
+     * La comparación es línea a línea y no por bloques: el comentario que llega del catálogo ya es el resultado de
+     * combinaciones anteriores, así que compararlo entero nunca coincidiría con las líneas sueltas que lo componen
+     * y el comentario crecería una copia en cada exportación.
+     *
+     * @param list<string|null> $comments
+     */
+    protected static function mergeComments(array $comments): string
+    {
+        $lines = [];
+
+        foreach ($comments as $comment) {
+            foreach (preg_split('/\R/u', $comment ?? '') ?: [] as $line) {
+                $line = mb_trim($line);
+
+                if ($line !== '' && !in_array($line, $lines, true)) {
+                    $lines[] = $line;
+                }
+            }
+        }
+
+        return implode(PHP_EOL, $lines);
+    }
 }
 

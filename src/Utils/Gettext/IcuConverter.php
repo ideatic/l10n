@@ -37,11 +37,6 @@ class IcuConverter
 
         $replacedPattern = clone $icuPattern;
 
-        // Ensure nodes exist and are iterable
-        if (!isset($replacedPattern->nodes) || !is_array($replacedPattern->nodes)) {
-            return $replacedPattern;
-        }
-
         foreach ($replacedPattern->nodes as $index => $node) {
             if ($node instanceof Placeholder && is_array($node->content)) {
                 // We overwrite the options with our calculated forms.

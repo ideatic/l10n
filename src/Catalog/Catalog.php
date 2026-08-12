@@ -28,6 +28,16 @@ class Catalog
         return $this->_translations[$string->fullyQualifiedID()] ?? null;
     }
 
+    /**
+     * Obtiene todas las traducciones del catálogo, indexadas por el ID completo de la cadena
+     *
+     * @return array<string, Translation>
+     */
+    public function getEntries(): array
+    {
+        return $this->_translations;
+    }
+
     public function entryCount(): int
     {
         return count($this->_translations);

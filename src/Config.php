@@ -11,6 +11,9 @@ use stdClass;
 
 class Config
 {
+    /** Ruta del archivo de configuración cargado */
+    public string $path;
+
     public string $name;
     /** @var array<Project|stdClass>|stdClass */
     public array|stdClass $projects;
@@ -31,6 +34,12 @@ class Config
      * @var stdClass|array<string, ImportSource | list<ImportSource>>
      */
     public object|array $sources;
+
+    /**
+     * Opciones de la herramienta de análisis
+     * @var Analysis|stdClass|null
+     */
+    public Analysis|stdClass|null $analyze = null;
 
     /**
      * Lee la configuración
@@ -75,6 +84,8 @@ class Config
         }
 
         Utils::set($this, get_object_vars($config));
+
+        $this->path = $configPath;
     }
 
     private function _createDefaultConfig(string $path): void
@@ -98,7 +109,10 @@ class Config
 
         $defaultConfig->projects = [$defaultConfig->name => $defaultProject];
 
-        $result = file_put_contents($path, json_encode($defaultConfig, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
+        // Las opciones sin valor no se incluyen, para no ensuciar la configuración generada
+        $values = array_filter(get_object_vars($defaultConfig), static fn(mixed $value): bool => $value !== null);
+
+        $result = file_put_contents($path, json_encode($values, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
 
         if (!$result) {
             throw new Exception("Unable to write default config at {$path}. Please create the file manually.");
@@ -149,5 +163,15 @@ interface ExtractionDestiny {}
  * @property ?string $addComment
  */
 interface ImportSource {}
+
+/**
+ * @property float|null $threshold Porcentaje mínimo de similitud entre cadenas
+ * @property string|list<string>|null $skip Comprobaciones o grupos omitidos por defecto
+ * @property string|null $commentLanguage Idioma esperado en los comentarios para traductores
+ * @property list<string>|null $countPlaceholders Nombres de marcador que representan una cantidad
+ * @property list<string>|null $ambiguousWords Expresiones regulares de palabras que siempre necesitan comentario
+ * @property object{allowSurroundingText: bool, maxParameters: int, allowedTypes: list<string>, allowNesting: bool}|null $icuRuntime Limitaciones del motor ICU del cliente
+ */
+interface Analysis {}
 
 

@@ -66,11 +66,14 @@ class PO extends Serializer
                     }
                 }
 
-                // Comentarios
-                foreach (
-                    array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => strlen(mb_trim($s->comments ?? '')) > 0))) as $comment
-                ) {
-                    $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $comment);
+                // Comentarios, combinando los del código con los que ya traía el catálogo
+                $comments = array_map(fn(LString $s) => $s->comments, $strings);
+                $comments[] = $translation?->metadata->comments ?? null;
+
+                foreach (explode(PHP_EOL, self::mergeComments(array_values($comments))) as $comment) {
+                    if ($comment !== '') {
+                        $po[] = "#. {$comment}";
+                    }
                 }
                 foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
                     $localeName = Locale::getName($referenceLocale);
@@ -88,10 +91,6 @@ class PO extends Serializer
                     } else {
                         $po[] = '#. ICU expression';
                     }
-                }
-
-                if (!empty($translation?->metadata->comments)) {
-                    $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $translation->metadata->comments);
                 }
 
                 // Ubicaciones

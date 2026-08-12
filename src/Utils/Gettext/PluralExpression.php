@@ -8,7 +8,7 @@ namespace ideatic\l10n\Utils\Gettext;
 class PluralExpression
 {
   /**
-   * Obtiene un array con la definición de los plurales en la mayoría de idiomas más relevantes
+   * Gets an array with the plural definition of most of the relevant languages
    */
   public static function getAll(): array
   {

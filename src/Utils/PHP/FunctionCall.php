@@ -152,11 +152,25 @@ class FunctionCall
     }
 
     /**
-     * Obtiene un valor que indica si el parámetro con el índice indicado es una cadena de texto constante
+     * Obtiene un valor que indica si el parámetro con el índice indicado es una cadena de texto constante.
+     *
+     * Se admite la concatenación de literales ('a' . 'b'), imprescindible para poder repartir en varias líneas los
+     * patrones ICU largos: PHP la resuelve en tiempo de compilación, así que el valor sigue siendo constante.
      */
     public function isConstantString(int $index): bool
     {
-        return $this->_isOnlyAllowedTokens($index, [T_WHITESPACE, T_CONSTANT_ENCAPSED_STRING, T_COMMENT, T_DOC_COMMENT]);
+        return $this->_isOnlyAllowedTokens($index, [T_WHITESPACE, T_CONSTANT_ENCAPSED_STRING, T_COMMENT, T_DOC_COMMENT, '.']);
+    }
+
+    /**
+     * Obtiene un valor que indica si el parámetro con el índice indicado incluye algún literal de texto.
+     *
+     * Sirve para distinguir una indirección deliberada (__($mensaje), que no hay nada que extraer) de un texto
+     * escrito en el propio código que el extractor no puede procesar (__('Hola ' . $nombre)).
+     */
+    public function containsStringLiteral(int $index): bool
+    {
+        return array_any($this->_getArgumentTokens($index), static fn($token) => $token[0] === T_CONSTANT_ENCAPSED_STRING);
     }
 
     private function _isOnlyAllowedTokens(int $index, array $allowed): bool

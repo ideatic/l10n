@@ -102,12 +102,10 @@ class JSON extends Serializer
                     $row['format'] = 'icu';
                 }
 
-                $comments = array_filter($strings, fn(LString $s) => !!$s->comments);
-                if (!empty($translation?->metadata->comments)) {
-                    $comments[] = $translation->metadata->comments;
-                }
+                $comments = array_map(fn(LString $s) => $s->comments, $strings);
+                $comments[] = $translation?->metadata->comments ?? null;
 
-                $comments = mb_trim(implode(PHP_EOL, array_unique(array_map(fn(LString|string $string) => is_string($string) ? $string : $string->comments, $comments))));
+                $comments = self::mergeComments(array_values($comments));
                 if (!empty($comments)) {
                     $row['comments'] = $comments;
                 }

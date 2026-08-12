@@ -64,6 +64,36 @@ class Pattern
     return $fmt->format($args);
   }
 
+  /**
+   * Representa el mensaje omitiendo el nombre de sus argumentos.
+   *
+   * Sirve para comparar dos patrones que solo se diferencian en ese nombre: en las plantillas de Angular el nombre
+   * es la expresión que produce el valor ({user.points}, {league.user.points}...) y el extractor lo normaliza, pero
+   * el mensaje que recibe el traductor es exactamente el mismo.
+   */
+  public function signature(): string
+  {
+    $parts = [];
+
+    foreach ($this->nodes as $node) {
+      if (is_string($node)) {
+        $parts[] = $node;
+        continue;
+      }
+
+      $branches = [];
+      foreach (is_array($node->content) ? $node->content : [] as $category => $branch) {
+        $branches[] = "{$category}{" . $branch->signature() . '}';
+      }
+
+      $content = $branches ? implode(' ', $branches) : (is_string($node->content) ? $node->content : '');
+
+      $parts[] = '{@' . ($node->type !== '' ? ",{$node->type}" : '') . ($content !== '' ? ",{$content}" : '') . '}';
+    }
+
+    return implode('', $parts);
+  }
+
   public function render(bool $prettyPrint = true): string
   {
     $strings = [];

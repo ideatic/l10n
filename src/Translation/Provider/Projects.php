@@ -21,7 +21,7 @@ use stdClass;
 /**
  * Implementa un proveedor de traducciones que utiliza los proyectos definidos en la configuración como fuente
  */
-class Projects implements Provider
+class Projects implements Provider, \ideatic\l10n\Translation\CatalogProvider
 {
     /** @var array<string,Catalog> */
     private array $_loadedCatalogs = [];

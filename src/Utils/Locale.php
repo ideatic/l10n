@@ -17,7 +17,7 @@ abstract class Locale
   }
 
   /**
-   * Obtiene el idioma que se puede utilizar de reemplazo por otro
+   * Gets the locale that can be used as a replacement for another one
    */
   public static function getFallback(string $locale): array
   {
@@ -59,12 +59,12 @@ abstract class Locale
   }
 
   /**
-   * Analiza un código RFC de una cultura, y devuelve un array con todas sus variantes válidas,
-   * ordenado desde la más específica hasta la más neutra.
+   * Parses the RFC code of a culture and returns an array with every valid variant of it,
+   * ordered from the most specific to the most neutral.
    * P.ej.:
-   *  locale_variants('es_es') devolverá: ['es-ES', 'es')]
+   *  locale_variants('es_es') returns: ['es-ES', 'es')]
    *
-   * locale_variants('az-Cyrl-AZ') devolverá: ['az_Cyrl_AZ', 'az_AZ', 'az']
+   * locale_variants('az-Cyrl-AZ') returns: ['az_Cyrl_AZ', 'az_AZ', 'az']
    *
    * @return string[]
    */
@@ -95,10 +95,10 @@ abstract class Locale
 
     $codes = [];
     if (isset($script)) {
-      $codes[] = "{$language}-{$script}-{$region}"; // Referencia completa (idioma, región y sistema de escritura)
+      $codes[] = "{$language}-{$script}-{$region}"; // Full reference (language, region and writing system)
     }
-    $codes[] = "{$language}-{$region}"; // Referencia completa (idioma y región)
-    $codes[] = $language; // Referencia neutra (sólo idioma)
+    $codes[] = "{$language}-{$region}"; // Full reference (language and region)
+    $codes[] = $language; // Neutral reference (language only)
 
     return $codes;
   }

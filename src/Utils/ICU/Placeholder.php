@@ -6,10 +6,14 @@ namespace ideatic\l10n\Utils\ICU;
 
 class Placeholder
 {
-  public string $name;
-  public string $type;
-  /** @var string|array<Pattern> */
-  public string|array $content;
+  public string $name = '';
+
+  /** Placeholder type (number, date, plural, select...). Empty when the placeholder declares none, e.g. "{name}" */
+  public string $type = '';
+
+  /** @var string|array<Pattern> Content of the placeholder: plain text, or the branches of a nested message */
+  public string|array $content = '';
+
   public Pattern $parent;
 
   public function render(bool $prettyPrint = true): string

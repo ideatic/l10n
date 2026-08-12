@@ -15,6 +15,9 @@ class Environment
   public array $params;
   public string $directory;
 
+  /** Código de salida devuelto por el proceso (0 = correcto) */
+  public int $exitCode = 0;
+
   public function __construct()
   {
     $this->directory = getcwd();
