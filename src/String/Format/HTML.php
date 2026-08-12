@@ -305,7 +305,7 @@ class HTML extends Format
 
     private function _checkIfMissingI18nAttribute(HTML_Parser_Element $element): bool
     {
-        $suspicious = !in_array($element->tag, ['script', 'style', 'noscript', 'mat-icon']);
+        $suspicious = !in_array($element->tag, ['script', 'style', 'noscript', 'mat-icon', 'title']);
 
         foreach ($element->children as $child) {
             if ($child instanceof HTML_Parser_Element) {

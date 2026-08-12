@@ -42,6 +42,11 @@ class CLI
                 Importer::run($environment);
                 break;
 
+            case 'io':
+                Importer::run($environment);
+                Extractor::run($environment);
+                break;
+
             case 'translate':
                 Translator::run($environment);
                 break;
@@ -58,6 +63,7 @@ Usage:
 Available tools:
   extract           Extract localizable strings
   import            Import translations from sources and write them to each project's translation files
+  io                Import translations and then extract localizable strings
   translate         Translate localizable strings in a codebase to a certain locale
   analyze           Test localizable strings validity and similarity
  ";

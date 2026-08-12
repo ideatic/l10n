@@ -67,7 +67,9 @@ class PO extends Serializer
                 }
 
                 // Comentarios
-                foreach (array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => strlen(mb_trim($s->comments ?? '')) > 0))) as $comment) {
+                foreach (
+                    array_unique(array_map(fn(LString $s) => $s->comments, array_filter($strings, fn(LString $s) => strlen(mb_trim($s->comments ?? '')) > 0))) as $comment
+                ) {
                     $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $comment);
                 }
                 foreach ($this->referenceTranslation ?? [] as $referenceLocale) {
@@ -87,7 +89,7 @@ class PO extends Serializer
                         $po[] = '#. ICU expression';
                     }
                 }
-                
+
                 if (!empty($translation?->metadata->comments)) {
                     $po[] = '#. ' . str_replace(["\r\n", "\n"], "\n#. ", $translation->metadata->comments);
                 }
@@ -159,7 +161,7 @@ class PO extends Serializer
         if (count($pattern->nodes) == 1 && $pattern->nodes[0] instanceof Placeholder) {
             $placeholder = $pattern->nodes[0];
 
-            if ($placeholder->type == 'plural') {
+            if ($placeholder->type == 'plural' && isset(array_values($placeholder->content)[1])) {
                 return true;
             }
         }
