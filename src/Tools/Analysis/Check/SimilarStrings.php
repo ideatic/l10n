@@ -15,15 +15,26 @@ use ideatic\l10n\Tools\Analysis\Severity;
  *
  * The groups are sorted by priority: first the ones differing only in case or punctuation (always a real error),
  * and within each kind, the longest and most used strings first.
+ *
+ * Two strings sharing a stem and differing only in a short trailing suffix ("Regalo"/"Regalos", "Copia"/"Copiar")
+ * are a kind of their own, and only informative: they are different words, not a duplicate, so unifying them would
+ * be wrong. No morphology is involved in recognising them, which is what makes the rule work in any language.
  */
 class SimilarStrings extends DomainCheck
 {
+    /** Longest trailing suffix that still counts as an inflection of the same stem */
+    private const int MAX_SUFFIX = 2;
+
+    /** Shortest stem worth comparing: below it almost anything looks like an inflection of anything else */
+    private const int MIN_STEM = 3;
+
     /** Weight of each kind of relation, used to prioritise the results */
     private const array KIND_WEIGHT = [
         'case' => 4,        // Differ only in letter case
         'whitespace' => 3,  // Differ only in spacing or trailing punctuation
         'normalized' => 2,  // Differ in case + spacing + punctuation
-        'fuzzy' => 1,       // Similitud aproximada
+        'fuzzy' => 1,       // Approximate similarity
+        'suffix' => 0,      // Same stem, different inflection
     ];
 
     private const array KIND_LABEL = [
@@ -31,6 +42,7 @@ class SimilarStrings extends DomainCheck
         'whitespace' => 'spacing/punctuation only',
         'normalized' => 'case + punctuation',
         'fuzzy' => 'similar',
+        'suffix' => 'same stem, different ending',
     ];
 
     public function name(): string
@@ -107,7 +119,9 @@ class SimilarStrings extends DomainCheck
                 similar_text($entries[$i]['text'], $entries[$j]['text'], $percent);
 
                 if ($percent > $threshold) {
-                    $relations[] = [$i, $j, 'fuzzy', $percent];
+                    $kind = self::_isInflection($entries[$i]['text'], $entries[$j]['text']) ? 'suffix' : 'fuzzy';
+
+                    $relations[] = [$i, $j, $kind, $percent];
                     self::_union($parent, $i, $j);
                 }
             }
@@ -164,7 +178,9 @@ class SimilarStrings extends DomainCheck
         foreach ($relations as [$i, $j, $kind, $percent]) {
             $root = self::_find($parent, $i);
 
-            $clusters[$root] ??= ['members' => [], 'kind' => 'fuzzy', 'percent' => 0.0];
+            // Seeded with the kind of the first relation, not with a fixed one: the cluster then keeps the highest
+            // weight it sees, and a seed of its own could outrank every relation actually found
+            $clusters[$root] ??= ['members' => [], 'kind' => $kind, 'percent' => 0.0];
             $clusters[$root]['members'][$i] = true;
             $clusters[$root]['members'][$j] = true;
 
@@ -199,9 +215,18 @@ class SimilarStrings extends DomainCheck
             $label = self::KIND_LABEL[$cluster['kind']];
             $percent = number_format($cluster['percent'], 0);
 
+            // Different inflections of the same stem are different words: there is nothing to unify, and saying so
+            // as loudly as a real duplicate buries the ones that are
+            $inflection = $cluster['kind'] === 'suffix';
+
+            if ($inflection) {
+                $details[] = 'Different endings of the same stem are usually distinct labels, not a duplicate.'
+                    . ' If the code picks between them by an amount, replace both with an ICU plural instead.';
+            }
+
             $issues[] = new Issue(
                 check: 'similar-strings',
-                severity: Severity::Warning,
+                severity: $inflection ? Severity::Info : Severity::Warning,
                 message: count($members) . " similar strings [{$label} · {$percent}%]",
                 domain: $domain->name,
                 stringID: $entries[$members[0]]['ids'][0],
@@ -220,6 +245,32 @@ class SimilarStrings extends DomainCheck
             'whitespace' => self::_collapse($text),
             default => self::_collapse(mb_strtolower($text)),
         };
+    }
+
+    /**
+     * Tells whether one string is the other plus a short trailing run of letters.
+     *
+     * That shape covers a singular against its plural, a noun against the verb built on it, or a masculine against
+     * its feminine, and it needs no dictionary for any of them: what is being recognised is that the two share a
+     * stem, not what the ending means. The comparison is case sensitive on purpose, so a pair that also disagrees
+     * in case keeps being reported as the inconsistency it is.
+     */
+    private static function _isInflection(string $a, string $b): bool
+    {
+        [$stem, $inflected] = mb_strlen($a) <= mb_strlen($b) ? [$a, $b] : [$b, $a];
+        $added = mb_strlen($inflected) - mb_strlen($stem);
+
+        if ($added < 1 || $added > self::MAX_SUFFIX || mb_strlen($stem) < self::MIN_STEM) {
+            return false;
+        }
+
+        if (mb_substr($inflected, 0, mb_strlen($stem)) !== $stem) {
+            return false;
+        }
+
+        // Only letters are an inflection: "Buscar" against "Buscar..." is a punctuation problem, and the whitespace
+        // pass already reports it as one
+        return preg_match('/^\p{L}+$/u', mb_substr($inflected, mb_strlen($stem))) === 1;
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use ideatic\l10n\Tools\Analysis\Check\SimilarStrings;
 use ideatic\l10n\Tools\Analysis\Issue;
 use ideatic\l10n\Tools\Analysis\Options;
+use ideatic\l10n\Tools\Analysis\Severity;
 use PHPUnit\Framework\TestCase;
 
 require_once 'AnalysisFixtures.php';
@@ -120,6 +121,87 @@ class AnalysisSimilarStringsTest extends TestCase
 
         $this->assertStringContainsString('src/league.php:12', $details);
         $this->assertStringContainsString('src/home.php:40', $details);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------
+    // Inflections of the same stem
+    // -----------------------------------------------------------------------------------------------------------
+
+    /**
+     * "Regalo" and "Regalos" are different words, so unifying them would be wrong. No morphology is used to tell:
+     * what is recognised is that one is the other plus a short run of letters, which holds in any language.
+     */
+    public function testInflectionsOfTheSameStemAreOnlyInformative(): void
+    {
+        // 'gift'/'gifts' is deliberately absent: at 88.9% it falls under the default threshold and is never
+        // reported in the first place
+        foreach ([['Regalo', 'Regalos'], ['Adulto', 'Adultos'], ['Bebé', 'Bebés'], ['Copia', 'Copiar'],
+                  ['Respuesta', 'Respuestas'], ['Invitado', 'Invitados']] as [$singular, $plural]) {
+            $issues = $this->_run(new SimilarStrings(), [$this->_string($singular), $this->_string($plural)]);
+
+            $this->assertCount(1, $issues, "{$singular}/{$plural}");
+            $this->assertSame(Severity::Info, $issues[0]->severity, "{$singular}/{$plural}");
+            $this->assertStringContainsString('same stem, different ending', $issues[0]->message);
+        }
+    }
+
+    public function testTheHintPointsAtIcuRatherThanAtMerging(): void
+    {
+        $issues = $this->_run(new SimilarStrings(), [$this->_string('Regalo'), $this->_string('Regalos')]);
+
+        $this->assertTrue(
+            array_any($issues[0]->details, static fn(string $detail): bool => str_contains($detail, 'ICU plural')),
+            'Merging them is the wrong advice; an ICU plural is the right one'
+        );
+    }
+
+    /** A real duplicate must not be demoted just because it also happens to be longer */
+    public function testRealDuplicatesRemainWarnings(): void
+    {
+        foreach ([['Guardar cambios', 'Guardar Cambios'], ['Buscar', 'Buscar...'],
+                  ['Crear invitación', 'Crear mi invitación']] as [$a, $b]) {
+            $issues = $this->_run(new SimilarStrings(), [$this->_string($a), $this->_string($b)]);
+
+            $this->assertCount(1, $issues, "{$a}/{$b}");
+            $this->assertSame(Severity::Warning, $issues[0]->severity, "{$a}/{$b}");
+        }
+    }
+
+    /** Only letters are an inflection: trailing punctuation is a formatting problem and keeps its own kind */
+    public function testATrailingPunctuationDifferenceIsNotAnInflection(): void
+    {
+        $issues = $this->_run(new SimilarStrings(), [$this->_string('Buscar'), $this->_string('Buscar…')]);
+
+        $this->assertSame(Severity::Warning, $issues[0]->severity);
+        $this->assertStringContainsString('spacing/punctuation only', $issues[0]->message);
+    }
+
+    /** A difference in the middle of the string is not a shared stem */
+    public function testADifferenceThatIsNotATrailingSuffixStaysAWarning(): void
+    {
+        $issues = $this->_run(
+            new SimilarStrings(),
+            [$this->_string('Enviar invitación por email'), $this->_string('Enviar invitaciones por email')]
+        );
+
+        $this->assertCount(1, $issues);
+        $this->assertSame(Severity::Warning, $issues[0]->severity);
+    }
+
+    /**
+     * A cluster mixing an inflection with a real duplicate keeps the higher severity: the cluster kind is the
+     * strongest relation found, and a seed of its own must not outrank it
+     */
+    public function testAClusterMixingKindsKeepsTheStrongestOne(): void
+    {
+        $issues = $this->_run(
+            new SimilarStrings(),
+            [$this->_string('Regalo'), $this->_string('Regalos'), $this->_string('regalo')]
+        );
+
+        $this->assertCount(1, $issues);
+        $this->assertSame(Severity::Warning, $issues[0]->severity);
+        $this->assertStringContainsString('case only', $issues[0]->message);
     }
 
     public function testUnrelatedStringsProduceNoIssues(): void

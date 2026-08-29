@@ -24,6 +24,14 @@ class Options
     /** @var list<string> Domains to analyze (empty = all of them) */
     public array $domains = [];
 
+    /**
+     * Half of the analysis to run: only the source strings, only their translations, or both.
+     *
+     * Scope::Source needs no catalog at all, so it can run on every commit even before anything has been sent out
+     * to translate.
+     */
+    public Scope $scope = Scope::Both;
+
     /** Minimum severity included in the report */
     public Severity $minSeverity = Severity::Info;
 
@@ -104,6 +112,7 @@ class Options
             $options->countPlaceholders = self::_toList($config->countPlaceholders ?? []) ?: $options->countPlaceholders;
             $options->ambiguousWords = self::_toList($config->ambiguousWords ?? []);
             $options->identicalLocales = self::_toList($config->identicalLocales ?? []);
+            $options->scope = isset($config->scope) ? Scope::parse(strval($config->scope)) : $options->scope;
             $options->icuRuntime = isset($config->icuRuntime) ? (object)$config->icuRuntime : null;
         }
 
@@ -122,6 +131,11 @@ class Options
 
         $domains = self::_value($params, 'domains', 'domain');
         $options->domains = $domains === 'all' ? [] : self::_split($domains);
+
+        $scope = self::_value($params, 'scope');
+        if ($scope !== null) {
+            $options->scope = Scope::parse($scope);
+        }
 
         $severity = self::_value($params, 'severity');
         if ($severity !== null) {

@@ -7,6 +7,7 @@ namespace ideatic\l10n\Tools\Analysis\Check;
 use ideatic\l10n\Tools\Analysis\Check;
 use ideatic\l10n\Tools\Analysis\Context;
 use ideatic\l10n\Tools\Analysis\Issue;
+use ideatic\l10n\Tools\Analysis\Scope;
 use ideatic\l10n\Tools\Analysis\Severity;
 
 /**
@@ -30,9 +31,13 @@ class CrossDomainDuplicates extends Check
         return 'Duplicated strings across domains';
     }
 
-    public function needsTranslations(): bool
+    /**
+     * The duplication itself is a source-level problem; the catalogs are only read to tell whether the copies have
+     * already drifted apart, which raises the severity but is not what is being audited
+     */
+    public function scope(): Scope
     {
-        return true;
+        return Scope::Source;
     }
 
     public function analyze(Context $context): array

@@ -18,6 +18,18 @@ abstract class Check
     /** Title shown in the report */
     abstract public function title(): string;
 
+    /**
+     * Half of the analysis this check belongs to: the source strings or their translations.
+     *
+     * It is derived from whether the check reads the catalogs, which is the right answer for almost every one of
+     * them. Override it when the two differ: a check that audits the source strings but happens to look at the
+     * translations to refine a finding still belongs to the source half.
+     */
+    public function scope(): Scope
+    {
+        return $this->needsTranslations() ? Scope::Translations : Scope::Source;
+    }
+
     /** Whether this check needs the translation catalogs to be loaded */
     public function needsTranslations(): bool
     {

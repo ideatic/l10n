@@ -7,6 +7,7 @@ namespace ideatic\l10n\Tools\Analysis\Check;
 use ideatic\l10n\Tools\Analysis\Check;
 use ideatic\l10n\Tools\Analysis\Context;
 use ideatic\l10n\Tools\Analysis\Issue;
+use ideatic\l10n\Tools\Analysis\Scope;
 use ideatic\l10n\Tools\Analysis\Severity;
 use ideatic\l10n\Utils\ICU\Plural;
 use ideatic\l10n\Utils\IO;
@@ -25,6 +26,12 @@ class ConfigHygiene extends Check
     public function name(): string
     {
         return 'config';
+    }
+
+    /** A configuration problem is worth knowing about whichever half is being audited */
+    public function scope(): Scope
+    {
+        return Scope::Both;
     }
 
     public function group(): string

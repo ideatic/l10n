@@ -115,6 +115,11 @@ abstract class Registry
                         return false;
                     }
 
+                    // A check declaring Scope::Both belongs to either half, so it survives any --scope
+                    if ($options->scope !== Scope::Both && $check->scope() !== Scope::Both && $check->scope() !== $options->scope) {
+                        return false;
+                    }
+
                     if ($check->needsTranslations() && !$hasTranslations) {
                         return false;
                     }

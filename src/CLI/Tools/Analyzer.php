@@ -13,6 +13,7 @@ use ideatic\l10n\Tools\Analysis\Context;
 use ideatic\l10n\Tools\Analysis\Issue;
 use ideatic\l10n\Tools\Analysis\Options;
 use ideatic\l10n\Tools\Analysis\Registry;
+use ideatic\l10n\Tools\Analysis\Scope;
 use ideatic\l10n\Tools\Analysis\Severity;
 use ideatic\l10n\Translation\Provider\Projects;
 use stdClass;
@@ -36,7 +37,9 @@ class Analyzer
         }
 
         $domains = self::_scanDomains($environment, $output, $options);
-        $locales = self::_getLocales($environment);
+
+        // Auditing only the source strings needs no catalog, so none is even resolved
+        $locales = $options->scope === Scope::Source ? [] : self::_getLocales($environment);
 
         $translator = new Projects($environment->config);
         foreach ($domains as $domain) {
@@ -47,8 +50,12 @@ class Analyzer
         $checks = Registry::resolve($options, $locales !== []);
 
         $output->line(
-            'Running ' . count($checks) . ' checks over ' . count($domains) . ' domain(s)'
-            . ($locales ? ' and ' . count($locales) . ' locale(s): ' . implode(', ', $locales) : ' (no target locales)')
+            'Running ' . count($checks) . ' checks'
+            . ($options->scope === Scope::Both ? '' : " on the {$options->scope->label()}")
+            . ' over ' . count($domains) . ' domain(s)'
+            . ($locales
+                ? ' and ' . count($locales) . ' locale(s): ' . implode(', ', $locales)
+                : ($options->scope === Scope::Source ? '' : ' (no target locales)'))
         );
 
         $issues = [];
@@ -394,14 +401,15 @@ class Analyzer
                 $flags[] = '--deep only';
             }
 
-            $rows[] = [$check->name(), $check->group(), $check->title(), implode(', ', $flags)];
+            $rows[] = [$check->name(), $check->scope()->label(), $check->group(), $check->title(), implode(', ', $flags)];
         }
 
-        $output->table(['check', 'group', 'description', ''], $rows);
+        $output->table(['check', 'scope', 'group', 'description', ''], $rows);
 
         $output->line();
         $output->line('  Groups: ' . implode(', ', Registry::GROUPS));
         $output->line('  Use --checks=name,group to run only some of them, or --skip=name,group to exclude them.');
+        $output->line('  Use --scope=source or --scope=translations to audit only one half; "both" is the default.');
         $output->line();
     }
 }

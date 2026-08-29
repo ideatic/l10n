@@ -82,6 +82,7 @@ Available tools:
 
 Analyze options:
   --list-checks         List the available checks and exit
+  --scope=source        Audit only the source strings (needs no catalog), only their 'translations', or 'all'
   --checks=a,b          Run only these checks or groups
   --skip=a,b            Exclude these checks or groups
   --locale=all|es,fr    Locales used by the translation checks (default: every target locale)
