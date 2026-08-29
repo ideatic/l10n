@@ -90,6 +90,13 @@ Extract options:
   --reference=es,fr     Locales added as a reference translation
   --locations=false     Do not include the source code locations
 
+Import options:
+  --input=PATH          Read the translations from this catalog instead of the sources of l10n.json.
+                        The extension picks the format. Accepts the {domain} and {locale} placeholders
+  --format=NAME         Catalog format: po, json, json-extended or php
+  --locale=es           Locale held by the catalog, required unless the path uses {locale}
+  --domain=app,web      Domains to import
+
 Analyze options:
   --list-checks         List the available checks and exit
   --scope=source        Audit only the source strings (needs no catalog), only their 'translations', or 'all'

@@ -154,7 +154,7 @@ class Extractor
         }
         $outputPath = strtr($outputPath, $placeholders);
 
-        if (!self::_isAbsolutePath($outputPath)) {
+        if (!IO::isAbsolutePath($outputPath)) {
             $outputPath = IO::combinePaths($environment->directory, $outputPath);
         }
 
@@ -266,11 +266,6 @@ class Extractor
         $value = $environment->params[$name];
 
         return $value === null || !in_array(mb_strtolower((string)$value), ['0', 'false', 'no', 'off'], true);
-    }
-
-    private static function _isAbsolutePath(string $path): bool
-    {
-        return str_starts_with($path, '/') || str_starts_with($path, '\\') || (bool)preg_match('/^[a-zA-Z]:[\\\\\/]/', $path);
     }
 
     /**

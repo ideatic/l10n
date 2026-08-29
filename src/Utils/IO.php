@@ -22,6 +22,14 @@ abstract class IO
     }
 
     /**
+     * Checks whether the path is absolute, both in the unix and the windows way
+     */
+    public static function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/') || str_starts_with($path, '\\') || (bool)preg_match('/^[a-zA-Z]:[\\\\\/]/', $path);
+    }
+
+    /**
      * Joins two or more paths into a single one:
      *
      * a, b    -> a/b

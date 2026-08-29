@@ -45,10 +45,14 @@ class Importer
             $domainsConfig = get_object_vars($environment->config->sources ?? new stdClass());
         }
 
+        // An explicit --input overrides every source configured in l10n.json
+        $inputPath = $environment->params['input'] ?? $environment->params['in'] ?? null;
+        $customSource = empty($inputPath) ? null : self::customInputSource($environment, $inputPath);
+
         foreach ($domains as $domain) {
             echo "\n\n#### {$domain->name} domain\n\n";
 
-            $domainConfig = $domainsConfig[$domain->name] ?? $domainsConfig['all'] ?? null;
+            $domainConfig = $customSource ?? $domainsConfig[$domain->name] ?? $domainsConfig['all'] ?? null;
             if (!isset($domainConfig)) {
                 echo "\tNo configuration found for domain '{$domain->name}'\n";
                 continue;
@@ -99,6 +103,71 @@ class Importer
                 }
             }
         }
+    }
+
+    /**
+     * Builds the translation source described by --input, used instead of the sources configured in l10n.json.
+     *
+     * The format is taken from the extension of the file, unless --format says otherwise, and the path accepts the
+     * same placeholders as the configured sources: {domain}, {locale} and {project-name}.
+     *
+     * Unlike an extracted catalog, an imported one says nothing about the locale it holds, so --locale is required
+     * unless the path tells the locales apart with the {locale} placeholder.
+     */
+    public static function customInputSource(Environment $environment, string $inputPath): stdClass
+    {
+        $placeholders = [];
+        foreach ($environment->config->projects as $project) {
+            $placeholders["{{$project->name}}"] = $project->path;
+        }
+        $inputPath = strtr($inputPath, $placeholders);
+
+        $isRemote = str_contains($inputPath, '://');
+        if (!$isRemote && !IO::isAbsolutePath($inputPath)) {
+            $inputPath = IO::combinePaths($environment->directory, $inputPath);
+        }
+
+        // The format comes from --format, or from the extension of the file
+        $format = $environment->params['format'] ?? Serializer::formatFromFileName($inputPath);
+        if (empty($format)) {
+            throw new \Exception(
+                "Unable to guess the catalog format of '" . basename($inputPath) . "', please set it with --format (po, json, json-extended or php)"
+            );
+        } elseif (!in_array($format, ['po', 'json', 'json-extended', 'php'], true)) {
+            throw new \Exception("Catalogs in '{$format}' format cannot be imported, only po, json, json-extended and php can");
+        }
+
+        // A catalog holds a single locale, and nothing inside it says which one
+        $localeParam = $environment->params['locale'] ?? $environment->params['lang'] ?? $environment->params['language'] ?? null;
+        $targetLocales = array_map(
+            fn(string|stdClass $info): string => is_object($info) ? $info->code : $info,
+            $environment->config->targetLocales
+        );
+
+        if ($localeParam === 'all' || ($localeParam === null && str_contains($inputPath, '{locale}'))) {
+            $locales = $targetLocales;
+        } elseif (!empty($localeParam)) {
+            $locales = array_map(mb_trim(...), explode(',', $localeParam));
+        } else {
+            throw new \Exception("Unable to know the locale of '" . basename($inputPath) . "', please set it with --locale (for example --locale=es)");
+        }
+
+        if (count($locales) > 1 && !str_contains($inputPath, '{locale}')) {
+            throw new \Exception("Reading several locales from a single file is not possible, add the {locale} placeholder to --input or import one locale at a time");
+        }
+
+        // Fail with a clear message instead of reporting an empty catalog later on
+        if (!$isRemote && !str_contains($inputPath, '{') && !is_file($inputPath)) {
+            throw new \Exception("Catalog '{$inputPath}' not found");
+        }
+
+        $source = new stdClass();
+        $source->name = 'command line';
+        $source->source = $inputPath;
+        $source->format = $format;
+        $source->locales = array_values($locales);
+
+        return $source;
     }
 
     /**
