@@ -60,6 +60,24 @@ abstract class Serializer
     }
 
     /**
+     * Guesses the serializer format from the extension of a file name.
+     *
+     * Returns null when the extension is unknown or the name carries no extension at all.
+     */
+    public static function formatFromFileName(string $fileName): string|null
+    {
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+        return match ($extension) {
+            'po', 'pot' => 'po',
+            'json' => 'json',
+            'php' => 'php',
+            'xlf', 'xliff' => 'xliff',
+            default => null,
+        };
+    }
+
+    /**
      * Generates a localization file for the given groups
      *
      * @param list<Domain> $domains

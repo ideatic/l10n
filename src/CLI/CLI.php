@@ -80,6 +80,16 @@ Available tools:
   translate         Translate localizable strings in a codebase to a certain locale
   analyze           Lint localizable strings, their translations and the l10n configuration
 
+Extract options:
+  --output=PATH         Write the catalog at this path instead of the destinations of l10n.json.
+                        A file uses its extension to pick the format, a directory uses the default names.
+                        Accepts the {domain}, {locale} and {format} placeholders
+  --format=NAME         Catalog format: po, json, json-extended, php or xliff
+  --locale=all|es       Locale of the generated catalog (none = source strings)
+  --domain=all|app,web  Domains to include
+  --reference=es,fr     Locales added as a reference translation
+  --locations=false     Do not include the source code locations
+
 Analyze options:
   --list-checks         List the available checks and exit
   --scope=source        Audit only the source strings (needs no catalog), only their 'translations', or 'all'

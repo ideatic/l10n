@@ -21,6 +21,14 @@ class Extractor
     public static function run(Environment $environment): void
     {
         $domains = self::scanDomains($environment);
+
+        // An explicit --output overrides every destination configured in l10n.json
+        $outputPath = $environment->params['output'] ?? $environment->params['out'] ?? null;
+        if (!empty($outputPath)) {
+            self::_writeToCustomPath($environment, $domains, $outputPath);
+            return;
+        }
+
         $lastGeneratedDomain = null;
 
         /** @var ExtractionDestiny $extractorConfig */
@@ -127,6 +135,142 @@ class Extractor
                 }
             }
         }
+    }
+
+    /**
+     * Writes the catalog at the path given by the user with --output, ignoring the destinations configured in
+     * l10n.json.
+     *
+     * The path can be a file (its extension selects the format, unless --format says otherwise) or a directory, and it
+     * accepts the same placeholders as the configured destinations: {domain}, {locale}, {format} and {project-name}.
+     *
+     * @param array<Domain> $domains
+     */
+    private static function _writeToCustomPath(Environment $environment, array $domains, string $outputPath): void
+    {
+        $placeholders = [];
+        foreach ($environment->config->projects as $project) {
+            $placeholders["{{$project->name}}"] = $project->path;
+        }
+        $outputPath = strtr($outputPath, $placeholders);
+
+        if (!self::_isAbsolutePath($outputPath)) {
+            $outputPath = IO::combinePaths($environment->directory, $outputPath);
+        }
+
+        // A path whose last segment carries an extension is a file, anything else is a directory
+        $isFile = (bool)preg_match('/\.[\w{}\-]+$/', basename($outputPath));
+
+        // The format comes from --format, or from the extension of the file
+        $formatName = $environment->params['format'] ?? ($isFile ? Serializer::formatFromFileName($outputPath) : null);
+        if (empty($formatName)) {
+            if ($isFile) {
+                throw new \Exception(
+                    "Unable to guess the catalog format of '" . basename($outputPath) . "', please set it with --format (po, json, json-extended, php or xliff)"
+                );
+            }
+            $formatName = 'po';
+        }
+
+        // Locales to generate
+        $locale = $environment->params['locale'] ?? $environment->params['language'] ?? $environment->params['lang'] ?? null;
+        $locales = $locale === 'all'
+            ? array_map(fn(string|\stdClass $info): string => is_object($info) ? $info->code : $info, $environment->config->targetLocales)
+            : [$locale];
+
+        // Domains to include
+        $domainNames = $environment->params['domains'] ?? $environment->params['domain'] ?? '';
+        if ($domainNames && $domainNames != 'all') {
+            $domainNames = array_unique(explode(',', $domainNames));
+            $domains = array_values(array_filter($domains, fn(Domain $domain): bool => in_array($domain->name, $domainNames)));
+
+            if (!$domains) {
+                throw new \Exception("No domains found matching '" . implode(', ', $domainNames) . "'");
+            }
+        }
+
+        $hasDomainPlaceholder = str_contains($outputPath, '{domain}');
+        $hasLocalePlaceholder = str_contains($outputPath, '{locale}');
+
+        if ($isFile && count($locales) > 1 && !$hasLocalePlaceholder) {
+            throw new \Exception("Writing several locales into a single file is not possible, add the {locale} placeholder to --output or generate one locale at a time");
+        }
+
+        // Options of the generated catalog, taken from the command line
+        $outputConfig = new \stdClass();
+        $outputConfig->referenceLanguage = array_filter(explode(',', (string)($environment->params['reference'] ?? '')));
+
+        foreach ($locales as $locale) {
+            $serializer = Serializer::factory($formatName);
+            $serializer->includeLocations = self::_boolParam($environment, 'locations', true);
+            $serializer->locale = $locale;
+            if (property_exists($serializer, 'transformICU') && array_key_exists('transform-icu', $environment->params)) {
+                $serializer->transformICU = self::_boolParam($environment, 'transform-icu', true);
+            }
+            $serializer->referenceTranslation = self::_getReferenceTranslations($outputConfig, $environment);
+
+            // Use the translation files of the various projects as the source for the translations
+            foreach ($domains as $domain) {
+                $domain->translator = new \ideatic\l10n\Translation\Provider\Projects($environment->config);
+            }
+
+            // One file with every domain, or one file per domain when the path can tell them apart
+            $groups = $isFile && !$hasDomainPlaceholder ? [$domains] : array_map(fn(Domain $domain): array => [$domain], $domains);
+
+            foreach ($groups as $group) {
+                $extension = $serializer->fileExtension ?? $formatName;
+
+                if ($isFile) {
+                    $path = strtr(
+                        $outputPath,
+                        [
+                            '{domain}' => $group[0]->name,
+                            '{locale}' => $locale ?? '',
+                            '{format}' => $extension,
+                        ]
+                    );
+                } else {
+                    $path = IO::combinePaths(
+                        $outputPath,
+                        strtolower(
+                            $environment->config->name . ($group[0]->name == 'app' ? '' : ".{$group[0]->name}") . ($locale ? ".{$locale}" : '') . ".{$extension}",
+                        ),
+                    );
+                }
+
+                if (!is_dir(dirname($path))) {
+                    mkdir(dirname($path), 0777, true);
+                }
+
+                $domainNames = implode(', ', array_map(fn(Domain $domain): string => $domain->name, $group));
+                echo "\n\tGenerating {$domainNames}" . ($locale ? " ({$locale})" : '') . "...";
+
+                file_put_contents($path, $serializer->generate(array_values($group)));
+
+                echo "\tFile written at {$path}";
+            }
+        }
+
+        echo "\n";
+    }
+
+    /**
+     * Reads a boolean argument. An argument written without a value (--locations) is true
+     */
+    private static function _boolParam(Environment $environment, string $name, bool $default): bool
+    {
+        if (!array_key_exists($name, $environment->params)) {
+            return $default;
+        }
+
+        $value = $environment->params[$name];
+
+        return $value === null || !in_array(mb_strtolower((string)$value), ['0', 'false', 'no', 'off'], true);
+    }
+
+    private static function _isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/') || str_starts_with($path, '\\') || (bool)preg_match('/^[a-zA-Z]:[\\\\\/]/', $path);
     }
 
     /**
