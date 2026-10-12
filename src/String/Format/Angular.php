@@ -332,21 +332,14 @@ class Angular_Methods extends CStyle
                 $metadata = mb_substr($string->text, 1, $metadataEnd - 1);
                 $string->id = $string->text = mb_substr($string->text, $metadataEnd + 1);
 
-                if (str_contains($metadata, '|')) {
-                    if ($metadata[0] == '|') {
-                        $string->comments = mb_substr($metadata, 1);
-                    } else {
-                        [$string->context, $string->comments] = explode('|', $metadata, 2);
-                    }
-                } else {
-                    $string->context = $metadata;
+                $parsed = self::parseMetadata($metadata);
+                $string->context = $parsed['meaning'];
+                $string->comments = $parsed['description'];
+                if ($parsed['customId'] !== null) {
+                    $string->id = $parsed['customId'];
                 }
-
-                if (str_contains($string->comments ?? '', '@@')) {
-                    [$string->comments, $string->id] = explode('@@', $string->comments, 2);
-                }
-                if (str_contains($string->comments ?? '', '##')) {
-                    [$string->comments, $string->domainName] = explode('##', $string->comments, 2);
+                if ($parsed['domain'] !== null) {
+                    $string->domainName = $parsed['domain'];
                 }
             }
 
@@ -364,6 +357,46 @@ class Angular_Methods extends CStyle
         return $strings;
     }
 
+
+    /**
+     * Parses the metadata block of a $localize string (`:meaning|description@@customId:`) with the same rules as
+     * Angular's parseMetadata() (@angular/localize): legacy ids (␟) are removed first, then the block is split on `@@`
+     * and then on `|`. Without `|` the whole block is the description, never the meaning.
+     *
+     * The meaning is the l10n context. On top of Angular's syntax, a `##domain` suffix in the description selects the
+     * l10n domain (`:##domain:`, `:|##domain:`, `:meaning|description##domain:`).
+     *
+     * @return array{meaning: ?string, description: ?string, customId: ?string, domain: ?string}
+     */
+    public static function parseMetadata(string $block): array
+    {
+        // Same as JS String.prototype.split(sep, 2): anything after a second separator is dropped
+        $split = static function (string $value, string $separator): array {
+            $parts = explode($separator, $value, 3);
+            return [$parts[0], $parts[1] ?? null];
+        };
+
+        $meaningDescAndId = explode("\u{241F}", $block)[0];
+        [$meaningAndDesc, $customId] = $split($meaningDescAndId, '@@');
+        [$meaning, $description] = $split($meaningAndDesc, '|');
+
+        if ($description === null) {
+            $description = $meaning;
+            $meaning = null;
+        }
+
+        $domain = null;
+        if (str_contains($description, '##')) {
+            [$description, $domain] = explode('##', $description, 2);
+        }
+
+        return [
+            'meaning' => $meaning !== '' ? $meaning : null,
+            'description' => $description !== '' ? $description : null,
+            'customId' => $customId !== '' ? $customId : null,
+            'domain' => $domain !== '' ? $domain : null,
+        ];
+    }
 
     /** @inheritDoc */
     public function translate(string $content, callable $getTranslation, $path = null): string
