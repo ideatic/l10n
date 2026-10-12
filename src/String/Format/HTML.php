@@ -109,34 +109,7 @@ class HTML extends Format
             // Process the i18nPlaceholder attributes of the child elements
             $placeholders = $this->_processChildPlaceholders($element);
 
-            // Normalise the whitespace
-            /** @phpstan-ignore nullsafe.neverNull */
-            switch ($element->hasAttribute('i18nWhitespaces')?->value ?? ($this->normalizeWhitespaces ? 'normalize' : 'keep')) {
-                case 'keep':
-                    $content = $element->innerHTML();
-                    break;
-
-                case 'normalize':
-                    $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
-                    break;
-                case 'trim':
-
-                    $content = mb_trim($element->innerHTML());
-                    break;
-
-                case 'unindent':
-                    // Find and strip the common indentation
-                    $content = $element->innerHTML();
-                    preg_match_all('/^[ \t]*(?=\S)/m', $content, $matches);
-                    $minIndent = empty(array_filter($matches[0])) ? 0 : min(array_map(mb_strlen(...), array_filter($matches[0])));
-                    $content = mb_trim(preg_replace('/^[ \t]{' . $minIndent . '}/m', '', $content));
-                    break;
-
-                default:
-                    throw new Exception("Invalid i18nWhitespaces value in {$path}: " . $element->render());
-            }
-
-            $content = HTML_Parser::entityDecode($content);
+            $content = $this->_elementContent($element, $path);
 
             $string = $this->_registerString($source, $path, $content, $i18nAttribute, $element);
             $string->placeholders = $placeholders;
@@ -202,6 +175,196 @@ class HTML extends Format
                 self::_processNode($child, $source, $path, $getTranslation);
             }
         }
+    }
+
+    /**
+     * Gets the translatable text of an element marked with i18n, applying its i18nWhitespaces rule
+     */
+    private function _elementContent(HTML_Parser_Element $element, ?string $path): string
+    {
+        /** @phpstan-ignore nullsafe.neverNull */
+        switch ($element->hasAttribute('i18nWhitespaces')?->value ?? ($this->normalizeWhitespaces ? 'normalize' : 'keep')) {
+            case 'keep':
+                $content = $element->innerHTML();
+                break;
+
+            case 'normalize':
+                $content = preg_replace('/\s+/', ' ', mb_trim($element->innerHTML()));
+                break;
+
+            case 'trim':
+                $content = mb_trim($element->innerHTML());
+                break;
+
+            case 'unindent':
+                // Find and strip the common indentation
+                $content = $element->innerHTML();
+                preg_match_all('/^[ \t]*(?=\S)/m', $content, $matches);
+                $minIndent = empty(array_filter($matches[0])) ? 0 : min(array_map(mb_strlen(...), array_filter($matches[0])));
+                $content = mb_trim(preg_replace('/^[ \t]{' . $minIndent . '}/m', '', $content));
+                break;
+
+            default:
+                throw new Exception("Invalid i18nWhitespaces value in {$path}: " . $element->render());
+        }
+
+        return HTML_Parser::entityDecode($content);
+    }
+
+    /**
+     * Prepares the markup for a native Angular i18n build, where the Angular compiler extracts and inlines the
+     * translations instead of this library.
+     *
+     * Every translatable string keeps its i18n attribute, whose value becomes the custom id (`@@id`) returned by
+     * $stamp, so the translation can be found later without comparing texts. The syntax only this library understands
+     * (i18nPlaceholder, i18nContent, i18nWhitespaces, noI18n...) is removed, since Angular would render it as plain
+     * attributes.
+     *
+     * The strings are read exactly as getStrings() reads them, so they match the keys of the catalogs.
+     *
+     * @param callable(LString $string, 'element'|'attribute' $kind, string $raw): string $stamp Receives each string
+     *                                                                                             and returns its id
+     */
+    public function annotate(string $html, callable $stamp, ?string $path = null): string
+    {
+        $this->_foundStrings = [];
+
+        $dom = HTML_Parser::parse(
+            $html,
+            strict: $this->supportAngularExpressions,
+            preserveAttributesWhitespace: false,
+            supportAngularExpressions: $this->supportAngularExpressions
+        );
+
+        foreach ($dom->children as $node) {
+            if ($node instanceof HTML_Parser_Element) {
+                $this->_annotateNode($node, $html, $path, $stamp);
+            }
+        }
+
+        $dom->walk(
+            function ($node) {
+                if ($node instanceof HTML_Parser_Element) {
+                    $node->removeAttribute('noI18n');
+                }
+            }
+        );
+
+        unset($this->_foundStrings);
+
+        return $dom->render();
+    }
+
+    private function _annotateNode(HTML_Parser_Element $element, string $source, ?string $path, callable $stamp): void
+    {
+        // Translatable attributes
+        foreach ($element->attributes as $i18nAttribute) {
+            if (!str_starts_with(strtolower($i18nAttribute->name), 'i18n-')) {
+                continue;
+            }
+
+            $attributeName = substr($i18nAttribute->name, strlen('i18n-'));
+            $attribute = $element->hasAttribute($attributeName);
+            if (!$attribute) {
+                throw new Exception("i18n attribute {$attributeName} not found in {$path}: " . $element->render());
+            }
+
+            $string = $this->_registerString($source, $path, HTML_Parser::entityDecode($attribute->value), $i18nAttribute, $attribute);
+            $string->placeholders ??= [];
+            $this->_prepareAnnotatedString($string, $path);
+
+            $raw = "{$attributeName}={$attribute->value}|{$i18nAttribute->value}";
+            $element->setAttribute($i18nAttribute->name, '@@' . $stamp($string, 'attribute', $raw));
+            $attribute->value = $this->_annotateAttributeValue($attribute->value, $attribute->enclosing);
+        }
+
+        // Translatable content
+        $i18nAttribute = $element->hasAttribute('i18n');
+        if ($i18nAttribute) {
+            $raw = $element->render();
+
+            // Read the string from a copy, because reading it replaces the i18nPlaceholder elements with their names
+            $copy = array_find(
+                HTML_Parser::parse(
+                    $raw,
+                    strict: $this->supportAngularExpressions,
+                    preserveAttributesWhitespace: false,
+                    supportAngularExpressions: $this->supportAngularExpressions
+                )->children,
+                fn($node) => $node instanceof HTML_Parser_Element
+            );
+            if (!$copy instanceof HTML_Parser_Element) {
+                throw new Exception("Unable to read the i18n element at {$path}: {$raw}");
+            }
+
+            $copy->walk(
+                function ($child) {
+                    if ($child instanceof HTML_Parser_Comment) {
+                        $child->remove();
+                    }
+                }
+            );
+            $placeholders = $this->_processChildPlaceholders($copy);
+
+            $string = $this->_registerString($source, $path, $this->_elementContent($copy, $path), $i18nAttribute, $element);
+            $string->placeholders = $placeholders;
+            $this->_prepareAnnotatedString($string, $path);
+
+            $id = $stamp($string, 'element', $raw);
+            $element->setAttribute($i18nAttribute->name, "@@{$id}");
+            $element->removeAttribute('i18nWhitespaces');
+
+            // Leave the content as Angular has to see it
+            $element->walk(
+                function ($child) use ($string, $id) {
+                    if ($child instanceof HTML_Parser_Comment) {
+                        $child->remove();
+                    } elseif ($child instanceof HTML_Parser_Element) {
+                        foreach (['i18nPlaceholder', 'i18nContent', 'i18nContentIgnore', 'i18nIgnore', 'noI18n'] as $attr) {
+                            $child->removeAttribute($attr);
+                        }
+                        foreach ($child->attributes as $attr) {
+                            if ($attr->value !== null && !str_starts_with(strtolower($attr->name), 'i18n')) {
+                                $attr->value = $this->_annotateAttributeValue($attr->value, $attr->enclosing, false);
+                            }
+                        }
+                    } elseif ($child instanceof HTML_Parser_Text) {
+                        $child->setContent($this->_annotateText($child->render(), $string, $id));
+                    }
+                }
+            );
+        }
+
+        foreach ($element->children as $child) {
+            if ($child instanceof HTML_Parser_Element) {
+                $this->_annotateNode($child, $source, $path, $stamp);
+            }
+        }
+    }
+
+    /**
+     * Completes a string found by annotate() the same way getStrings() completes it
+     */
+    protected function _prepareAnnotatedString(LString $string, ?string $path): void {}
+
+    /**
+     * Rewrites a text node inside an annotated i18n element
+     *
+     * @param string $id Custom id stamped on the element
+     */
+    protected function _annotateText(string $text, LString $string, string $id): string
+    {
+        return $text;
+    }
+
+    /**
+     * Rewrites the value of an attribute that is translated, or that belongs to an element inside an annotated one
+     *
+     * @param bool $translatable True when the attribute itself is translated (i18n-attr)
+     */
+    protected function _annotateAttributeValue(string $value, string $enclosing, bool $translatable = true): string
+    {
+        return $value;
     }
 
     private function _registerString(

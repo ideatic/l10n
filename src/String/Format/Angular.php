@@ -106,6 +106,166 @@ class Angular extends Format
 
 
     /**
+     * Prepares a template (.html) or a TypeScript file (.ts) for a native Angular i18n build: the Angular compiler
+     * extracts and inlines the translations, while this library still provides them.
+     *
+     * - The i18n attributes of the templates get a custom id (`i18n="@@id"`) and lose the syntax Angular does not
+     *   understand (see HTML::annotate()). `{{ expr | i18n:'%x%' }}` becomes `{{ expr // i18n(ph="I18N_X") }}`,
+     *   so the Angular placeholder has a known name, and the bare `#` of ICU plurals is turned into an interpolation.
+     * - `__()`, `_x()` and `_icu()` calls become `$localize` strings, and `$localize` strings get a custom id.
+     * - The calls inside templates move to class fields holding the `$localize` string, because templates cannot use
+     *   `$localize`.
+     *
+     * @param callable(LString $string, 'element'|'attribute'|'code' $kind, string $raw): string $stamp Receives each
+     *                                                                                                   string and returns its id
+     */
+    public function annotate(string $content, callable $stamp, string $path): string
+    {
+        $this->_i18nHTML->addHashPluralSupport = $this->fixIcuPluralHashes;
+        $extension = IO::getExtension($path);
+
+        if ($extension == 'html') {
+            $content = $this->_i18nHTML->annotate($content, $stamp, $path);
+
+            $calls = $this->_i18nMethods->getStrings($content, $path);
+            if ($calls) {
+                throw new Exception("Translation calls in external templates are not supported by the native i18n mode, found {$calls[0]->raw} @ {$path}");
+            }
+
+            return $content;
+        } elseif ($extension != 'ts') {
+            return $content;
+        }
+
+        // Inline templates
+        $fields = [];
+        foreach (self::_getInlineTemplates($content, true) as $inlineTemplate) {
+            $template = $this->_i18nHTML->annotate($inlineTemplate['value'], $stamp, "{$path}.html");
+
+            // Templates cannot call $localize: each call moves to a class field
+            $replacements = [];
+            foreach ($this->_i18nMethods->getStrings($template, "{$path}.html") as $string) {
+                $id = $stamp($string, 'code', $string->raw);
+                $fieldName = "__i18n_{$id}";
+                $fields[$fieldName] = self::_localizeExpression($string, $id);
+                $replacements[$string->raw] = $fieldName;
+            }
+            $template = strtr($template, $replacements);
+
+            if (strcmp($inlineTemplate['value'], $template) != 0) {
+                $newTemplate = json_encode($template, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                // Equal templates of several components are all replaced the first time
+                $content = str_replace($inlineTemplate['raw'], $newTemplate, $content, $count);
+                if ($count == 0 && !str_contains($content, $newTemplate)) {
+                    throw new Exception("Unable to replace component html template at '{$path}'");
+                }
+            }
+        }
+
+        // Strings in the code
+        $replacements = [];
+        foreach ($this->_i18nMethods->getStrings($content, $path) as $string) {
+            if (isset($replacements[$string->raw])) {
+                continue;
+            }
+
+            if (str_starts_with($string->raw, '$localize')) {
+                $replacements[$string->raw] = self::_stampLocalize($string, $stamp);
+            } else {
+                $replacements[$string->raw] = self::_localizeExpression($string, $stamp($string, 'code', $string->raw));
+            }
+        }
+        $content = strtr($content, $replacements);
+
+        // Declare the fields used by the templates in their component: the template precedes its class, and the same call
+        // in the templates of several components of the file needs the field in each one
+        $declarations = [];
+        foreach ($fields as $fieldName => $expression) {
+            $offset = 0;
+            while (($usage = strpos($content, $fieldName, $offset)) !== false && preg_match('/\bclass\s+[\w$]+[^{]*\{/', $content, $match, PREG_OFFSET_CAPTURE, $usage)) {
+                $offset = $match[0][1] + strlen($match[0][0]);
+                $declarations[$offset][] = "\n  protected readonly {$fieldName} = {$expression};";
+            }
+
+            if ($offset == 0) {
+                throw new Exception("Unable to find the class that uses the translation field {$fieldName} @ {$path}");
+            }
+        }
+
+        krsort($declarations);
+        foreach ($declarations as $insertAt => $lines) {
+            $content = substr($content, 0, $insertAt) . implode('', $lines) . substr($content, $insertAt);
+        }
+
+        return $content;
+    }
+
+    /**
+     * Name of the Angular placeholder given to a placeholder of this library (`%user%` → `I18N_USER`)
+     */
+    public static function placeholderName(string $name): string
+    {
+        if ($name === '#') {
+            return 'I18N_HASH';
+        }
+
+        $name = strtoupper(trim(preg_replace('/[^A-Za-z0-9]+/', '_', $name), '_'));
+
+        return 'I18N_' . ($name !== '' ? $name : 'PH');
+    }
+
+    /** Empty placeholder added to an ICU expression without placeholders, only to give it the id of its string */
+    public const string ICU_ID_PLACEHOLDER = 'I18N_ID';
+
+    /**
+     * Suffix that ties the placeholder names of a template string to its custom id (see Angular_HTML::_annotateText())
+     */
+    public static function placeholderSuffix(string $id): string
+    {
+        return '__L' . strtoupper(hash('xxh32', $id));
+    }
+
+    /**
+     * Placeholder name without the suffix added by placeholderSuffix()
+     */
+    public static function placeholderBaseName(string $name): string
+    {
+        return preg_replace('/__L[0-9A-F]{8}$/', '', $name);
+    }
+
+    /**
+     * Builds the $localize string that replaces a __(), _x() or _icu() call
+     */
+    private static function _localizeExpression(LString $string, string $id): string
+    {
+        $metadata = ($string->context !== null ? "{$string->context}|" : '') . "@@{$id}";
+        $text = str_replace(['\\', '`', '${'], ['\\\\', '\\`', '\\${'], $string->text);
+
+        return "\$localize`:{$metadata}:{$text}`";
+    }
+
+    /**
+     * Adds a custom id to the metadata block of a $localize string, keeping the one it already has
+     */
+    private static function _stampLocalize(LString $string, callable $stamp): string
+    {
+        $body = substr($string->raw, strlen('$localize`'), -1);
+
+        if (str_starts_with($body, ':')) {
+            $metadataEnd = strpos($body, ':', 1);
+            $metadata = substr($body, 1, $metadataEnd - 1);
+            if (str_contains($metadata, '@@')) {
+                $stamp($string, 'code', $string->raw);
+                return $string->raw;
+            }
+
+            return '$localize`:' . $metadata . '@@' . $stamp($string, 'code', $string->raw) . substr($body, $metadataEnd) . '`';
+        }
+
+        return '$localize`:@@' . $stamp($string, 'code', $string->raw) . ':' . $body . '`';
+    }
+
+    /**
      * Gets the Angular templates of the components present in the given TypeScript code
      */
     private static function _getInlineTemplates(string $tsSource, bool $getFullDeclaration = false): array
@@ -295,6 +455,147 @@ class Angular_HTML extends HTML
             },
             $context
         );
+    }
+
+    /** @inheritDoc */
+    protected function _prepareAnnotatedString(LString $string, ?string $path): void
+    {
+        Angular::prepareString($string, $path);
+    }
+
+    /** @inheritDoc */
+    protected function _annotateText(string $text, LString $string, string $id): string
+    {
+        // Angular moves an ICU that shares the message with other content to a message of its own, whose id only
+        // depends on its text and placeholder names, so equal ICUs of different strings would share one translation.
+        // The placeholders of strings with an ICU carry the id of the string to tell them apart
+        $suffix = $string->isICU ? Angular::placeholderSuffix($id) : '';
+
+        // Name the placeholders: {{ expr | i18n:'%x%' }} → {{ expr // i18n(ph="I18N_X") }}
+        $text = preg_replace_callback(
+            '/{{([^{].*?)}}/us',
+            fn($match) => '{{' . self::_namePlaceholder($match[1], '"', $suffix) . '}}',
+            $text
+        );
+
+        // The i18n pipe is not allowed in the ICU expression either: {count | i18n:'%count%', plural, ...}
+        $text = preg_replace('/\|\s*i18n\s*:\s*([\'"])[^\'"]*\1\s*(?=,\s*(plural|select|selectordinal)\s*,)/u', '', $text);
+
+        // Angular does not support # in ICU plurals: write the interpolation it stands for, as translate() does
+        $hashVariable = $this->_bareHashVariable($string);
+        if ($hashVariable !== null) {
+            $parts = preg_split('/({{.*?}})/us', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+            foreach ($parts as $i => $part) {
+                if ($i % 2 == 0) {
+                    $parts[$i] = preg_replace(
+                        '/&#x?[0-9a-f]+;(*SKIP)(*FAIL)|#/i',
+                        "{{ {$hashVariable} | number // i18n(ph=\"" . Angular::placeholderName('#') . $suffix . '") }}',
+                        $part
+                    );
+                }
+            }
+            $text = implode('', $parts);
+        }
+
+        // An ICU without placeholders would still share its message: an empty one in its first branch carries the id
+        if ($suffix !== '' && $this->_hasIcuWithoutPlaceholders($string)) {
+            $text = preg_replace(
+                '/(?<!\{)\{(?!\{)\s*[^{}]+?\s*,\s*(?:plural|select|selectordinal)\s*,[^{}]*?\{/u',
+                "\$0{{ '' // i18n(ph=\"" . Angular::ICU_ID_PLACEHOLDER . $suffix . '") }}',
+                $text
+            );
+        }
+
+        return $text;
+    }
+
+    /**
+     * Whether the string has an ICU expression with no placeholder in its branches, sharing the message with other
+     * content (Angular gives a lone ICU expression the id of the string)
+     */
+    private function _hasIcuWithoutPlaceholders(LString $string): bool
+    {
+        try {
+            $pattern = new Pattern($string->text);
+        } catch (Exception) {
+            return false;
+        }
+
+        if (count($pattern->nodes) == 1 && $pattern->nodes[0] instanceof Placeholder) {
+            return false;
+        }
+
+        $placeholders = array_map('strval', array_keys($string->placeholders ?? []));
+        foreach ($pattern->nodes as $node) {
+            if ($node instanceof Placeholder && is_array($node->content)) {
+                $icu = $node->render(false);
+                $hasPlaceholders = array_any($placeholders, fn(string $name) => str_contains($icu, $name))
+                    || ($node->type == 'plural' && str_contains($icu, '#') && $this->_bareHashVariable($string) !== null);
+                if (!$hasPlaceholders) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /** @inheritDoc */
+    protected function _annotateAttributeValue(string $value, string $enclosing, bool $translatable = true): string
+    {
+        if (!str_contains($value, 'i18n')) {
+            return $value;
+        }
+
+        if ($translatable) {
+            return preg_replace_callback(
+                '/{{([^{].*?)}}/us',
+                fn($match) => '{{' . self::_namePlaceholder($match[1], $enclosing == '"' ? "'" : '"') . '}}',
+                $value
+            );
+        }
+
+        // The attributes of the elements inside a translatable one are not translated: just drop the pipe
+        return preg_replace('/\|\s*i18n\s*:\s*([\'"])[^\'"]*\1/u', '', $value);
+    }
+
+    /**
+     * Replaces the i18n pipe of an interpolated expression with the comment that names its Angular placeholder
+     */
+    private static function _namePlaceholder(string $expression, string $quote, string $suffix = ''): string
+    {
+        if (!preg_match('/\|\s*i18n\s*:\s*([\'"])(.*?)\1\s*/u', $expression, $pipe)) {
+            return $expression;
+        }
+
+        $expression = mb_rtrim(str_replace($pipe[0], '', $expression));
+        $name = Angular::placeholderName($pipe[2]) . $suffix;
+
+        return "{$expression} // i18n(ph={$quote}{$name}{$quote}) ";
+    }
+
+    /**
+     * Expression of the plural whose # translate() would replace with the formatted number, or null when the string
+     * has no bare # to replace
+     */
+    private function _bareHashVariable(LString $string): ?string
+    {
+        if (!$this->addHashPluralSupport || !$string->isICU || isset($string->placeholders['#']) || !str_contains($string->fullyQualifiedID(), '#')) {
+            return null;
+        }
+
+        try {
+            $pattern = new Pattern($string->text);
+        } catch (Exception) {
+            return null;
+        }
+
+        $first = $pattern->nodes[0] ?? null;
+        if (!$first instanceof Placeholder || $first->type != 'plural') {
+            return null;
+        }
+
+        return mb_trim(preg_replace('/\|\s*i18n\s*:.*$/u', '', $first->name));
     }
 }
 

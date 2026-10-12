@@ -153,7 +153,7 @@ class AnalysisScopeTest extends TestCase
 
     public function testRejectsAnUnknownScope(): void
     {
-        $this->expectExceptionMessage("Invalid analysis scope 'catalogs'");
+        $this->expectExceptionMessageIsOrContains("Invalid analysis scope 'catalogs'");
 
         Options::create(null, ['scope' => 'catalogs']);
     }

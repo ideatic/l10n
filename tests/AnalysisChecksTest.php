@@ -357,7 +357,7 @@ class AnalysisChecksTest extends TestCase
         $options = new Options();
         $options->checks = ['does-not-exist'];
 
-        $this->expectExceptionMessage("Unknown analysis check or group 'does-not-exist'");
+        $this->expectExceptionMessageIsOrContains("Unknown analysis check or group 'does-not-exist'");
 
         Registry::resolve($options);
     }

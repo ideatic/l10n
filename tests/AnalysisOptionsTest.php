@@ -58,14 +58,14 @@ class AnalysisOptionsTest extends TestCase
 
     public function testRejectsUnknownSeverity(): void
     {
-        $this->expectExceptionMessage("Invalid severity 'critical'");
+        $this->expectExceptionMessageIsOrContains("Invalid severity 'critical'");
 
         Options::create(null, ['severity' => 'critical']);
     }
 
     public function testRejectsUnknownFormat(): void
     {
-        $this->expectExceptionMessage("Invalid analysis output format 'xml'");
+        $this->expectExceptionMessageIsOrContains("Invalid analysis output format 'xml'");
 
         Options::create(null, ['format' => 'xml']);
     }
