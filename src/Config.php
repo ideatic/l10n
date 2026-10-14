@@ -70,7 +70,7 @@ class Config
         // Validate the configuration
         foreach ($config->projects as $projectName => $project) {
             $project->name = $projectName;
-            $project->path = realpath(is_dir($project->path) ? $project->path : IO::combinePaths(dirname($configPath), $project->path));
+            $project->path = realpath(IO::isAbsolutePath($project->path) ? $project->path : IO::combinePaths(dirname($configPath), $project->path)); // Relative paths start at the config file, not at the working directory
 
             // Check and adjust the paths
             if (!$project->path) {
